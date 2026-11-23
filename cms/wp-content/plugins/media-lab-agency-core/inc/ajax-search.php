@@ -1,0 +1,518 @@
+<?php
+/**
+ * AJAX Search Handler
+ *
+ * Erweiterungspunkte (Filter), genutzt z. B. vom WooCommerce-Plugin
+ * (media-lab-woocommerce/inc/search-woo-extras.php):
+ *
+ *   media_lab_ajax_search_query_args ( array $args, string $term )
+ *       Query-Args der WP_Query je Suchbegriff (z. B. Produkt-Sichtbarkeit).
+ *   media_lab_search_woo_matches ( array $matches, string $search, int $limit )
+ *       Zusätzliche Produkt-Treffer: post_id => Anzeige-Text (z. B. "Art.-Nr.: R123").
+ *   media_lab_search_result_ids ( array $ids, string $search, string $context )
+ *       Treffer-IDs bereinigen, die nicht über WP_Query laufen. $context: 'live'.
+ *   media_lab_ajax_search_rate_limit ( int $limit )
+ *       Anfragen pro Minute und IP (Standard 60).
+ *   media_lab_ajax_search_term_results ( array $results, string $search, array $post_types, string $lang )
+ *       Treffer ohne Post-ID (z. B. Kategorien und Marken), stehen ganz oben. Felder wie die übrigen Treffer.
+ *
+ * @package Agency_Core
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+/**
+ * AJAX Search Handler
+ */
+add_action('wp_ajax_agency_search', 'agency_core_ajax_search');
+add_action('wp_ajax_nopriv_agency_search', 'agency_core_ajax_search');
+
+/**
+ * Wörter der Suchanfrage fürs Hervorheben / Ausschnitt-Suchen.
+ *
+ * Kennt die Suchsyntax (MediaLab_Search_Query): Operatoren ("oder", "und", "ohne" ...)
+ * und ausgeschlossene Begriffe ("-kinder") werden NICHT markiert, nur die Begriffe,
+ * nach denen tatsächlich gesucht wird. Ohne Syntax: Wörter an Leerzeichen getrennt (wie bisher).
+ *
+ * @return string[]
+ */
+function agency_core_search_words( string $query ): array {
+    if ( class_exists( 'MediaLab_Search_Query' ) ) {
+        $parsed = MediaLab_Search_Query::parse( $query );
+        if ( ! empty( $parsed['clauses'] ) ) return MediaLab_Search_Query::highlight_terms( $parsed );
+    }
+    return explode( ' ', $query );
+}
+
+/**
+ * Hebt alle Treffer des Suchbegriffs (wortweise) in einem Text per <mark>
+ * hervor. Escaped den Text zuerst selbst (esc_html) und markiert danach -
+ * das <mark>-Tag ist also gezielt das einzige erlaubte HTML im Ergebnis,
+ * kein durchgereichtes User-Input-HTML.
+ *
+ * Das Frontend (ajax-search.js) rendert 'title'/'excerpt' bereits jetzt
+ * ungeschützt als HTML (siehe displayResults() im Theme) - das war schon
+ * vor diesem Patch so, hier wird also kein neues Risiko eingeführt, nur
+ * die Escaping-Disziplin an dieser einen Stelle nachgezogen.
+ */
+function agency_core_highlight_search_term( string $text, string $query ): string {
+    $escaped = esc_html( $text );
+
+    $terms = array_filter( array_map( 'trim', agency_core_search_words( $query ) ), function( $t ) {
+        return $t !== '' && mb_strlen( $t ) >= 2; // einzelne Buchstaben nicht markieren (zu viel Rauschen)
+    } );
+    if ( empty( $terms ) ) return $escaped;
+
+    $pattern = '/(' . implode( '|', array_map( function( $t ) {
+        return preg_quote( esc_html( $t ), '/' );
+    }, $terms ) ) . ')/iu';
+
+    $highlighted = preg_replace( $pattern, '<mark>$1</mark>', $escaped );
+
+    // preg_replace gibt bei internem Fehler (z.B. ungültige UTF-8-Sequenz) null zurück -
+    // dann lieber den unmarkierten, aber garantiert escapten Text zeigen als nichts.
+    return $highlighted !== null ? $highlighted : $escaped;
+}
+
+/**
+ * Baut einen Kontext-Ausschnitt um die erste Fundstelle des Suchbegriffs im
+ * vollen Content herum (statt wie bisher immer nur den Anfang zu zeigen -
+ * wp_trim_words() kennt keine Fundstelle, nimmt einfach die ersten N Wörter).
+ * Fällt auf den übergebenen Fallback-Text zurück, wenn der Begriff im
+ * Content gar nicht wörtlich vorkommt - z.B. wenn nur der Titel gematcht
+ * hat, oder WordPress' Relevanz-Suche über Stemming/Teilwörter gefunden hat,
+ * was hier nicht nachgebildet wird.
+ *
+ * WICHTIG: durchsucht nur post_content (wie WP_Query's 's'-Parameter das
+ * auch tut) - KEINE Custom Fields, KEINE WooCommerce-Attribute (pa_*-
+ * Taxonomien). Ein Treffer auf "Größe: XL" als Produktattribut würde hier
+ * z.B. nicht gefunden, wenn "XL" nicht auch im Beschreibungstext steht.
+ */
+function agency_core_get_context_excerpt( string $content, string $query, string $fallback, int $words_around = 10 ): string {
+    $content = wp_strip_all_tags( strip_shortcodes( $content ) );
+    $content = preg_replace( '/\s+/u', ' ', trim( $content ) );
+
+    if ( $content === '' ) return $fallback;
+
+    $terms = array_filter( array_map( 'trim', agency_core_search_words( $query ) ), function( $t ) {
+        return mb_strlen( $t ) >= 2;
+    } );
+    if ( empty( $terms ) ) return $fallback;
+
+    $words = preg_split( '/\s+/u', $content );
+    $match_index = null;
+
+    foreach ( $words as $i => $word ) {
+        foreach ( $terms as $term ) {
+            if ( mb_stripos( $word, $term ) !== false ) {
+                $match_index = $i;
+                break 2;
+            }
+        }
+    }
+
+    if ( $match_index === null ) {
+        return $fallback;
+    }
+
+    $start = max( 0, $match_index - $words_around );
+    $end   = min( count( $words ) - 1, $match_index + $words_around );
+
+    $snippet = implode( ' ', array_slice( $words, $start, $end - $start + 1 ) );
+
+    if ( $start > 0 )                 $snippet = '… ' . $snippet;
+    if ( $end < count( $words ) - 1 ) $snippet = $snippet . ' …';
+
+    return $snippet;
+}
+
+/**
+ * Sucht Produkte, deren WooCommerce-Attribute (pa_*-Taxonomien, z.B. Farbe,
+ * Größe, Material) auf den Suchbegriff passen - unabhängig davon, ob der
+ * Begriff auch im Beschreibungstext steht. WP_Query's 's'-Parameter kann
+ * das von Haus aus nicht (durchsucht nur Titel/Excerpt/Content, keine
+ * Taxonomie-Terms) - deshalb eine separate Such-Runde über get_terms()
+ * + get_objects_in_term() pro Attribut-Taxonomie.
+ *
+ * @return array<int,string> post_id => "Attribut-Label: Wert" (z.B. "Farbe: Rot"),
+ *                            als fertiger Anzeige-Text fürs Excerpt-Feld.
+ */
+function agency_core_search_product_attributes( string $query ): array {
+    if ( ! function_exists( 'wc_get_attribute_taxonomy_names' ) ) return array();
+
+    $matches = array();
+
+    foreach ( wc_get_attribute_taxonomy_names() as $taxonomy ) {
+        if ( ! taxonomy_exists( $taxonomy ) ) continue;
+
+        $terms = get_terms( array(
+            'taxonomy'   => $taxonomy,
+            'name__like' => $query,
+            'hide_empty' => true,
+        ) );
+        if ( is_wp_error( $terms ) || empty( $terms ) ) continue;
+
+        // Menschlich lesbarer Attribut-Name statt technischem "pa_farbe" -
+        // WooCommerce speichert den Klartext-Namen in wc_attribute_taxonomies.
+        $attribute_label = wc_attribute_label( $taxonomy );
+
+        foreach ( $terms as $term ) {
+            $product_ids = get_objects_in_term( $term->term_id, $taxonomy );
+            if ( is_wp_error( $product_ids ) ) continue;
+
+            foreach ( $product_ids as $product_id ) {
+                if ( get_post_status( $product_id ) !== 'publish' ) continue;
+
+                // Erster passender Attribut-Wert gewinnt, falls ein Produkt
+                // zufällig mehrere Treffer hätte - selten genug, dass das
+                // als Regel reicht statt alle zu sammeln und zu verketten.
+                if ( ! isset( $matches[ $product_id ] ) ) {
+                    $matches[ $product_id ] = sprintf( '%s: %s', $attribute_label, $term->name );
+                }
+            }
+        }
+    }
+
+    return $matches;
+}
+
+/**
+ * Sucht Produkte mit LOKALEN/benutzerdefinierten Attributen (direkt am
+ * Produkt eingetragen, KEINE eigene pa_*-Taxonomie dahinter - z.B. schnell
+ * angelegte "Farbe: Rot | Blau" ohne globales Attribut-System).
+ * agency_core_search_product_attributes() oben findet nur Taxonomie-basierte
+ * (globale) Attribute - lokale stecken stattdessen serialisiert im
+ * '_product_attributes'-Post-Meta, mit 'is_taxonomy' => 0 pro Eintrag.
+ *
+ * Grober LIKE-Vorfilter auf den rohen serialisierten Meta-String verhindert
+ * einen Vollscan/unserialize() aller Produkte - LIKE funktioniert trotz
+ * Serialisierung, weil der Wert als Klartext-Substring im Blob steht
+ * (z.B. s:11:"Rot | Blau";).
+ *
+ * @return array<int,string> post_id => "Attribut-Label: Wert"
+ */
+function agency_core_search_local_product_attributes( string $query, int $limit ): array {
+    $matches = array();
+
+    $candidate_ids = get_posts( array(
+        'post_type'      => 'product',
+        'post_status'    => 'publish',
+        'posts_per_page' => max( $limit * 10, 50 ), // grobe Obergrenze gegen Vollscan bei sehr großen Katalogen
+        'fields'         => 'ids',
+        'meta_query'     => array(
+            array(
+                'key'     => '_product_attributes',
+                'value'   => $query,
+                'compare' => 'LIKE',
+            ),
+        ),
+    ) );
+
+    foreach ( $candidate_ids as $product_id ) {
+        $attributes = get_post_meta( $product_id, '_product_attributes', true );
+        if ( ! is_array( $attributes ) ) continue;
+
+        foreach ( $attributes as $attribute ) {
+            if ( ! empty( $attribute['is_taxonomy'] ) ) continue; // Taxonomie-Attribute laufen über die andere Funktion
+
+            $raw_values = explode( '|', (string) ( $attribute['value'] ?? '' ) );
+
+            foreach ( $raw_values as $raw_value ) {
+                $value = trim( $raw_value );
+                if ( $value !== '' && mb_stripos( $value, $query ) !== false ) {
+                    $label = ! empty( $attribute['name'] ) ? $attribute['name'] : __( 'Attribut', 'media-lab-core' );
+                    $matches[ $product_id ] = sprintf( '%s: %s', $label, $value );
+                    break 2; // ein Treffer pro Produkt reicht
+                }
+            }
+        }
+    }
+
+    return $matches;
+}
+
+/**
+ * Sucht in den Konfigurator-Optionen konfigurierbarer Produkte
+ * (media-lab-woocommerce/inc/configurator - ACF-Repeater config_steps →
+ * options → value/label). Komplett eigene Datenstruktur, weder Taxonomie-
+ * Term noch '_product_attributes'-Meta - deshalb eigene Suchfunktion.
+ *
+ * @return array<int,string> post_id => "Schritt-Label: Options-Label"
+ */
+function agency_core_search_configurator_options( string $query ): array {
+    if ( ! function_exists( 'get_field' ) ) return array();
+
+    $matches = array();
+
+    $configurable_ids = get_posts( array(
+        'post_type'      => 'product',
+        'post_status'    => 'publish',
+        'posts_per_page' => 200, // grobe Obergrenze gegen Vollscan bei sehr vielen konfigurierbaren Produkten
+        'fields'         => 'ids',
+        'meta_query'     => array(
+            array(
+                'key'   => 'is_configurable',
+                'value' => '1',
+            ),
+        ),
+    ) );
+
+    foreach ( $configurable_ids as $product_id ) {
+        $steps = get_field( 'config_steps', $product_id );
+        if ( ! is_array( $steps ) ) continue;
+
+        foreach ( $steps as $step ) {
+            $options = $step['options'] ?? array();
+            if ( ! is_array( $options ) ) continue;
+
+            foreach ( $options as $option ) {
+                $label = (string) ( $option['label'] ?? '' );
+                $value = (string) ( $option['value'] ?? '' );
+
+                $matched_text = null;
+                if ( $label !== '' && mb_stripos( $label, $query ) !== false ) {
+                    $matched_text = $label;
+                } elseif ( $value !== '' && mb_stripos( $value, $query ) !== false ) {
+                    $matched_text = $value;
+                }
+
+                if ( $matched_text !== null ) {
+                    $step_label = ( ! empty( $step['step_label'] ) ) ? $step['step_label'] : __( 'Option', 'media-lab-core' );
+                    $matches[ $product_id ] = sprintf( '%s: %s', $step_label, $matched_text );
+                    break 2; // ein Treffer pro Produkt reicht
+                }
+            }
+        }
+    }
+
+    return $matches;
+}
+
+function agency_core_ajax_search() {
+    // Live-Suche löst beim Tippen viele Anfragen aus (Standard: 60 pro Minute und IP)
+    $rate_limit = max( 1, (int) apply_filters( 'media_lab_ajax_search_rate_limit', 60 ) );
+    if ( ! medialab_check_rate_limit( 'ajax_search', $rate_limit, 60 ) ) {
+        wp_send_json_error( array( 'message' => 'Too many requests. Please try again later.' ), 429 );
+    }
+
+    // Verify nonce - MUSS MIT functions.php ÜBEREINSTIMMEN!
+    check_ajax_referer('agency_search_nonce', 'nonce');
+    
+    // Get search query
+    $search_query = isset($_POST['query']) ? sanitize_text_field($_POST['query']) : '';
+    
+    if (empty($search_query) || strlen($search_query) < 2) {
+        wp_send_json_error(array(
+            'message' => 'Search query too short'
+        ));
+    }
+
+    // Zentrale Such-Einstellungen (Agency Core → Logo / Globale Einstellungen → Suche)
+    $cfg = MediaLab_Search_Settings::get();
+    
+    // Get post types - handle both string and array format
+    $post_types = array('post', 'page', 'product'); // Default
+    
+    if (isset($_POST['post_types'])) {
+        // wp_unslash() ZWINGEND vor json_decode(): WordPress hängt über
+        // wp_magic_quotes() automatisch addslashes() an jedes $_POST-Feld
+        // (Kern-Kompatibilitätsverhalten, betrifft ausnahmslos jeden Request).
+        // Ohne diesen Schritt kommt hier statt '["post","page","product"]'
+        // '[\"post\",\"page\",\"product\"]' an - json_decode() scheitert daran
+        // (Syntax error), der Fallback explode() zerlegt den kaputten String
+        // in drei genauso kaputte Teile statt sauberer post_type-Werte.
+        // Gleiches Muster wie media-lab-woocommerce/inc/wishlist/class-ajax.php
+        // ::decode_json() (dort via stripslashes() gelöst - wp_unslash() ist
+        // die WP-native Variante, funktional identisch für einen String).
+        $raw = wp_unslash( $_POST['post_types'] );
+        
+        // Handle string (e.g., "post,page,product")
+        if (is_string($raw)) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $raw = $decoded;
+            } else {
+                $raw = array_map('trim', explode(',', $raw));
+            }
+        }
+        
+        if (is_array($raw)) {
+            $post_types = array_map('sanitize_text_field', $raw);
+            $post_types = array_filter($post_types);
+        }
+    }
+
+    // Whitelist: nur öffentlich durchsuchbare Post-Types, nie rohe $_POST-Werte
+    $post_types = MediaLab_Search_Settings::sanitize_post_types( $post_types );
+    
+    // Get limit - serverseitig gedeckelt (MediaLab_Search_Settings::MAX_LIMIT)
+    $limit = MediaLab_Search_Settings::clamp_limit( $_POST['limit'] ?? 0, $cfg['limit'] );
+
+    // Sprache der Seite: admin-ajax.php gilt für Polylang/WPML als Admin-Kontext,
+    // ohne explizite Sprache kämen Treffer ALLER Sprachen zurück.
+    $lang = isset( $_POST['lang'] ) ? sanitize_key( wp_unslash( $_POST['lang'] ) ) : '';
+    $lang_args = MediaLab_Search_Settings::apply_language( array(), $lang );
+
+    // Textausschnitt: Wörter vor/nach der Fundstelle (Fallback-Auszug etwas länger)
+    $words_around = $cfg['excerpt_words'];
+    
+    // ── 0. Mehrere Begriffe / UND / ODER / Ausschluss / Phrase ───────────────
+    // Jeder Begriff wird einzeln über alle Quellen aufgelöst und per Mengenlogik verknüpft
+    // (Parser: inc/search/class-search-query.php, Auflösung: MediaLab_Serp_Search::advanced_ids()).
+    $parsed   = class_exists( 'MediaLab_Search_Query' ) ? MediaLab_Search_Query::parse( $search_query ) : array( 'advanced' => false );
+    $advanced = ! empty( $parsed['advanced'] ) && class_exists( 'MediaLab_Serp_Search' );
+
+    // ── 1. Regulärer Titel/Content/Excerpt-Match (WP_Query 's') ──────────────
+    $search_terms = $advanced ? array() : apply_filters( 'media_lab_ajax_search_query_expansion', array( $search_query ), $search_query );
+
+    $content_ids = array();
+    foreach ( $search_terms as $term ) {
+        $args = array(
+            'post_type' => $post_types,
+            'post_status' => 'publish',
+            'posts_per_page' => $limit,
+            's' => $term,
+            'orderby' => 'relevance',
+            'order' => 'DESC',
+        );
+        $args = array_merge( $args, $lang_args );
+
+        // z. B. Produkt-Sichtbarkeit (Woo-Plugin: search-woo-extras.php)
+        $args = apply_filters( 'media_lab_ajax_search_query_args', $args, $term );
+
+        $term_query = new WP_Query( $args );
+        foreach ( wp_list_pluck( $term_query->posts, 'ID' ) as $id ) {
+            if ( ! in_array( $id, $content_ids, true ) ) $content_ids[] = $id;
+        }
+    }
+    $content_ids = array_slice( $content_ids, 0, $limit );
+
+    // ── 2. Zusätzlich: WooCommerce-Produktattribute (global + lokal +
+    //    Konfigurator-Optionen) ──────────────────────────────────────────────
+    $attribute_matches = array();
+    if ( ! $advanced && in_array( 'product', $post_types, true ) && class_exists( 'WooCommerce' ) ) {
+
+        // Attribut-/Konfigurator-Suche ist in den Such-Einstellungen abschaltbar
+        if ( $cfg['woo_attributes'] ) {
+            $attribute_matches = agency_core_search_product_attributes( $search_query );
+            // += statt array_merge: bestehende Keys (frühere Treffer) bleiben
+            // Vorrang, es werden nur Produkte ergänzt, die noch nicht drin sind.
+            $attribute_matches += agency_core_search_local_product_attributes( $search_query, $limit );
+
+            // Kein class_exists()-Gate hier (anders als bei den beiden Funktionen
+            // oben) - agency_core_search_configurator_options() braucht nur
+            // get_field(), keine Instanz der Configurator-Klasse. Ein Gate auf
+            // eine Klasse, die die Funktion gar nicht nutzt, wäre nur ein
+            // zusätzlicher, unnötiger Fehlerpunkt (falsches Verhalten, falls die
+            // Klasse im AJAX-Kontext aus irgendeinem Grund nicht/später geladen wird).
+            $attribute_matches += agency_core_search_configurator_options( $search_query );
+        }
+
+        // Weitere Produkt-Treffer: SKU (Teilstring), Kategorien, Marken ...
+        // (Woo-Plugin: search-woo-extras.php). Format: post_id => Anzeige-Text.
+        $attribute_matches += (array) apply_filters( 'media_lab_search_woo_matches', array(), $search_query, $limit );
+
+        if ( empty( $content_ids ) && empty( $attribute_matches ) ) {
+            $attribute_matches += apply_filters( 'media_lab_ajax_search_extra_matches', array(), $search_query, $limit );
+        }
+    }
+
+    // ── IDs zusammenführen: Content-Treffer zuerst (Relevanz-sortiert von
+    //    WP_Query), danach Attribut-Treffer die noch nicht dabei sind ────────
+    if ( $advanced ) {
+        // Sprache, Passwortschutz und 'media_lab_search_result_ids' (Kontext 'live') sind in advanced_ids() enthalten.
+        // $attribute_matches: Attribut-/SKU-Treffertext je Produkt (Ausschnitt-Zeile in der Trefferliste).
+        $attribute_matches = array();
+        $all_ids = MediaLab_Serp_Search::advanced_ids( $parsed, $post_types, $lang, $limit, 'live', $attribute_matches );
+    } else {
+        $all_ids = $content_ids;
+        foreach ( array_keys( $attribute_matches ) as $pid ) {
+            if ( ! in_array( $pid, $all_ids, true ) ) {
+                $all_ids[] = $pid;
+            }
+        }
+
+        // Treffer, die nicht über WP_Query laufen (Attribute, SKU, Kategorien ...),
+        // z. B. auf Produkt-Sichtbarkeit prüfen (Woo-Plugin: search-woo-extras.php)
+        $all_ids = array_values( (array) apply_filters( 'media_lab_search_result_ids', $all_ids, $search_query, 'live' ) );
+
+        // Attribut-/Extra-Treffer laufen nicht über WP_Query -> hier auf die Sprache filtern (Polylang)
+        $all_ids = MediaLab_Search_Settings::filter_ids_by_language( $all_ids, $lang );
+        $all_ids = array_slice( $all_ids, 0, $limit );
+    }
+
+    $results = array();
+
+    foreach ( $all_ids as $post_id ) {
+        // WICHTIG: setup_postdata() setzt NICHT selbst die globale $post-
+        // Variable (bekannter WP-Stolperstein bei Custom Loops) - ohne die
+        // explizite Zuweisung hier liefern get_the_title()/get_the_content()/
+        // get_post_type() etc. leere bzw. false-Werte zurück, weil sie intern
+        // über get_post() auf $GLOBALS['post'] zugreifen, nicht auf die
+        // Variablen, die setup_postdata() selbst befüllt ($id, $authordata, ...).
+        global $post;
+        $post = get_post( $post_id );
+        if ( ! $post ) continue;
+
+        setup_postdata( $post );
+
+        if ( isset( $attribute_matches[ $post_id ] ) && ! in_array( $post_id, $content_ids, true ) ) {
+            // Reiner Attribut-Treffer (nicht auch über Content gefunden):
+            // Attribut+Wert zeigen statt Content-Ausschnitt - das IST hier
+            // die relevante Fundstelle, ein Content-Ausschnitt würde den
+            // Suchbegriff ja gar nicht enthalten.
+            $context_excerpt = $attribute_matches[ $post_id ];
+        } else {
+            // Fallback (Begriff nicht im Content): Auszug vom Textanfang,
+            // bei Standardwert 10 -> 15 Wörter wie bisher.
+            $fallback_excerpt = wp_trim_words( get_the_excerpt(), $words_around + 5 );
+            $context_excerpt  = agency_core_get_context_excerpt( get_the_content(), $search_query, $fallback_excerpt, $words_around );
+        }
+
+        // Highlighting ist in den Such-Einstellungen abschaltbar
+        // (ohne Highlighting: nur escapen, kein <mark>)
+        $result = array(
+            'id' => get_the_ID(),
+            'title' => $cfg['highlight']
+                ? agency_core_highlight_search_term( get_the_title(), $search_query )
+                : esc_html( get_the_title() ),
+            'permalink' => get_permalink(),
+            'excerpt' => $cfg['highlight']
+                ? agency_core_highlight_search_term( $context_excerpt, $search_query )
+                : esc_html( $context_excerpt ),
+            'date' => get_the_date('d.m.Y'),
+            'post_type' => get_post_type(),
+            'thumbnail' => get_the_post_thumbnail_url(get_the_ID(), 'thumbnail'),
+        );
+        
+        // Allow plugins to extend result data (e.g. WooCommerce)
+        $result = apply_filters('media_lab_ajax_search_result', $result, get_the_ID(), get_post_type());
+        
+        $results[] = $result;
+    }
+    
+    wp_reset_postdata();
+
+    // Treffer ohne Post-ID (z. B. WooCommerce-Kategorien und -Marken) stehen ganz oben. Die Einträge haben
+    // dieselben Felder wie die übrigen Treffer (id, title, permalink, excerpt, date, post_type, thumbnail).
+    $term_results = (array) apply_filters( 'media_lab_ajax_search_term_results', array(), $search_query, $post_types, $lang );
+    if ( ! empty( $term_results ) ) {
+        $results = array_merge( array_values( $term_results ), $results );
+    }
+    
+    if (!empty($results)) {
+        wp_send_json_success(array(
+            'results' => $results,
+            'count' => count($results),
+            'query' => $search_query,
+        ));
+    } else {
+        wp_send_json_success(array(
+            'results' => array(),
+            'count' => 0,
+            'message' => 'No results found',
+        ));
+    }
+}

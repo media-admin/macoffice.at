@@ -1,0 +1,844 @@
+# Changelog — Media Lab Agency Core
+
+Alle wesentlichen Änderungen werden in dieser Datei dokumentiert.
+Format: [Keep a Changelog](https://keepachangelog.com/de/1.0.0/)
+Versionierung: [Semantic Versioning](https://semver.org/)
+
+**Hinweis zur Vollständigkeit:** Diese Datei wurde am 21.08.2026 aus dem
+bisherigen Inline-Changelog der README.md, dem monorepo-weiten
+`CHANGELOG.md` (root) sowie einer gezielten `git log`-Auswertung zwischen
+den vorhandenen Plugin-Tags (`media-lab-agency-core-v*`) rekonstruiert —
+`media-lab-agency-core` hatte zuvor kein eigenes `CHANGELOG.md` (siehe
+`docs/BACKLOG.md`, „Struktur/Prozess — Rest"). Für die Versionen ab
+`1.17.5` liegt durchgehende, ausführliche Dokumentation vor (`1.22.0`–
+`1.24.0` zusätzlich direkt aus den originalen Commit-Messages, siehe
+„Offene Punkte" Punkt 1 für den Rechercheweg). Für `1.9.0`–`1.12.0` sind
+nur knappe Stichpunkte aus `@since`-Kommentaren im Code verfügbar. Für
+`1.0.0`–`1.8.x` liegt keinerlei Detail-Information vor — dort existieren
+auch keine Git-Tags. **Bewusst nicht geraten** — siehe „Offene Punkte" am
+Ende.
+
+---
+
+## [1.39.1] - 2026-11-17
+
+### media-lab-agency-core 1.39.1
+
+#### Added
+- **Einstellungen für die Suche** unter Agency Core → Suche / Live-Suche → Verhalten (`inc/search-settings.php`):
+  - **Und/Oder-Syntax** (Standard an): erkennt „oder“, `|`, `-wort` / „ohne wort“ und Anführungszeichen. Aus: alle Wörter müssen vorkommen, Sonderzeichen zählen als normaler Text.
+  - **Teilwort-Treffer** (Standard „Nur bei langen Begriffen“): WordPress sucht im Wortinneren, „rot“ fand deshalb auch „Trotter“, „Pierrot“ und „Brotkorb“.
+    Bei „Nur bei langen Begriffen“ müssen Begriffe unter der Mindestlänge am Wortanfang stehen („rot“ findet „Rotwein“ und „Rot-Weiß“, nicht „Trotter“). Weitere Auswahl: „Immer“ (wie bisher) und „Nur Wortanfänge“.
+    Betrifft Titel, Kurztext und Beschreibung; Merkmale (z. B. „dunkelrot“), Kategorien, Marken und Artikelnummern werden weiterhin im Wortinneren gefunden.
+  - **Mindestlänge für lange Begriffe** (Standard 4 Buchstaben, nur sichtbar bei „Nur bei langen Begriffen“).
+  - **Ganze Wörter und Merkmale zuerst** (Standard an): Bei mehreren Begriffen und der Sortierung „Relevanz“ stehen Treffer mit ganzem Wort im Titel oder passendem Merkmal
+    (Farbe, Größe, Kategorie, Marke, Artikelnummer) vor Treffern mitten im Wort oder nur im Beschreibungstext.
+- Filter `media_lab_search_match_options` ( array `operators`, `partial`, `min_len`, `rank` ): überschreibt die Backend-Werte im Code.
+- `MediaLab_Search_Query::options()`, `is_word_start_only()`, `word_start_in()`, `whole_word_in()`, `title_score()`, `rank()`, `term_key()`; Parser-Ergebnis: je Begriff `word` (Teilwort-Regel gilt), je Abfrage `rank`.
+- `MediaLab_Serp_Search::ranked_orderby()` (Filter `posts_orderby`, Priorität 5): Reihenfolge der Mehrbegriff-Treffer bei Sortierung „Relevanz“.
+
+#### Changed
+- **Standardverhalten:** Ein einzelner kurzer Begriff (unter 4 Buchstaben, z. B. „rot“) gilt jetzt als erweiterte Abfrage (Teilwort-Regel, Rangfolge). Wer das bisherige Verhalten will, stellt „Teilwort-Treffer“ auf „Immer“ und „Ganze Wörter und Merkmale zuerst“ aus.
+- `media_lab_search_operators_enabled` überschreibt jetzt den Backend-Schalter „Und/Oder-Syntax“. Bei ausgeschalteter Syntax gilt jedes Wort als eigener Begriff (UND), statt die Suche der Standard-Abfrage zu überlassen.
+- Der Zwischenspeicher der Treffer-IDs (`matching_ids()`) berücksichtigt die Such-Optionen.
+
+## [1.39.0] - 2026-11-16
+
+### media-lab-agency-core 1.39.0
+
+#### Added
+- **Suche mit mehreren Begriffen, UND / ODER, Ausschluss und Phrasen** (`inc/search/class-search-query.php`, neu): Live-Suche, Ergebnisseite und Produktfilter
+  (Treffermenge `MediaLab_Serp_Search::matching_ids()`) verstehen jetzt eine einfache Suchsyntax:
+  - `shirt rot` – beide Begriffe (UND ist der Standard, „und“ / „and“ sind optional)
+  - `rot oder blau` – mindestens einer der Begriffe („oder“ / „or“ / `|`)
+  - `shirt rot oder blau` – shirt UND (rot ODER blau); ODER verbindet nur die Nachbar-Begriffe
+  - `shirt -kinder` / `shirt ohne kinder` – Treffer ohne „kinder“
+  - `"t-shirt basic"` – exakte Wortfolge
+  Jeder Begriff wird einzeln über alle Quellen aufgelöst (Titel/Inhalt inkl. Synonyme, Produktattribute, Konfigurator-Optionen, SKU, Kategorien, Marken) und
+  danach per Mengenlogik verknüpft. Zuvor wurde die komplette Zeichenfolge als ein Begriff gegen Attribute/SKU/Kategorien geprüft – „T-Shirt rot“ fand deshalb
+  keine Produkte, bei denen „rot“ nur als Attribut vorkommt.
+- `MediaLab_Serp_Search::advanced_ids()`: gemeinsamer Einstieg für die Mehrbegriff-Auflösung (Kontext `serp`, `matching`, `live` bei `media_lab_search_result_ids`).
+- Filter `media_lab_search_operators_enabled` ( bool ): Suchsyntax global abschalten (Standard `true`).
+- Konstante `MediaLab_Serp_Search::TERM_CAP` (10 000): Obergrenze je Einzelbegriff, damit das Schneiden der Mengen nicht an einer zu kleinen Zwischenmenge scheitert.
+
+#### Changed
+- Hervorheben und Textausschnitt (`agency_core_highlight_search_term()`, `agency_core_get_context_excerpt()`) markieren nur noch die tatsächlich gesuchten Begriffe –
+  Operatoren („oder“, „ohne“ …) und ausgeschlossene Begriffe nicht. Gilt auch für Theme-Templates, die diese Funktionen nutzen.
+- Bei Mehrbegriff-Suchen ersetzt die Ergebnisseite die native Such-Bedingung der Haupt-Abfrage durch die aufgelöste ID-Liste (Sortierung, Pagination, Post-Types und
+  Sprache bleiben unverändert). Eine einzelne normale Suchanfrage läuft unverändert wie bisher.
+
+## [1.38.0] - 2026-10-28
+
+### media-lab-agency-core 1.38.0
+
+#### Added
+- **Agentur-Credit im Footer abschaltbar** (`inc/acf-settings.php`): Neuer Schalter „Agentur-Credit im Footer“ unter Agency Core → Logo / Globale Einstellungen
+  (Standard: an). Das Theme blendet damit die Zeile „Konzept und Programmierung: …“ im Footer aus, zum Beispiel für eigene Projekte der Agentur.
+
+## [1.37.0] - 2026-10-28
+
+### media-lab-agency-core 1.37.0
+
+#### Added
+- **Logo für den Dunkelmodus** (`inc/acf-settings.php`): Neue optionale Felder „Logo (Desktop, Dunkelmodus)“ und „Logo (Mobile, Dunkelmodus)“ unter
+  Agency Core → Logo / Globale Einstellungen. Sie erscheinen nur, wenn der Dark-Mode-Umschalter eingeschaltet ist. Ohne dunkles Logo ändert sich nichts.
+  Die Ausgabe übernimmt das Theme (custom-theme 1.22.0): Fehlt eine Variante, gilt für Desktop dunkel das normale Desktop-Logo, für Mobil dunkel das
+  dunkle Desktop-Logo, sonst das normale Mobile-Logo.
+
+## [1.36.0] - 2026-10-13
+
+### media-lab-agency-core 1.36.0
+
+#### Added
+- **Filter `media_lab_ajax_search_term_results` (`array $results`, `string $search`, `array $post_types`, `string $lang`):** Treffer ohne Post-ID in der Live-Suche, z. B. Kategorien und Marken (media-lab-woocommerce 2.18.0). Die Einträge haben dieselben Felder wie die übrigen Treffer (`id`, `title`, `permalink`, `excerpt`, `date`, `post_type`, `thumbnail`) und stehen ganz oben (`inc/ajax-search.php`)
+
+## [1.35.1] - 2026-10-13
+
+### media-lab-agency-core 1.35.1
+
+#### Fixed
+- **Suchergebnisseite: Treffer der erweiterten Suche wurden bei 300 IDs abgeschnitten (`MediaLab_Serp_Search::MAX_EXTRA_IDS`).** Bei Treffern über Kategorien oder Marken (media-lab-woocommerce) zeigte die Seite nur 300 der Produkte, während die Produktfilter und deren AJAX-Anfragen mit der vollständigen Treffermenge (`matching_ids()`, bis 5000) arbeiteten. Nach dem ersten Filtern sprang die Liste dadurch auf eine größere Trefferzahl. Die Grenze liegt jetzt bei 5000, wie der Standard von `matching_ids()`
+
+## [1.35.0] - 2026-10-13
+
+### media-lab-agency-core 1.35.0
+
+#### Added
+- **Suche: Erweiterungspunkte, die Live-Suche, Ergebnisseite und Treffermenge gemeinsam nutzen.** `media_lab_ajax_search_query_args` (Query-Args je Suchbegriff, z. B. Produkt-Sichtbarkeit), `media_lab_search_woo_matches` (zusätzliche Produkt-Treffer als `post_id => Anzeige-Text`, z. B. SKU, Kategorien, Marken) und `media_lab_search_result_ids` (Treffer-IDs bereinigen, Kontext `live`, `serp` oder `matching`). Dazu `media_lab_ajax_search_rate_limit`. Genutzt vom WooCommerce-Plugin (`inc/search-woo-extras.php`, media-lab-woocommerce 2.17.0)
+- **`MediaLab_Serp_Search::matching_ids( $search, $types, $cap )`: Treffermenge einer Suche als ID-Liste.** Dieselbe Menge wie Live-Suche und Ergebnisseite (native Treffer, Synonyme, Attribute, Konfigurator-Optionen, Woo-Extras, Fuzzy-Produktcodes), pro Request und kurz als Transient gecacht (`mls_ids_*`, Filter `media_lab_search_ids_cache_ttl`, Standard 300 s). Grundlage der Produktfilter auf der Suchergebnisseite
+- **`MediaLab_Serp_Search::extra_ids()`:** IDs, die die erweiterte Suche der Haupt-Abfrage hinzugefügt hat, z. B. zum Priming des Produkttyp-Caches im Theme
+- **Text „Ergebnisseite: Anzeige-Bereich" (`serp_range`).** Standard „Ergebnisse %1$s–%2$s von %3$s werden angezeigt" (Platzhalter: erstes und letztes angezeigtes Ergebnis, Gesamtzahl)
+- **Such-Icon in der Navigation: Darstellung „Kein Menü-Eintrag" (`none`).** Das Theme setzt dann einen eigenen Button, der das Overlay über `[data-search-toggle]` öffnet; `nav-search-toggle.js` unterstützt mehrere Trigger
+- **Filter `media_lab_search_serp_per_page`:** „Ergebnisse pro Seite = 0" kann auf einen anderen Standard zurückfallen (WooCommerce-Plugin: Anzahl der Shop-Seite) statt auf den WordPress-Wert
+
+#### Changed
+- **Live-Suche: Rate-Limit 60 statt 20 Anfragen pro Minute und IP.** 20 war beim Tippen nach rund sieben Sekunden erreicht. Per Filter `media_lab_ajax_search_rate_limit` anpassbar
+- **Ergebnisseite (`MediaLab_Serp_Search::prepare()`) wendet dieselben Erweiterungspunkte an wie die Live-Suche.** Vorher liefen dort nur Synonyme, Attribute und der Fuzzy-Fallback
+
+#### Fixed
+- **`[ajax_search]`: Platzhalter und `aria-label` des Such-Buttons stammten nicht aus den Such-Einstellungen.** Der Platzhalter blieb ohne Shortcode-Attribut leer, der Button hatte ein festes „Suche starten". Beide kommen jetzt aus den Texten der Such-Einstellungen
+
+#### Hinweis
+- Projekte, die die Header-Suche bisher über ein Fremd-Plugin lösen (z. B. Advanced Woo Search): `[ajax_search]` im Overlay einsetzen und unter Agency Core → Suche die Inhaltstypen, die Anzahl der Ergebnisse und „Link zu allen Ergebnissen" setzen. Der Standard durchsucht nur Beiträge und Seiten
+
+## [1.34.2] - 2026-10-12
+
+### media-lab-agency-core 1.34.2
+
+#### Changed
+- **Cookie-Dialog, Kategorie „Komfort": Beispieltext nennt jetzt auch Instagram-Beiträge.** Der Social-Embed-Block (`blocks/social-embed`) rendert neben Facebook auch Instagram und lädt beides erst nach Komfort-Zustimmung, der Dialog erwähnte Instagram bisher nicht. Der Standardtext in `inc/cookie-consent.php` (ACF-Default sowie die Fallbacks in `resolve_texts()` und `output_config()`) lautet jetzt „… (z.B. YouTube- und Facebook-Videos, Instagram-Beiträge, Google Maps).", der Hinweis am Schalter „Komfort-Kategorie aktivieren" „(z.B. YouTube, Facebook, Instagram, Google Maps)"
+
+#### Hinweis
+- Die Standardtexte wirken nur bei Projekten, die den Komfort-Text noch nie gespeichert haben. Wo er im Backend gespeichert ist (Cookie-Einstellungen, bei Mehrsprachigkeit pro Sprache), den Text von Hand anpassen
+
+## [1.34.1] - 2026-10-09
+
+### media-lab-agency-core 1.34.1
+
+#### Changed
+- **Cookie-Dialog, Kategorie „Komfort": restliche Stellen auf den Text mit Facebook-Videos angeglichen** (`inc/cookie-consent.php`). Der Facebook-Video-Block (`blocks/facebook-video`) und der Social-Embed-Block (`blocks/social-embed`) laden ihre Inhalte erst nach Komfort-Zustimmung. Der Standardtext in `resolve_texts()` und im ACF-Feld nannte Facebook bereits, übrig waren der abweichende Fallback in `output_config()` („…wie YouTube-Videos oder Google Maps.") und der Hinweis am Schalter „Komfort-Kategorie aktivieren". Beide lauten jetzt wie der Standardtext bzw. „z.B. YouTube, Facebook, Google Maps"
+
+#### Hinweis
+- Die Standardtexte wirken nur bei Projekten, die den Komfort-Text noch nie gespeichert haben. Wo er im Backend gespeichert ist (Cookie-Einstellungen, bei Mehrsprachigkeit pro Sprache), den Text von Hand anpassen
+
+## [1.34.0] - 2026-10-09
+
+### media-lab-agency-core 1.34.0
+
+#### Added
+- **Beobachter-Rolle und zusätzliche Benachrichtigungsempfänger**
+  (`inc/observer-notifications.php`, neu) – WordPress kennt nur eine
+  `admin_email`. Neue Einstellungsseite **Agency Core → Benachrichtigungen / Beobachter**
+  (`agency-core-observer`): beliebig viele Adressen (eine pro Zeile, Komma/Semikolon
+  ebenfalls möglich), die ausgewählte System-Mails zusätzlich als Bcc
+  erhalten. Mail-Typen einzeln schaltbar: automatische Updates (Core,
+  Plugins, Themes; Standard an), Fatal-Error-Benachrichtigung,
+  Kommentare zur Freigabe, neue Benutzerregistrierungen (Standard aus).
+  Ungültige Adressen und die reguläre Admin-Adresse werden herausgefiltert.
+  Option: `medialab_observer_notifications`.
+- **Rolle „Beobachter“** (`medialab_observer`) mit `read` und
+  `view_site_health_checks` – Dashboard, Profil und Site Health ohne
+  Bearbeitungsrechte. Wird idempotent auf `init` angelegt, kein
+  Activation-Hook nötig.
+
+#### Hinweis
+- Bewusst kein generischer `wp_mail`-Filter: Dieser würde auch
+  Passwort-Reset-Mails duplizieren, sobald die Admin-Adresse zugleich die
+  E-Mail eines Benutzers ist. Es werden nur gezielt freigegebene Hooks
+  erweitert (`auto_core_update_email`, `auto_plugin_theme_update_email`,
+  `recovery_mode_email`, `wp_new_user_notification_email_admin`,
+  `comment_moderation_recipients`).
+
+---
+
+## [1.33.0] - 2026-10-08
+
+### media-lab-agency-core 1.33.0
+
+#### Added
+- **Suche: frei wählbare, mehrsprachige Bezeichnungen der Inhaltstypen mit Singular und Plural**
+  (`inc/search-settings.php`) – das Feld „Bezeichnungen der Inhaltstypen“ (Tab „Texte“, auch pro
+  Sprachzeile) akzeptiert jetzt `slug=Singular|Plural`, z. B. `team=Teammitglied|Teammitglieder`.
+  Bisher nur der Singular (Badge in den Suchergebnissen); der Plural steht neu in
+  `MediaLab_Search_Settings::get()['text']['type_labels_plural']` und wird vom Theme für den Zähler
+  der Archive verwendet („14 Teammitglieder“). Ohne Plural gilt der Plural des Inhaltstyps; bestehende
+  Einträge im Format `slug=Bezeichnung` funktionieren unverändert. Bei aktiver Mehrsprachigkeit gilt das
+  Standardfeld als Basis für alle Sprachen; ein Eintrag in einer Sprachzeile überschreibt ihn pro Typ.
+
+#### Fixed
+- **Plugin Status, Tab „Changelog“: Text und Trennlinien gleich breit** (`inc/plugin-status.php`) –
+  der Text war schmaler als die Versions-Trennlinien.
+
+*(Theme-seitig, gehört ins Theme-Changelog: Zähler der Archive mit Typ-Bezeichnungen aus diesen
+Einstellungen, `.post-card` konsolidiert, Archiv-/Single-Styles in `style.scss` eingebunden.)*
+
+---
+
+## [1.32.0] - 2026-10-08
+
+### media-lab-agency-core 1.32.0
+
+#### Added
+- **Suche: Text und/oder Icon im Hauptmenü** (`inc/search-settings.php`,
+  `inc/nav-search-icon.php`) – neue Einstellung „Darstellung in der Navigation“
+  (Agency Core → Suche / Live-Suche → Allgemein): *Nur Icon* (Standard, bisheriges
+  Verhalten), *Icon + Text* (Icon vor dem Text) oder *Nur Text*. Der Text
+  („Navigation: Text“, Standard „Suche“) ist im Tab „Texte“ mehrsprachig pflegbar.
+  Bei sichtbarem Text liefert dieser den zugänglichen Namen des Buttons
+  (WCAG 2.5.3), bei „Nur Icon“ bleibt das `aria-label`.
+- **Plugin Status als eigene Admin-Seite** (`inc/plugin-status.php`, neu) –
+  Agency Core → Plugin Status zeigt statt eines statischen Textes eine
+  Systemübersicht (Plugin-/WordPress-/PHP-Version gegen die Mindestanforderung,
+  Umgebung, Warnungen bei aktivem Wartungsmodus / fehlendem ACF / `WP_DEBUG` auf
+  Production), System & Abhängigkeiten (ACF, Theme, WooCommerce, Polylang/WPML,
+  PHP-Speicher, Object Cache), Inhaltstypen mit Anzahl (dynamisch statt
+  hartcodierter Liste) und Schnellzugriff auf alle Agency-Core-Einstellungsseiten.
+- **README und Changelog im Backend** – Tabs „Dokumentation“ (README.md) und
+  „Changelog“ (CHANGELOG.md, je Version einklappbar) auf der Plugin-Status-Seite,
+  gerendert von einem kleinen eigenen Markdown-Renderer (escaped, ohne externe
+  Bibliothek). Ausgeblendet bei aktivem White Label; überschreibbar per Filter
+  `medialab_plugin_status_show_docs`.
+
+#### Changed
+- **Plugin Status ist keine ACF-Options-Seite mehr** – die Seite gleichen Slugs
+  (`agency-core-plugin-status`) wird in `MediaLab_Plugin_Status::register_page()`
+  durch eine eigene Seite ersetzt (kein „Aktualisieren“-Button mehr). Die ACF-Seite
+  und die Feldgruppe `group_plugin_status` in `inc/acf-settings.php` entfallen.
+
+*(Theme-seitig, gehört ins Theme-Changelog: `_search-results.scss` 2.0.1 lädt
+`templates/archive` selbst – behebt fehlende Archiv-Styles auf der Suchergebnisseite
+(Grid, Layout-Umschaltung, Dark-Mode-Karten, Leer-Zustand).)*
+
+---
+
+## [1.31.0] - 2026-10-07
+
+### media-lab-agency-core 1.31.0
+
+#### Added
+- **Suchergebnisseite: Sortierung, Layout, Ergebnisse pro Seite**
+  (`inc/search-settings.php`) – neuer Tab „Ergebnisseite“ unter Agency Core →
+  Suche / Live-Suche: Layout (Raster mit 2/3/4 Spalten oder Liste), Ergebnisse
+  pro Seite, Standard-Sortierung (Relevanz, Neueste/Älteste zuerst, Titel
+  A–Z/Z–A), „Inhaltstypen zuerst“ (z. B. `product, page, post`) und optional
+  eine Sortier-Auswahl für Besucher (`?sort=…`). Die Haupt-Suchabfrage wird per
+  `pre_get_posts` bzw. `posts_orderby` angepasst; Konfiguration über
+  `MediaLab_Search_Settings::serp()`.
+- **Erweiterte Suche auf der Ergebnisseite** (`inc/search/class-serp-search.php`,
+  neu) – die Ergebnisseite findet jetzt dasselbe wie die Live-Suche: Synonyme
+  (`media_lab_ajax_search_query_expansion`), Produktattribute und
+  Konfigurator-Optionen sowie den Fuzzy-Fallback für Produktcodes
+  (`media_lab_ajax_search_extra_matches`). Die Haupt-Abfrage bleibt unverändert,
+  die zusätzlichen Treffer werden per `OR ID IN (…)` an die Such-Bedingung
+  gehängt (Sortierung, Pagination, Sprache und Zähler bleiben korrekt).
+  Abschaltbar; **Standard: an** – die Ergebnisseite zeigt dadurch ggf. mehr
+  Treffer als bisher.
+- **Texte der Ergebnisseite mehrsprachig** – Überschrift, Anzahl-Texte,
+  Sortier-Beschriftungen und Leer-Zustand im Tab „Texte“ (inkl. Sprachzeilen).
+
+#### Changed
+- Die Karten der Ergebnisseite nutzen dieselben Anzeige-Schalter und dieselbe
+  Hervorhebung wie die Live-Suche (Vorschaubild, Typ, Datum, Ausschnitt, Preis).
+
+*(Theme-seitig, gehört ins Theme-Changelog: `search.php` baut auf den
+Archiv-Bausteinen auf (`.archive-header`, `.post-grid`, `.post-card`,
+`.archive-pagination`, `.archive-empty`), `post-card.php` bekommt optionale
+Erweiterungen, neues `template-parts/search/result-card.php`,
+`_search-results.scss` 2.0.0.)*
+
+---
+
+## [1.30.0] - 2026-10-07
+
+### media-lab-agency-core 1.30.0
+
+#### Added
+- **Suche: eigene Einstellungsseite** (`inc/search-settings.php`, neu) –
+  **Agency Core → Suche / Live-Suche** (`agency-core-search`), vier Tabs
+  (Allgemein, Verhalten, Anzeige, Texte). Zentrale Quelle für alle
+  `.ajax-search`-Instanzen (Shortcode `[ajax_search]` und Nav-Overlay);
+  Shortcode-Attribute (`placeholder`, `limit`, `post_types`) überschreiben
+  weiterhin pro Suchfeld. Alle Standardwerte entsprechen dem bisherigen
+  Verhalten.
+  - **Texte, mehrsprachig:** Platzhalter, **Startertext** (erscheint beim
+    Fokus auf das leere Suchfeld), Hinweis „zu wenige Zeichen“ (`{min}`),
+    „Keine Ergebnisse“, Fehlertext, Link-Text „Alle Ergebnisse“,
+    Screenreader-Labels, Bezeichnungen der Inhaltstypen. Mehrsprachigkeit
+    nach dem Muster von `cookie-consent.php` (Repeater `search_languages`,
+    erste Zeile = Fallback; Polylang → WPML → WP-Locale).
+  - **Verhalten:** durchsuchte Inhaltstypen, Anzahl Ergebnisse (max. 20),
+    Mindestzeichen, Verzögerung, Länge des Textausschnitts,
+    WooCommerce-Attribut-/Konfigurator-Suche an/aus, Highlighting an/aus.
+  - **Anzeige:** Vorschaubild, Inhaltstyp-Label, Datum, Ausschnitt, Preis
+    und neuer Link „Alle Ergebnisse anzeigen“ jeweils an/aus.
+  - Konfiguration erreicht das Frontend als `data-config` (JSON) am
+    `.ajax-search`-Container.
+
+#### Changed
+- **Toggle „Suche in Navigation“ umgezogen** von Logo / Globale
+  Einstellungen → UI-Features nach Suche / Live-Suche → Allgemein
+  (`inc/acf-settings.php`: Feld entfernt; gleicher Key/Name
+  `search_enabled`, gespeicherte Werte bleiben erhalten).
+- **Nav-Overlay nutzt die globalen Such-Einstellungen**
+  (`inc/nav-search-icon.php`). Bisher fest verdrahtet: Platzhalter
+  „Wonach suchst du?“, 6 Treffer, Typen Beiträge/Seiten/Produkte – jetzt
+  gelten Standard 5 Treffer, Beiträge/Seiten und Platzhalter „Suchen...“,
+  sofern nicht in den Einstellungen angepasst.
+- **Shortcode `[ajax_search]`** (`inc/shortcodes.php`): Platzhalter und
+  Button-Label kommen aus den Einstellungen; Suchfeld mit `aria-label`.
+  - **Synonym-Wörterbuch auf die Seite „Suche / Live-Suche“ zusammengeführt**
+  (`inc/search/class-synonym-dictionary.php`) – die frühere eigene Seite
+  „Suche / Synonyme“ hatte denselben Slug `agency-core-search`. Die Klasse
+  registriert die Seite nicht mehr selbst, nur noch ihre Feldgruppe;
+  gespeicherte Synonyme bleiben erhalten.
+
+#### Fixed
+- **Live-Suche lieferte bei Mehrsprachigkeit Treffer aller Sprachen**
+  (`inc/ajax-search.php`) – `admin-ajax.php` gilt für Polylang/WPML als
+  Admin-Kontext. Das Frontend sendet jetzt die Seitensprache mit; Polylang
+  filtert per `lang` (inkl. Attribut-/Extra-Treffer), WPML per
+  `wpml_switch_language`.
+- **Absicherung des AJAX-Handlers:** Die vom Browser gesendeten
+  Inhaltstypen werden gegen öffentlich durchsuchbare Post-Types geprüft
+  (Whitelist), das Limit ist serverseitig auf 20 gedeckelt. Ein CPT mit
+  `exclude_from_search => true` ist per Live-Suche nicht mehr findbar.
+- **Filter `media_lab_ajax_search_extra_matches`** läuft unabhängig vom
+  Toggle „WooCommerce-Attribute durchsuchen“.
+
+*(Theme-seitig, gehört ins Theme-Changelog: `ajax-search.js` liest
+Konfiguration und Texte aus `data-config`, zeigt Startertext/Hinweis an,
+verwirft veraltete Antworten bei schnellem Tippen, zeigt bei Fehlern
+(z. B. Rate-Limit) den Fehlertext statt „Keine Ergebnisse“ und escaped das
+`alt`-Attribut der Thumbnails; `_ajax-search.scss` 1.3.0 mit Styles für
+Startertext, Hinweis und „Alle Ergebnisse“-Link.)*
+
+---
+
+## [1.29.0] - 2026-10-02
+
+### media-lab-agency-core 1.29.0
+
+#### Changed
+- **Security Scanner: „Kürzlich veränderte PHP-Dateien“ ohne verifizierte
+  .org-Plugin-Dateien** (`inc/class-mla-security-scanner.php`) – Dateien von
+  .org-Plugins, die exakt dem offiziellen Hash der installierten Version
+  entsprechen, werden nicht mehr aufgelistet. Die Anzahl der ausgeblendeten
+  Dateien steht als Hinweis über der Liste (Scan-Ergebnis `recent_files_hidden`).
+  Vorher füllte ein einzelnes Plugin-Update die auf 200 Einträge begrenzte Liste
+  und verdeckte alle anderen Änderungen. Übrig bleiben eigene Plugins, Themes,
+  `uploads/`, Core-Dateien und veränderte Plugin-Dateien.
+- **Security Scanner: Check „Subdirectory-Fix“ erkennt auch die Regeln selbst**
+  – Der Check ist grün, wenn im Root-`.htaccess` entweder der Marker
+  `Media Lab Subdirectory-Fix` oder aktive Rewrite-Regeln für `wp-content` und
+  `wp-includes` stehen. Auskommentierte Regeln zählen nicht.
+
+#### Fixed
+- **Security Scanner: Kurz-Snippet der Subdirectory-Anleitung enthält jetzt die
+  Marker-Kommentare** (`# BEGIN` / `# ENDE Media Lab Subdirectory-Fix`) – Wer nur
+  den Kurz-Snippet aus der Scan-Anleitung einfügte, behielt bisher ein rotes
+  Kreuz und die wöchentliche Alarm-Mail, obwohl die Regeln korrekt waren.
+
+---
+
+## [1.28.1] - 2026-10-02
+
+### media-lab-agency-core 1.28.1
+
+#### Fixed
+- **Security Scanner: Alarm-Mail bei Plugin-Abweichungen**
+  (`inc/class-mla-security-scanner.php`) – `run_scan_and_notify()` wertete
+  Abweichungen der Plugin-Integrität (veränderte oder fehlende Dateien bei
+  .org-Plugins) bisher nicht aus. Sie standen nur auf der Admin-Seite, die
+  wöchentliche Alarm-Mail blieb aus. Die Mail wird jetzt auch bei
+  Plugin-Abweichungen verschickt und nennt die betroffenen Plugins samt Anzahl
+  der Dateien. Übersprungene Plugins (Premium/eigene, keine Checksummen)
+  zählen nicht.
+- **Security Scanner: veralteter Snippet-Pfad im Hinweistext** – Der Hinweis beim
+  Check „Subdirectory-Fix“ verwies auf `stubs/htaccess-subdirectory-staging.snippet`.
+  Die Datei liegt unter `docs/snippets/htaccess-subdirectory-staging.snippet`.
+
+---
+
+## [1.28.0] - 2026-10-02
+
+### media-lab-agency-core 1.28.0
+
+#### Added
+- **Security Scanner: Abgleich mit offiziellen Plugin-Checksummen gegen False
+  Positives** (`inc/class-mla-security-scanner.php`) – Treffer der Code-Muster
+  in Dateien von .org-Plugins werden unterdrückt, wenn der MD5 der Datei exakt
+  dem offiziellen Hash der installierten Plugin-Version (downloads.wordpress.org)
+  entspricht. Veränderte Dateien werden weiterhin gemeldet. Die Checksummen
+  werden nur bei einem Treffer abgefragt und pro Scan je Plugin und Version nur
+  einmal geladen. Vorher löste z. B. `tcpdf_barcodes_1d.php` (GiveWP) nach jedem
+  Plugin-Update erneut `chr_concat_chain` aus.
+- **Security Scanner: Pfad-Ausnahmen pro Muster** – neue Property
+  `$pattern_path_excludes` und Filter `mla_security_scan_pattern_excludes` für
+  bekannte Libraries ohne öffentliche Checksummen. Standardmäßig ist
+  `chr_concat_chain` für dompdf (inkl. php-svg-lib) und TCPDF ausgenommen. Alle
+  anderen Muster (z. B. `eval_base64`) prüfen diese Ordner weiterhin.
+
+#### Changed
+- **Security Scanner: `check_plugin_integrity()`** nutzt den gemeinsamen Helper
+  `get_plugin_checksums()` (Request-Cache, keine doppelten HTTP-Abfragen mehr
+  zwischen Muster-Scan und Plugin-Integrität). Plugins mit leerer
+  Checksummen-Datei erscheinen jetzt als „übersprungen“, statt stillschweigend
+  ausgelassen zu werden.
+
+---
+
+## [1.27.1] - 2026-09-29
+
+### media-lab-agency-core 1.27.1
+
+#### Fixed
+- **Spam-Filter: kurze Namen wurden fälschlich als Spam verworfen**
+  (`inc/spam-content-filter.php`) – Die Gibberish-Heuristik wertete Felder als
+  Spam, sobald ein einzelnes Zeichen mehr als 40 % ausmachte. Bei kurzen Wörtern
+  ist das normal (z. B. „Saad", „Scacco", „Anna", „Emma", „Otto" = 50 %), sodass
+  Formulare mit solchen Namen komplett verworfen wurden (im Formular als
+  generische Fehlermeldung, ohne Eintrag im CF7-Spam-Log). Es werden jetzt nur
+  noch Buchstaben gezählt (Ziffern/Satzzeichen in Telefonnummern, Datums- und
+  Adressfeldern zählen nicht mehr mit), und Werte mit weniger als 8 Buchstaben
+  werden nicht mehr bewertet.
+
+#### Added
+- **Konstante `MEDIALAB_SPAM_GIBBERISH_MIN_LETTERS`** (Standard `8`) – Mindestanzahl
+  Buchstaben, ab der die Gibberish-Heuristik ein Feld bewertet; pro Projekt in der
+  `wp-config.php` überschreibbar.
+- **Gibberish-Heuristik: Erkennung von Zeichenketten** mit fünf oder mehr gleichen
+  Buchstaben in Folge („aaaaaa"), unabhängig vom Gesamtanteil.
+
+---
+
+## [1.27.0] - 2026-09-24
+
+### media-lab-agency-core 1.27.0
+
+#### Added
+- **Suche: Fuzzy-Toleranz für Produktcodes** (`inc/search/class-fuzzy-code-search.php`, neu)
+  – Tippfehler-Toleranz auf `_sku` als Fallback bei leerer Trefferliste (Titel/Content/
+  Attribute). Levenshtein-Vergleich läuft erst auf einer per SQL längen-vorgefilterten
+  Kandidatenmenge (`meta_key`-Index, `LIMIT`), um bei großen Katalogen (getestete
+  Projektgrößen 1.500–150.000 Produkte) performant zu bleiben.
+- **Suche: Mehrsprachiges Synonym-Wörterbuch** (`inc/search/class-synonym-dictionary.php`,
+  neu) – neue Einstellungsseite **Agency Core → Suche / Synonyme**: pro Sprache
+  konfigurierbare Begriffs-Äquivalenzgruppen (z. B. „sample bomb" ↔ „bottle sampler"),
+  erweitert die Titel-/Content-Suche automatisch um alle Begriffe der passenden Gruppe.
+  Spracherkennung über `MediaLab_Multi_Language::get_current_language()`.
+- **`inc/ajax-search.php`**: zwei neue Filter-Hooks für die beiden obigen Komponenten –
+  `media_lab_ajax_search_query_expansion` (Titel-/Content-Suche läuft jetzt über eine
+  Schleife expandierter Suchbegriffe statt eines einzelnen `WP_Query`-Aufrufs) und
+  `media_lab_ajax_search_extra_matches` (Fuzzy-Fallback, nur bei leerer Trefferliste).
+  Ohne aktive Filter (Standardzustand) identisches Verhalten wie zuvor.
+
+---
+
+## [1.26.2] - 2026-09-22
+
+### media-lab-agency-core 1.26.2
+
+#### Fixed
+- **Team-Rolle blieb leer, wenn ein Teammitglied nur über die Standard-CPT-Felder
+  angelegt wurde.** `team_query_shortcode()` und `posts_load_more_template_team()`
+  (`inc/shortcodes.php`) lasen `get_field('role')`, die ACF-Feldgruppe des CPT `team`
+  (`group_team_member.json`) definiert das Feld jedoch als `position`. Beide Stellen
+  lesen jetzt `get_field('role') ?: get_field('position')`.
+
+---
+
+## [1.26.1] - 2026-09-09
+
+### media-lab-agency-core 1.24.1
+
+#### Fixed
+- **`check_uploads_php_blocked()` erkannte `<Files *.php>` nicht** – die
+  Regex akzeptierte bisher nur `<FilesMatch ...php...>`, obwohl die im
+  selben Check ausgegebene `fix`-Anleitung explizit `<Files *.php>`
+  vorschlägt. Projekte, die exakt dieser Anleitung folgten, bekamen
+  trotz korrekt wirksamer PHP-Sperre weiterhin ein ❌ im Security Scan
+  (inkl. wöchentlicher Alarm-Mail). Regex erkennt jetzt beide
+  Schreibweisen (`<Files(?:Match)?[^>]*\.php[^>]*>`).
+
+---
+
+## [1.26.0] - 2026-09-08
+
+### media-lab-agency-core 1.26.0
+
+#### Added
+- **E-Mail-Log** (`inc/mail-log.php`, neu) – protokolliert alle über
+  `wp_mail()` versendeten E-Mails inkl. Volltext (Betreff, Empfänger,
+  Inhalt, Headers, Anhänge, Status, Fehlermeldung, Versand-Modus).
+  Admin-Unterseite mit Zeitraum-Filter, Status-/Suchfilter, Detail-
+  ansicht, CSV-Export. Automatische tägliche Bereinigung nach
+  konfigurierbarer Aufbewahrungsdauer (Standard 365 Tage).
+- **E-Mail-Report** (`inc/mail-log-report.php`, neu) – konfigurierbarer
+  periodischer Report (täglich/wöchentlich/monatlich) über den Mail-
+  Log-Bestand, dynamische Empfängerliste, Test-Versand.
+  
+---
+
+## [1.25.2] - 2026-09-02
+
+### Fixed
+- Security Scanner: `check_core_integrity()` verglich Core-Dateien ausschließlich gegen die
+  Checksums der über `get_locale()` ermittelten Sprache (z. B. `de_DE`). Installationen, deren
+  Core-Dateien trotz gesetztem `WPLANG` unübersetzt (englisch) geblieben sind – Standardfall,
+  da Übersetzung normalerweise nur über `.mo`-Sprachpakete läuft – lösten dadurch False-Positive-
+  Mismatches aus (z. B. `wp-config-sample.php`). Der Check holt jetzt zusätzlich die `en_US`-
+  Checksums als Fallback und wertet eine Datei nur noch als echten Fund, wenn sie gegen **beide**
+  Checksum-Sätze abweicht.
+- `liesmich.html` (deutsche Core-Readme, wird im Media Lab Deploy-Workflow bewusst nicht
+  mitgeliefert) als bekannte, harmlose Ausnahme ergänzt – analog zur bestehenden
+  `wp-includes/version.php`-Behandlung.
+
+---
+
+## [1.25.1] - 2026-09-02
+
+### Fixed
+- Security Scanner: `is_nginx()`-Erkennung über `$_SERVER['SERVER_SOFTWARE']` liefert bei
+  nginx+PHP-FPM ohne explizites `fastcgi_param SERVER_SOFTWARE $server_software;` im vHost
+  oft keinen zuverlässigen Wert. Dadurch wurden `.htaccess`-basierte Hardening-Checks
+  ("PHP-Ausführung in uploads/ blockiert", "Subdirectory-Fix für wp-content/wp-includes")
+  auf nginx-Servern fälschlich als `fail` statt `warn` gemeldet und lösten unnötige
+  Alarm-Mails aus.
+- Neue Konstante `MLA_FORCE_NGINX` (in `wp-config.php` setzbar) erzwingt die
+  nginx-Erkennung als Fallback für Server, bei denen `SERVER_SOFTWARE` nicht verlässlich
+  gesetzt ist.
+
+---
+
+## [1.25.0] - 2026-08-22
+
+### Added
+- **`medialab_share()`/`[medialab_share]`: optionale `url`/`title`-Parameter**
+  (`inc/social-share.php`) – bisher wurde immer die aktuelle Seiten-URL/
+  der aktuelle Seitentitel geteilt. Für Fälle, in denen eine andere URL
+  geteilt werden soll (z.B. `media-lab-woocommerce`s neues
+  Wunschlisten-Sharing, das einen Token-Link statt der eigenen
+  Seiten-URL teilt), können beide jetzt explizit übergeben werden.
+  Vollständig abwärtskompatibel – kein Aufrufer ohne diese Parameter
+  ändert sein Verhalten.
+
+---
+
+## [1.24.0] - 2026-08-17
+
+### Added
+- **YouTube Consent-Gate für `core/embed`** (`inc/youtube-embed-consent.php`)
+  – `render_block`-Filter statt eigener Block: erkennt YouTube-URLs in
+  nativen `core/embed`-Blöcken automatisch (kein neues Redakteur-Feld
+  nötig) und ersetzt das Auto-Embed durch Placeholder + Consent-Klick.
+  Thumbnail von `i.ytimg.com` (statisches Bild, kein Tracking vor
+  Consent). Betrifft alle bestehenden YouTube-Embeds site-weit, nicht
+  nur neue.
+- **Facebook/Instagram Consent-Gate Blöcke** (`blocks/facebook-video/`,
+  `blocks/social-embed/`) –
+  - `medialab/facebook-video`: iframe-basiertes Zwei-Klick-Consent-Gate
+  - `medialab/social-embed`: generalisiert für Facebook + Instagram
+    (Instagram über `blockquote` + `embed.js`, providerabhängige
+    Lade-/Entlade-Logik)
+  - Mehrsprachigkeit über Polylang `pll_register_string()`
+  - Breiten-Fix: `max-width` von `734px` (Facebook-Legacy-Wert) auf
+    `100%`
+  - Theme-seitig: `fb-video-consent.js`, `social-embed-consent.js` nach
+    dem `google-maps.js`-Muster (`window.CookieConsent`-API, Kategorie
+    `comfort`)
+
+### Fixed
+- **`vite.config.blocks.js` kompilierte `blocks.scss` nicht** – kein
+  Build-Schritt dafür hinterlegt; `emptyOutDir` löschte die manuell
+  erzeugte `blocks.css` sogar bei jedem Build wieder. Jetzt automatisiert
+  über einen `writeBundle`-Hook.
+
+---
+
+## [1.23.0] - 2026-08-17
+
+### Fixed
+- **Project-Card-Rendering vereinheitlicht, Service-Card-Button repariert**
+  – `service-card__cta` nutzte `button button--primary` (existiert
+  nirgends im CSS, nur `.btn`/`.btn--primary`) – CTA-Button war komplett
+  unstyled.
+  - `projects_query_shortcode()`: falsche ACF-Feldnamen
+    `client_name`/`project_year` (existieren nicht) → korrigiert auf
+    `client`/`project_date` (echte Namen laut `group_project.json`).
+    Client/Datum zeigten dadurch vorher nie etwas an.
+  - `ajax-filters.php`: gleicher Feldname-Bug
+    (`projekt_kunde`/`client_name` statt `client`), zusätzlich
+    `categories` (jetzt Array statt nur erste Kategorie) und
+    `url_external` ergänzt
+  - `ajax-load-more.php`: Feldnamen waren hier bereits korrekt, `url`
+    und `categories` ergänzt
+  - `posts_load_more_template_project()`: Markup auf dieselbe reiche
+    Struktur wie der Haupt-Shortcode umgestellt (Overlay/Link,
+    Kategorien, Meta ohne doppelten Mittelpunkt-Separator)
+  - Voraussetzung für den zugehörigen Theme-Commit (JS-Renderer auf
+    einheitliches `.project-card`-Markup umgestellt – siehe
+    `custom-theme`-Historie, nicht Teil dieses Changelogs)
+
+*(Diese Version enthielt außerdem sieben `fix(theme):`-Commits am selben
+Tag, die das Theme betreffen — Konsolidierung doppelter
+`.project-card`/`.post-card`/`.notification`-CSS-Definitionen,
+Entfernung toter `.service-card`-CSS, Repositionierung des
+Dark-Mode-Toggles. Gehören ins Theme-Changelog, nicht hierher.)*
+
+---
+
+## [1.22.0] - 2026-08-15
+
+### Added
+- **Ajax-Suche: Highlighting, Kontext-Ausschnitt, Attribut-Suche**
+  (`inc/ajax-search.php`) – bündelt vier zusammenhängende Verbesserungen:
+  - `agency_core_highlight_search_term()`: markiert Treffer per `<mark>`
+    in Titel und Excerpt (`esc_html()` zuerst, dann markieren)
+  - `agency_core_get_context_excerpt()`: zeigt einen Ausschnitt um die
+    tatsächliche Fundstelle im Content statt immer nur den Anfang
+  - `agency_core_search_product_attributes()` /
+    `_local_product_attributes()` / `_configurator_options()`: findet
+    Produkte auch über globale `pa_*`-Taxonomien, lokale Attribute und
+    Konfigurator-Optionen (`config_steps` → `options`), die
+    `WP_Query`s `s`-Parameter nicht durchsucht. Reine Attribut-Treffer
+    zeigen „Attribut: Wert" statt Content-Ausschnitt.
+
+### Fixed
+- **`post_type`-Filter griff bei mehreren Post-Types nicht** – `wp_magic_quotes()`
+  hatte den Wert vor `json_decode()` escaped (WP-Kernverhalten).
+  `wp_unslash()` ergänzt – gleiches Muster wie
+  `media-lab-woocommerce/inc/wishlist/class-ajax.php::decode_json()`.
+
+---
+
+## [1.21.0] - Datum nicht exakt verifiziert (zwischen 1.20.1 und 1.22.0)
+
+### Added
+- Neue Einstellung "Suche in Navigation" (Logo / Globale Einstellungen →
+  UI-Features, Standard: an). Zeigt ein Such-Icon im Hauptmenü, das ein
+  Such-Overlay mit der bestehenden Ajax-Search-Komponente öffnet.
+  *(Quelle: README Inline-Changelog, keine weiteren Details verfügbar)*
+
+---
+
+## [1.20.1] - Datum nicht exakt verifiziert (zwischen 1.20.0 und 1.21.0)
+
+### Added
+- WCAG-2.2.2-Fokus-Pause im Logo-Slider ergänzt (`ml-logo-slider.js`,
+  Theme-seitig): Autoplay pausiert automatisch bei
+  Tastatur-/Screenreader-Fokus auf ein Element innerhalb des Sliders.
+  Portierung des in 1.19.1 deaktivierten Verhaltens aus
+  `block-logo-slider.js` ins Theme.
+
+### Fixed
+- Veraltete Kommentarverweise in `assets/css/block-slider.css` auf die
+  gelöschte `assets/js/block-slider.js` korrigiert – verweisen jetzt auf
+  `ml-slider.js` (Theme). Rein kosmetisch, keine Funktionsänderung.
+
+*(Quelle: README Inline-Changelog, deckt sich mit `docs/BACKLOG.md` Paket D)*
+
+---
+
+## [1.20.0] - 2026-08-12
+
+### Added
+- **Heartbeat Monitoring** (`inc/heartbeat.php`) – Push-basiertes Monitoring
+  als Ersatz für klassische Pull-Uptime-Checks (UptimeRobot,
+  Better-Stack-HTTP-Monitore). Löst wiederkehrende Fehlalarme, die durch
+  externe Prober bei Shared-Hosting-typischen Effekten entstehen (langsame
+  Antwortzeiten, WAF-/Ping-Blockaden, DNS-Hänger) – die Seite meldet sich
+  stattdessen selbst in festem Intervall.
+  - Neuer REST-Endpoint `/wp-json/medialab/v1/heartbeat` (Token-Auth via
+    `hash_equals()`, Token wird bei Erstaktivierung automatisch generiert)
+  - Führt vor jedem Ping einen Mini-Health-Check durch (DB-Verbindung); bei
+    Fehlschlag wird `/fail` an die Provider-URL angehängt statt
+    stillzuschweigen
+  - Kompatibel mit Better Stack Heartbeats und Healthchecks.io
+  - Neue ACF-Options-Page „Heartbeat Monitoring" (`inc/acf-settings.php`):
+    Enable-Toggle, Provider-Auswahl (nur informativ), Heartbeat-URL, fertig
+    zusammengesetzter REST-Endpoint inkl. Token zum Copy-Paste für den
+    Server-Cronjob, Anzeige des letzten erfolgreichen Pings
+  - `medialab_heartbeat_get_setting()`: liest Config primär über
+    `get_field($name, 'option')`, fällt auf direktes `get_option()` zurück
+  - Empfohlenes Deployment-Modell: zentraler Dispatcher-Cronjob auf eigenem
+    Hetzner-Webhosting statt Einzel-Cronjobs pro Client-Site
+
+### Removed
+- **`inc/security.php` entfernt** – leerer Platzhalter seit dem ersten
+  Commit des Repos, nie mit Inhalt befüllt. Tatsächliche
+  Security-Funktionalität war von Anfang an auf `hcaptcha.php`,
+  `honeypot.php`, `turnstile.php`, `spam-content-filter.php` und
+  `class-mla-security-scanner.php` aufgeteilt.
+
+---
+
+## [1.19.2] - 2026-08-07
+
+### Fixed
+- **Security-Scan meldete auf nginx-Systemen dauerhaft unbehebbare Fehler**
+  ("Subdirectory-Fix für wp-content/wp-includes"), inkl. wöchentlicher
+  Alarm-E-Mail und rotem ❌ im Admin – obwohl die zugrunde liegende
+  `.htaccess`-Prüfung auf nginx grundsätzlich nie etwas finden kann (nginx
+  wertet `.htaccess` nicht aus; die Konfiguration gehört in den Vhost).
+  Betraf praktisch jedes Starter-Kit-Projekt mit `/cms/`-Subdirectory-Setup
+  auf nginx.
+
+---
+
+## [1.19.1] - Datum nicht exakt verifiziert (zwischen 1.19.0 und 1.19.2)
+
+> ⚠️ Versionsnummer und Datum dieses Eintrags sind aus der Reihenfolge im
+> root-`CHANGELOG.md` erschlossen, nicht direkt aus einer Versions-Kopfzeile
+> gelesen — Inhalt selbst ist aber im Quelltext eindeutig belegt.
+
+### Fixed
+- **Doppel-Initialisierung von Swiper in `medialab/slider` und
+  `medialab/logo-slider`** – `block-slider.js` (Plugin) und `ml-slider.js`
+  (Theme) initialisierten beide denselben Swiper-Container; ein
+  `el.swiper`-Check in `block-slider.js` sollte das verhindern, schlug aber
+  durch einen Bug immer fehl, wodurch `block-slider.js` faktisch tot war.
+  - `inc/blocks.php`: kaputten `swiper`-Enqueue (Script + Style) entfernt;
+    Swiper-CSS kommt bereits über das Theme (`main.js` importiert
+    `swiper/css/bundle`)
+  - `assets/js/block-slider.js` entfernt (redundant/tot).
+    `assets/css/block-slider.css` (Skeleton aus 1.19.0) bleibt bestehen –
+    hängt nur an Swipers eigener `swiper-initialized`-Klasse
+  - Theme-seitiges `ml-slider.js` übernimmt zusätzlich den
+    Skeleton-Fallback in allen Fehlerpfaden
+  - `medialab/logo-slider` (`block-logo-slider.js`) ebenfalls deaktiviert,
+    gleicher Bug, gleiche Ursache
+
+### Bekannter Trade-off (weiterhin offen)
+- `medialab/logo-slider` hat aktuell keine WCAG-2.2.2-Fokus-Pause im
+  Frontend aktiv – `block-logo-slider.js` enthielt diese Logik, war aber
+  durch obigen Bug ohnehin nie aktiv. Funktional unverändert zum
+  vorherigen Zustand. (Wurde in **1.20.1**, siehe unten, ins Theme portiert.)
+
+---
+
+## [1.19.0] - 2026-08-06
+
+### Added
+- **Skeleton für `medialab/slider` (Stufe 2)** – reiner CSS-Skeleton für die
+  Zeitspanne zwischen erstem Paint und abgeschlossener
+  Swiper-Initialisierung. Nutzt Swipers eigene `swiper-initialized`-Klasse
+  als CSS-Selektor, kein zusätzliches JS zum Ein-/Ausblenden nötig – nur
+  ein Sicherheitsnetz in `block-slider.js`
+  (`ml-slider__swiper--skeleton-done`), das den Skeleton in allen
+  Fehler-/Abbruchpfaden beendet. Shimmer-Keyframe wiederverwendet aus dem
+  site-weiten `skeleton.css` (1.18.0).
+- **Frontend-Verifizierung der nativen-Block-Migration abgeschlossen**
+  (offen seit 1.16.0/1.17.x): `medialab/slide` setzt die Klasse
+  `swiper-slide` bereits direkt am eigenen `useBlockProps.save()`-Root,
+  wodurch die Wrapping-Logik in `block-slider.js` für nativ erzeugte
+  Folien in der Praxis nie greift – rein defensiver Fallback für
+  Alt-Content.
+
+---
+
+## [1.18.0] - 2026-08-05
+
+### Added
+- **Zentrale Skeleton-Loading-API** (`inc/skeleton.php`,
+  `assets/css/skeleton.css`, `assets/js/skeleton.js`) – wiederverwendbares
+  Feature für Skeleton-Screens statt Spinner/Opacity-Dimming bei
+  AJAX-Requests und verzögerter JS-Initialisierung. Site-weit als
+  `window.MediaLabSkeleton` verfügbar (JS) sowie über
+  `medialab_render_skeleton()` (PHP). Vier Varianten: `card`, `list`,
+  `text`, `slide`. Farben per CSS Custom Properties im Theme
+  überschreibbar. Respektiert `prefers-reduced-motion`.
+  - Stufe 1 einer dreistufigen Skeleton-Einführung: (1) AJAX-Content
+    [erledigt], (2) JS-init-abhängige Blocks (Slider/Parallax) [siehe
+    1.19.0], (3) initialer Seitenaufbau [offen]
+
+---
+
+## [1.17.5] - 2026-08-03
+
+### Added
+- **WP All Import Integration**
+  (`inc/integrations/wp-all-import-timeout.php`,
+  `inc/integrations/wp-all-import-custom-download.php`) – Zwei Fixes für
+  Bilder-Downloads bei WP-All-Import-Importen:
+  - Timeout-Fix: `pmxi_image_download_timeout`-Filter erhöht den
+    Bilder-Download-Timeout von 5s auf 30s (überschreibbar via
+    `mlac_wpai_image_timeout_seconds`)
+  - `custom_file_download()`-Helper gegen UA-basiertes Blocking
+  - Backport aus dem Janecka-Projekt
+
+---
+
+## Ältere Versionen (unvollständig dokumentiert)
+
+Für die folgenden Versionen liegt **keine ausführliche Beschreibung** vor —
+nur Versionsnummer + knapper Stichpunkt, entnommen aus README-Inline-Notizen
+oder `@since`-Code-Kommentaren. Nicht geraten, nicht ausgeschmückt.
+
+- **1.12.0** — Dark Mode Toggle (`inc/dark-mode.php`) — Frontend-Steuerung,
+  liest ACF-Option `dark_mode_enabled`. *(Quelle: `@since`-Kommentar)*
+- **1.11.0** — Logo CPT (`inc/cpt-logos.php`) — zentrale Verwaltung von
+  Partner-/Kunden-Logos im Backend. Erweitert in **1.11.6** um CPT als
+  Logo-Quelle im Logo-Grid-Block. *(Quelle: `@since`-Kommentare)*
+- **1.10.0** — Table of Contents (Shortcode `[table_of_contents]`/`[toc]`,
+  Gutenberg-Block, automatische Heading-IDs, Scrollspy-JS, Sticky-Modus).
+  *(Quelle: `@since`-Kommentar)*
+- **1.9.0** (2026-05-07) — Cookie Consent Mehrsprachigkeit (Polylang → WPML
+  → WP-Locale-Fallback, Repeater-Feld `cc_languages`), Share-Buttons
+  globale Konfiguration (`inc/social-share.php`, neue Admin-Seite,
+  Auto-Insert, Shortcode `[medialab_share]`, neuer Kanal `copy` via
+  Clipboard-API), Share-Buttons als Gutenberg-Block `medialab/social-share`.
+  *(Quelle: root CHANGELOG.md — vollständig, siehe Git-Historie für exakten
+  Wortlaut falls benötigt)*
+- **1.8.5** (2026-04-23) — E-Mail-Obfuskierung: Fix bei Gutenberg-Buttons,
+  `protect_content_emails()` baute `<a>`-Tag neu auf und verlor dabei
+  Original-Attribute. *(Detailbeschreibung nur teilweise eingesehen,
+  Kernaussage aber gesichert)*
+- **1.0.0–1.8.0** — Keine Detail-Informationen verfügbar. Erste bekannte
+  Version laut Git-Historie referenziert einen frühen Commit „Inquiry
+  Setup". Für eine vollständige Rekonstruktion müsste die Git-Historie
+  direkt ausgewertet werden (`git log --follow` auf die Plugin-Hauptdatei) —
+  außerhalb dessen, was aus dem aktuellen Codestand ableitbar ist.
+
+---
+
+## ⚠️ Offene Punkte
+
+1. ~~Versionslücke 1.21.1–1.24.0 komplett undokumentiert~~ — **behoben
+   21.08.2026** durch Auswertung von `git log` zwischen den vorhandenen
+   Tags (`media-lab-agency-core-v1.21.0` bis `v1.23.0`, plus `HEAD` für
+   den noch nicht getaggten `1.24.0`-Stand). Einträge für `1.22.0`,
+   `1.23.0` und `1.24.0` jetzt aus echten Commit-Messages befüllt.
+   **Verbleibend:** `1.24.0` sollte noch mit einem Tag versehen werden
+   (`media-lab-agency-core-v1.24.0`), analog zu den Vorgängerversionen —
+   ist aktuell nur als loser `HEAD`-Stand referenzierbar.
+2. **1.19.1 (Swiper-Fix) und 1.20.1/1.21.0:** Datum nicht exakt
+   verifiziert (keine Tags für diesen Bereich vorhanden, nur aus
+   Reihenfolge/README erschlossen). Inhalt ist gesichert, nur die exakte
+   Zeitangabe nicht. Niedrige Priorität — bei Bedarf über
+   `git log --follow -- cms/wp-content/plugins/media-lab-agency-core/media-lab-agency-core.php`
+   nachschlagbar, analog zum Vorgehen oben.
+3. **1.0.0–1.8.0:** weiterhin komplett offen, keine Tags in diesem
+   Bereich vorhanden (`git tag -l "media-lab-agency-core-v*"` beginnt
+   erst bei `1.20.1`). Für eine Rekonstruktion müsste die volle,
+   ungetaggte Commit-Historie der Plugin-Hauptdatei durchsucht werden —
+   eigener, größerer Aufwand, hier bewusst nicht angegangen.

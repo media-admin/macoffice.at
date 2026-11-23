@@ -1,0 +1,55 @@
+@use '../abstracts' as *;
+
+// Global Styles
+body {
+  background: var(--color-background);
+  color: var(--color-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.site {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.site-main {
+  flex: 1;
+}
+
+// Seitentitel (page.php, index.php, template-home.php): Abstand zum Header bzw. zum Hero und den Breadcrumbs darueber.
+// Hero und Breadcrumbs stehen vor <main>, deshalb sitzt der Abstand am Titelblock und nicht am Main-Container
+// (WooCommerce-Seiten nutzen dasselbe <main> und bringen ihren Abstand selbst mit).
+.entry-header {
+  padding-top: $spacing-4;
+}
+
+.container {
+  @include container;
+}
+
+// Cards anpassen für Dark Mode
+.card {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+  transition: all $transition-base;
+}
+
+// Links
+a {
+  color: $color-primary;
+  
+  &:hover {
+    color: $color-primary-darker;
+  }
+}
+
+// Sections mit Background
+.bg-light {
+  background: var(--color-surface);
+  
+  [data-theme="dark"] & {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}

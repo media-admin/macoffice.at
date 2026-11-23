@@ -1,0 +1,1011 @@
+# Changelog
+
+Alle wesentlichen Änderungen werden in dieser Datei dokumentiert.
+Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/),
+Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
+
+## [2.37.3] - 2026-11-19
+
+### Behoben
+- Bildwechsel bei der Farbwahl funktionierte seit 2.37.0 nicht mehr, wenn die Varianten-Vorschaubilder in der Galerie standen. Ursache: WooCommerce sucht beim Bildwechsel in der Vorschaubild-Leiste ein Bild mit genau der Adresse des neuen Bilds (`li img[src="…"]`) und klickt es an, um dorthin zu gleiten. Die Farb-Vorschaubilder haben dieselbe Adresse wie das Bild der ersten Variante der Farbe, WooCommerce klickte also eines davon an. Das wählte die Farbe erneut, löste `change` aus, der Bildwechsel lief wieder an und so fort (im Test über 100 Durchläufe in 200 ms). Jetzt tragen die Farb-Vorschaubilder die Adresse mit angehängtem `#mlw` (gleiche Datei, kein zusätzlicher Abruf), und das Skript reagiert nur auf Klicks von Besuchern, nicht auf per Skript ausgelöste.
+
+## [2.37.2] - 2026-11-19
+
+### Behoben
+- Variantenbilder bei der Farbwahl (2.33.0): Wird zuerst die Größe und danach die Farbe gewählt, zeigt die Galerie jetzt das Bild der Farbe. Vorher blieb das Produktbild stehen, wenn die gewählte Variante kein eigenes Bild hat (bei Cotton-Classics-Textilien trägt oft nur eine Variante je Farbe das Bild): WooCommerce setzt dann auf das Produktbild zurück, und das Skript griff nur ein, solange noch keine vollständige Variante gewählt war. Jetzt merkt sich das Skript die von WooCommerce gefundene Variante (`found_variation`) und wendet das Bild der Farbe an, wenn die Variante weder ein eigenes Bild noch eine eigene Galerie hat. Varianten mit eigenem Bild bleiben unverändert.
+- `$.isArray` durch `Array.isArray` ersetzt (in jQuery 4 entfernt).
+
+## [2.37.1] - 2026-11-19
+
+### Behoben
+- Varianten-Vorschaubilder (2.37.0): Die anderen Farben bleiben auch in der Galerie einer gewählten Farbe (Variante) sichtbar, nicht nur in der Galerie des Produkts. WooCommerce tauscht bei der Farbwahl die Galerie aus (ab 10.9 mit eigener Galerie je Variante), je nach Version und Theme nur den Inhalt oder das ganze Galerie-Element. Das Skript hing an einem Element, das dabei verloren gehen konnte. Jetzt laufen Beobachtung und Klick über das umgebende Produkt (`div.product`), die Galerie wird bei jedem Zugriff neu gesucht und die Einträge werden bei Bedarf frisch eingesetzt. Hat die Galerie nach dem Austausch keine Vorschaubild-Leiste (zum Beispiel nur ein Bild), legt das Skript nach 400 ms eine mit denselben Klassen an und räumt sie wieder weg, sobald WooCommerce eine eigene aufbaut. Zusätzlich auf `show_variation` und `reset_image` gehört.
+
+## [2.37.0] - 2026-11-19
+
+### Geändert
+- Varianten-Vorschaubilder (2.36.0) stehen jetzt **in der Vorschaubild-Leiste der WooCommerce-Galerie** (`.flex-control-thumbs`, dieselbe Leiste wie die Bilder des Produkts) statt als eigener Block darunter. Der eigene Block war ein weiteres Grid-Kind der Galerie (`data-columns`) und landete je nach Ladezeitpunkt unter oder über dem Hauptbild, in einer schmalen Spalte. Gezeigt werden die **anderen** Farben: Die gewählte Farbe entfällt (ihre Bilder zeigt die Galerie schon), ohne Auswahl entfällt die Farbe, deren Bild das Produkt als Hauptbild zeigt (gleiche Bild-ID oder gleiche Datei). Das Skript beobachtet die Galerie und setzt die Einträge wieder ein, wenn WooCommerce oder FlexSlider die Leiste später aufbauen oder ersetzen. Der Klick hängt am Galerie-Container. Gibt es nach dem Laden keine Leiste, legt das Skript eine mit denselben Klassen an. Die Leiste darf mit den Farb-Einträgen umbrechen (`flex-wrap`). Größe und Rahmen kommen aus den Theme-Regeln für `.flex-control-thumbs li`, `assets/css/variation-color-thumbs.css` liefert nur Rückfallwerte.
+- **Standardfunktion: Filter `mlw_variation_color_thumbs` ist jetzt standardmäßig an** (in 2.36.0 aus). Betrifft jedes Projekt, das das Plugin aktualisiert und variable Produkte mit Farbvarianten und eigenen Variantenbildern hat. Ausschalten pro Projekt mit `add_filter( 'mlw_variation_color_thumbs', '__return_false' );`. Voraussetzung bleibt die Funktion "Variantenbilder bei der Farbwahl" (`mlw_variation_color_images`).
+
+## [2.36.0] - 2026-11-19
+
+### Hinzugefügt
+- Varianten-Vorschaubilder in der Galerie variabler Produkte (`inc/variation-color-thumbs.php`, `assets/js/variation-color-thumbs.js`, `assets/css/variation-color-thumbs.css`): Unter der Produktgalerie erscheint je Farbe ein Vorschaubild (Bild der ersten sichtbaren Variante dieser Farbe). Ein Klick wählt die Farbe im Variantenformular, Hauptbild und Galerie wechseln über die Funktion "Variantenbilder bei der Farbwahl" (2.33.0), die dafür aktiv sein muss. Farben, die in der aktuellen Auswahl nicht vorkommen, sind gesperrt. Die Daten kommen mit zwei Datenbankabfragen und werden 12 Stunden zwischengespeichert. **Standardmäßig aus**, bestehende Projekte bleiben unverändert. Einschalten pro Projekt mit `add_filter( 'mlw_variation_color_thumbs', '__return_true' );`. Weitere Filter: `mlw_variation_color_thumbs_min` (Standard 2), `mlw_variation_color_thumbs_max` (Standard 40), `mlw_variation_color_thumbs_items`. Farbattribut wie bei den Variantenbildern über `mlw_variation_color_attributes`.
+
+## [2.35.0] - 2026-11-19
+
+### Geändert
+- **Mengeneinheit auch in Anfrage-Mails und geteilter Wunschliste:** "Menge: 7" wird zu "Menge: 7 Stück", sobald eine Einheit bekannt ist (Germanized-Einheit am Produkt oder Filter `mlw_stock_unit`, dieselbe Quelle wie der Lagertext). Ohne Einheit bleibt die Ausgabe unverändert. Neue Methoden `MediaLab_Single_Product_Layout::get_quantity_unit( $produkt )` und `get_quantity_unit_for_item( $eintrag )`, `append_stock_unit()` nutzt sie ebenfalls. Betrifft `inc/single-product-layout.php`, `inc/inquiry/class-mail.php`, `templates/wishlist/shared.php`.
+
+## [2.34.0] - 2026-11-15
+
+### Added
+- **Filter `mlw_inquiry_attachment_html( $line, $att_id, $item )`** (`inc/inquiry/class-mail.php`, `MediaLab_Inquiry_Mail::format_product_list()`): Projekt-Plugins können die Datei-Zeile in der Produktliste der Anfrage-Mails ersetzen (`{product_list}`, Kunden- und Admin-Mail). Bisher stand dort immer der direkte Mediathek-Link (`wp_get_attachment_url()`). Liegen die Dateien nicht öffentlich (zum Beispiel geschützter Ordner für hochgeladene Logos), kann ein Projekt nur den Dateinamen oder einen geschützten Link ausgeben oder die Zeile leeren. Geänderte Ausgabe läuft durch `wp_kses_post()`. Der Mail-Anhang der Admin-Mail (`collect_attachments()`) bleibt unverändert. Ohne Filter ändert sich nichts.
+
+## [2.33.2] - 2026-11-10
+
+### Behoben
+- Variantenbilder bei der Farbwahl: Pro Farbwahl ging bei Produkten mit vielen Varianten derselbe Aufruf mehrfach an den Server (WooCommerce löst mehrere Ereignisse aus). Läuft ein Aufruf für eine Farbe, warten weitere Anfragen auf dessen Antwort, die Ereignisse einer Farbwahl ergeben nur noch einen Abgleich.
+
+## [2.33.1] - 2026-11-10
+
+### Geändert
+- Variantenbilder bei der Farbwahl: Die passende Variante wird mit einer einzigen Datenbankabfrage gesucht statt mit einer Abfrage je Variante (bei 300 Varianten und aktivem Query Monitor über eine Sekunde schneller).
+
+## [2.33.0] - 2026-11-09
+
+### Hinzugefügt
+- Variantenbilder bei der Farbwahl: Hauptbild und Galerie der Produktseite wechseln schon, wenn nur die Farbe gewählt ist. Wendet die Bilddaten der ersten Variante dieser Farbe über `$.fn.wc_variations_image_update` an. Bei Produkten mit vielen Varianten (WooCommerce lädt sie erst mit der vollständigen Auswahl) holt das Skript die Bilddaten über den Endpunkt `mlw_variation_color_image` (Zwischenspeicher 12 Stunden). Filter `mlw_variation_color_images` (Standard an) und `mlw_variation_color_attributes` (Standard `pa_color`).
+
+## [2.32.0] - 2026-11-07
+
+### Added
+- **Filter `mlw_wishlist_item_extras`** (`inc/wishlist/class-storage.php`, `MediaLab_Wishlist_Storage::add()`): Projekt-Plugins können Zusatzdaten
+  am Wunschlisten-Eintrag ablegen (zum Beispiel eine Veredelungs-Auswahl). Die Zusatzdaten werden als `extras` am Eintrag gespeichert und gehören
+  zur Eintrags-ID (Suffix `_x` und ein Kurz-Hash): Dasselbe Produkt mit anderen Zusatzdaten ist ein eigener Eintrag, dieselben Zusatzdaten
+  ersetzen die Menge des vorhandenen Eintrags. Ohne Zusatzdaten ändert sich nichts, bestehende Einträge und IDs bleiben gültig.
+
+## [2.31.0] - 2026-11-04
+
+### Added
+- **Filter `mlw_wishlist_display_items`** (`inc/wishlist/class-storage.php`, Ende von `get_items_for_display()`): Items fürs Wunschlisten-Rendering,
+  zweiter Parameter `$own_list`. Projekt-Plugins können die Anzeige-Items ergänzen, zum Beispiel `config_display` um projektspezifische Zeilen. `$own_list` ist
+  `true` bei der Wunschliste des aktuellen Besuchers und `false`, wenn eine Liste explizit übergeben wird (etwa die geteilte Token-Ansicht,
+  `MediaLab_Wishlist_Share::render_shared_view()`). Besuchsbezogene Daten dürfen nur bei `true` ergänzt werden, sonst erschiene in der geteilten Ansicht die
+  Auswahl des Besuchers statt der des Listeninhabers. Der Filter wirkt auf die Seite, auf die `items` der Ajax-Antworten (damit auch auf das Nachrendern in
+  `wishlist.js`, das `config_display` anzeigt) und auf `get_grand_total()`. Ohne Filter ändert sich nichts.
+
+## [2.30.0] - 2026-10-31
+
+### Added
+- **Artikelnummer und Kategorie auf den Produktkarten** (`inc/single-product-layout.php`): Zwei neue Filter, beide Standard aus und unabhängig von
+  `mlw_loop_product_info`. `mlw_loop_sku` gibt „Art.-Nr.: …“ aus (Wert über `mlw_loop_sku_value` anpassbar, Standard die SKU), `mlw_loop_category` alle
+  Kategorien des Produkts als Text, durch Komma getrennt (gleiche Namen nur einmal, über `mlw_loop_category_terms` anpassbar, die WooCommerce-Standardkategorie
+  wird übersprungen). Beide hängen an
+  `woocommerce_after_shop_loop_item_title` (Priorität 12 und 13), also im Kartenlink. Das Theme setzt die Artikelnummer links unter den Preis und die
+  Kategorien in eine eigene Zeile darunter (Klassen `mlw-loop-sku`, `mlw-loop-category`).
+
+## [2.29.0] - 2026-10-31
+
+### Added
+- **Marke in den Karten der Suchergebnisseite** (`inc/single-product-layout.php`): Neuer Filter `mlw_search_card_brand` (Standard aus). Hängt „Marke: …“ als erste
+  Meta-Angabe an die Produktkarten der Ergebnisseite (Filter `ml_search_card_meta` des Themes, Priorität 20). Die Beschriftung kommt aus dem „Marke-Label“ der
+  Filter-Einstellungen, sonst „Marke“. Nach dem Filtern per AJAX zeigt die WooCommerce-Karte die Marke schon über `mlw_loop_product_info` oder `mlw_loop_brand`.
+
+## [2.28.0] - 2026-10-30
+
+### Added
+- **Marke im Produkt-Grid ohne Verfügbarkeit** (`inc/single-product-layout.php`): Neuer Filter `mlw_loop_brand` (Standard: Wert von `mlw_loop_product_info`).
+  `add_filter( 'mlw_loop_brand', '__return_true' )` zeigt nur die Marke über dem Titel, ohne die Verfügbarkeit neben dem Preis. Bisher schaltete
+  `mlw_loop_product_info` beides gemeinsam. Ohne neue Filter ändert sich nichts.
+- **Marke auf der Produktseite** (`inc/single-product-layout.php`): Neuer Filter `mlw_single_brand` (Standard aus). Gibt die Marke (`product_brand`) als
+  Link auf das Marken-Archiv vor dem Titel aus (`woocommerce_single_product_summary`, Priorität 4, Klasse `mlw-single-brand`).
+
+## [2.27.0] - 2026-10-28
+
+### Fixed
+- **Filterleiste blieb leer, solange keine Filter-Felder gespeichert waren** (`inc/filters/filter-config.php`): Ohne gespeicherten
+  Wert liefert ACF `null`, und der Code behandelte das wie „aus". `mlwf_inherit_parent` war dadurch falsch, die Vererbung auf
+  Eltern-Kategorie und Standard griff nie, und `show_price` wurde falsch statt wahr. Neu: „nicht gespeichert" bedeutet „erbt" und
+  „Preisfilter an" (`mlwf_show_price_value()`). Gespeicherte Werte verhalten sich wie vorher.
+- Die globalen Felder `mlwf_attributes` und `mlwf_show_price`, aus denen die Standard-Konfiguration (Shop, Kategorien und Marken
+  ohne eigene Konfiguration) liest, haben im Code keine eigene Oberfläche, die Standard-Konfiguration war deshalb immer leer.
+
+### Added
+- **Automatische Filter** (`inc/filters/defaults.php`): Sind weder am Term noch global Attribute eingetragen, verwendet die
+  Filterleiste alle WooCommerce-Attribute (`pa_*`). Werte ohne Treffer im aktuellen Kontext blendet sie wie bisher aus. Mit dem Filter
+  `mlwf_auto_filter_attributes` lässt sich die Liste anpassen.
+- **Trefferanzeige für Shop, Kategorien, Schlagwörter und Marken** (`inc/filters/archive-count.php`) im selben Markup wie die Suche
+  (`.wc-loop-header` mit `.js-product-count`), hinter der Filterleiste (`woocommerce_before_shop_loop`, Priorität 16). Sie entfällt,
+  wenn die Ergebnisanzahl von WooCommerce noch eingehängt ist. Mit dem Filter `mlwf_show_archive_count` lässt sie sich abschalten.
+
+---
+
+## [2.26.0] - 2026-10-28
+
+### Added
+- **URL-Basen (Permalinks) für Produkte, Kategorien und Marken** (`inc/permalinks.php`) – Neue Einstellungsseite unter
+  Produkte → URL-Basen mit den Feldern Produkt-, Kategorie- und Marken-Basis. Deutsche Standardwerte `produkte`,
+  `produkt-kategorie` und `marke`, die auch ohne gespeicherte Einstellung gelten. Vorher galten der WooCommerce-Standard
+  `product` und `product-category`, und die Marken-Basis kam aus der deutschen Übersetzung von WooCommerce mit großem
+  Anfangsbuchstaben (`Marke`). Produkt- und Kategorie-Basis überschreiben beim Lesen die Option `woocommerce_permalinks`, die
+  Marken-Basis wird über `register_taxonomy_args` gesetzt. Nach einer Änderung werden die Rewrite-Regeln beim nächsten
+  Seitenaufruf einmal neu geschrieben. Der Filter `mlwc_permalink_bases` erlaubt Überschreibungen (zum Beispiel je Sprache).
+
+### Hinweis
+- Bestehende Adressen ändern sich (`/product/…` wird zu `/produkte/…`), es gibt keine Weiterleitungen. Bei Seiten, die schon
+  live sind, vor dem Update Weiterleitungen einplanen.
+
+---
+
+## [2.25.0] - 2026-10-24
+
+### Added
+- **Einheitliches Verhalten nach dem Absenden** (`inc/inquiry/class-feedback.php`, `assets/js/inquiry-feedback.js`,
+  `assets/css/inquiry-feedback.css`) – Alle Wege (Konfigurator-Anfrage, „Zur Wunschliste hinzufügen" im Wizard, Wunschzettel,
+  `inquiry-form.php`, `inquiry-checkout.php`) nutzen denselben Baustein. Neue Einstellung unter Anfragen → Einstellungen:
+  „Nach dem Absenden" (Meldung auf der Seite, Standard, oder Weiterleitung) und „Weiterleitungsseite". Die Weiterleitung gilt
+  nicht für „Zur Wunschliste hinzufügen", dort bleibt es bei der Meldung mit „Zur Wunschliste" und „Weiter einkaufen".
+- **Nachrichtenfeld im Kontaktschritt des Konfigurators** (`templates/configurator/fields/contact-form.php`, `configurator.js`,
+  Einstellung „Nachricht (Konfigurator)" unter Anfragen → Formularfelder: optional anzeigen oder ausblenden). Der Text steht in
+  der Benachrichtigung und in der Anfrage und wird auch bei „Zur Wunschliste hinzufügen" mitgenommen. Standard ist „Optional
+  anzeigen", wer das Feld nicht will, stellt es dort auf „Ausblenden".
+
+### Changed
+- Kein Browser-`alert` und kein Sprung auf die Startseite mehr. Der Konfigurator zeigt die Erfolgsmeldung aus den Einstellungen
+  statt eines festen Textes. Die Formulare leiten nicht mehr nach 3 Sekunden auf die Startseite.
+
+### Fixed
+- **Preis im Konfigurator zeigte „ab" bis zum Datenschutz-Haken** (`templates/configurator/wizard.php`) – „ab" hing an der
+  Vollständigkeit aller Schritte, auch des Kontaktschritts. Jetzt zählen nur preisrelevante Schritte (Kontaktdaten, Texte und
+  Dateien ändern den Preis nicht).
+- **Wunschzettel: Erfolgsmeldung war nie zu sehen** (`assets/js/wishlist.js`) – Die Meldung stand im Formular, das gleichzeitig
+  ausgeblendet wurde. Stattdessen erschien nur der Leerzustand der Liste.
+
+### Hinweis zum Update
+- Ist „Nach dem Absenden" nie gespeichert worden, gilt „Meldung auf der Seite". Wer bisher mit dem Sprung auf die Startseite
+  gearbeitet hat, stellt „Weiterleitung auf eine Seite" und eine Seite ein.
+
+## [2.24.2] - 2026-10-24
+
+### Fixed
+- **Statuswechsel bei Anfragen wirkt** (`inc/inquiry/class-admin.php`) – Die Auswahl im Kasten „Status" wurde beim Speichern
+  verworfen, weil WordPress ohne Status im Formular den bisherigen Status übernimmt und die Prüfung nur Standardstatus kannte.
+- **Kein leerer Block „Nachricht:" in der Benachrichtigung** (`inc/inquiry/class-mail.php`) – Ohne Nachricht entfällt der
+  Absatz der Standardvorlage. Angepasste Vorlagen mit anderem Aufbau sind nicht betroffen.
+
+## [2.24.1] - 2026-10-24
+
+### Fixed
+- **Menge nur einmal in den Anfrage-Details** (`inc/inquiry/class-admin.php`) – Stand die Menge schon in der Auswahl des
+  Konfigurators, zeigte der Kasten sie zweimal.
+
+## [2.24.0] - 2026-10-23
+
+### Added
+- **Anfragen im Backend lesbar** (`inc/inquiry/class-admin.php`) – Der Kasten „Anfrage-Details" zeigt Kunde, Nachricht,
+  Kanäle und die Produkte mit Auswahl, Menge und Preis (nur lesen). In der Liste gibt es die Spalte „Kunde".
+- **Kasten „Status" statt „Veröffentlichen"** – Anfragen haben eigene Status (Offen, In Bearbeitung, Erledigt, Archiviert).
+  Das Standardfeld kannte sie nicht, ein Klick auf „Veröffentlichen" hätte die Anfrage aus der Liste genommen.
+
+### Fixed
+- **Doppeltes Doppelkreuz in der Benachrichtigung** (`class-settings.php`) – Die Standardvorlage schrieb `#{inquiry_id}`, der
+  Platzhalter liefert das `#` schon mit („##300757").
+
+### Hinweis zum Update
+- Angepasste Mail-Vorlagen (Anfragen → Einstellungen) behalten ihr `#{inquiry_id}`. Dort das Doppelkreuz von Hand entfernen.
+
+## [2.23.0] - 2026-10-22
+
+### Added
+- **Wizard-Merkmale nicht doppelt anzeigen (Opt-in)** (`inc/configurator/class-configurator.php`) – mit
+  `add_filter( 'mlw_configurator_hide_wizard_attributes', '__return_true' )` entfallen bei konfigurierbaren Produkten in
+  der Tabelle „Zusätzliche Informationen“ die Zeilen Farbe und Größe, sofern der Wizard dafür einen Schritt hat
+  (`color`, `size` oder `sizes`). Andere Merkmale bleiben. Bleibt keine Zeile übrig, entfällt der Tab „Zusätzliche
+  Informationen“ ganz. Standard aus, nicht konfigurierbare Produkte ändern sich nicht.
+
+## [2.22.0] - 2026-10-22
+
+### Added
+- **Tabs unter der Galerie bei konfigurierbaren Produkten (Opt-in)** (`inc/configurator/class-configurator.php`) – mit
+  `add_filter( 'mlw_configurator_tabs_under_gallery', '__return_true' )` stehen die Produkt-Tabs („Zusätzliche
+  Informationen“) bei konfigurierbaren Produkten als Geschwister direkt unter der Galerie
+  (`woocommerce_before_single_product_summary`, Priorität 21) statt in der Summary-Spalte vor der Konfigurator-Karte.
+  Standard aus, bestehende Projekte ändern sich nicht, nicht konfigurierbare Produkte auch nicht.
+  Der Tab „Rezensionen“ entfällt dort, die Rezensionen stehen wie bisher im eigenen Abschnitt
+  (`render_reviews_for_configurable()`).
+  Der Wizard (`templates/configurator/wizard.php`) gibt die Tabs dann nicht mehr selbst aus. Neue Body-Klasse
+  `mlw-tabs-under-gallery`; das Layout dazu (zwei Spalten, Reihenfolge mobil) liefert das Theme (`custom-theme` ab 1.19.0).
+
+### Hinweis zum Update
+- Ohne das Theme-Layout stehen die Tabs bei aktivem Filter zwischen Galerie und Summary. Der Filter gehört deshalb
+  zusammen mit dem Theme-Block in `_single-product.scss` eingeschaltet.
+
+## [2.21.0] - 2026-10-22
+
+### Added
+- **Farbfelder im Konfigurator** (`templates/configurator/fields/color-picker.php`) – Schritte vom Typ `color_picker`
+  zeigen runde Farbfelder statt Namens-Buttons. Den Farbwert liefert der neue Filter `mlw_configurator_color_value`
+  (`$css_value`, `$option`, `$step`; Rückgabe: CSS-Wert für `background`, also Farbe oder Verlauf) oder das
+  Optionsfeld `color`. Ohne Wert (und ohne Bild) bleibt die Option ein Button mit dem Namen, es werden keine Farben
+  geraten. Der Name der gewählten Farbe steht unter den Feldern, jede Option hat `title` und Screenreader-Text. Der
+  ungültige Rückfall `#<slug>` entfällt.
+
+### Changed
+- **Konfigurator auf Theme-Tokens** (`templates/configurator/wizard.php`, `fields/*.php`) – Karte, Texte, Rahmen,
+  Flächen und Eingabefelder nutzen `--color-card-bg`, `--color-text`, `--color-text-muted`, `--color-border` und
+  `--color-input-bg`. Abgesetzte Flächen und Fortschrittsleiste leiten sich per `color-mix()` aus `--color-text` ab
+  (`--cfg-surface`, `--cfg-track`). Die Karte folgt damit dem Umschalter der Seite (`data-theme`) statt der
+  Systemeinstellung. Fest bleiben der rote Akzent, Hover, Fehler- und Warnfarben, das Rabatt-Grün und die
+  Markierung in der Staffeltabelle.
+
+### Removed
+- Dark-Mode-Block in `assets/css/configurator.css` (`prefers-color-scheme`): Er färbte die Karte nach der
+  Systemeinstellung und ist durch die Tokens ersetzt.
+
+### Fixed
+- Zusammenfassung: Bei Schritten vom Typ `color_picker` stand der Wert (Slug, z. B. `gruen`) statt der Bezeichnung
+  (`grün`) (`assets/js/configurator.js`, `getSummaryItems()`).
+
+### Hinweis zum Update
+- Projekte mit Farbschritten liefern die Farbwerte über den Filter `mlw_configurator_color_value`, zum Beispiel aus
+  dem projektspezifischen Plugin. Ohne Filter erscheinen Namens-Buttons wie bisher.
+- Das Theme muss `--color-card-bg`, `--color-text`, `--color-text-muted`, `--color-border` und `--color-input-bg`
+  für Hell und Dunkel definieren (`custom-theme`). `color-mix()` braucht Chrome 111, Safari 16.2 oder Firefox 113.
+
+## [2.20.0] - 2026-10-21
+
+### Added
+- **Kategorie-Filter auf Marken-Archiven** (`inc/filters/filter-bar.php`) – die Filterleiste zeigt auf
+  Marken-Archiven die Gruppe „Kategorie" (Checkboxen, `subcat[]`) mit allen Haupt- und Unterkategorien,
+  in denen die Marke veröffentlichte Produkte hat. Die Zähler gelten innerhalb der Marke. Die Gruppe erscheint,
+  wenn für die Marke die Unterkategorien-Option (`mlwf_show_subcategories`) aktiv ist.
+  - Neuer Filter `mlwf_brand_subcategories` (`$terms`, `$brand_term_id`): Kategorieliste einer Marke
+    anpassen (Terms entfernen oder umsortieren). Der Standard-Term von WooCommerce (`default_product_cat`)
+    ist ausgeschlossen.
+  - Der AJAX-Handler musste nicht geändert werden: `brand` und `subcat` werden dort bereits kombiniert
+    (UND zwischen Marke und Kategorien, ODER innerhalb der Kategorien).
+
+### Fixed
+- Gruppe „Kategorie" der Filterleiste: Der Button las die nicht definierte Variable `$active_subcat`
+  (PHP-Warnung bei jedem Aufruf, nie die Klasse `has-active`). Jetzt wird `$active_subcats` verwendet,
+  gesetzte Haken werden am Button korrekt angezeigt.
+
+### Hinweis zum Update
+- Marken, bei denen die Unterkategorien-Option (`mlwf_show_subcategories`) bereits aktiv gespeichert ist, zeigen die Gruppe „Kategorie" nach dem Update. Prüfen lässt sich das in der Admin-Übersicht der Filter-Konfiguration (`inc/filters/admin-overview.php`) oder am Marken-Archiv; unerwünschte Einträge entfernt der Filter `mlwf_brand_subcategories`, die Gruppe selbst schaltet die Option am Term ab
+- Wie bei der Unterkategorie-Mehrfachauswahl braucht die Gruppe `custom-theme` ab 1.18.0 (`mlwf-filters.js` sammelt `subcat[]`)
+
+## [2.19.2] - 2026-10-16
+
+### Fixed
+- Such-Erweiterungen (`inc/search-woo-extras.php`): Treffer über Kategorien wurden nur für die ersten 5 passenden Terms gesammelt (alphabetisch). Bei Begriffen mit vielen passenden Kategorien fehlten die Produkte aller weiteren, z. B. bei „T-Shirt" 285 von 291 Produkten der Kategorie „T-Shirts", deren Titel das Wort nicht enthalten. Jetzt werden bis zu 25 Terms je Taxonomie ausgewertet, die mit den meisten Produkten zuerst (Filter `mlw_search_match_terms_max`)
+- Live-Suche: Die Produktanzahl hinter Kategorie- und Marken-Einträgen enthielt versteckte Produkte (z. B. 322 statt 291), weil WooCommerce die Umrechnung `wc_change_term_counts()` bei AJAX-Anfragen überspringt. Die Anzahl kommt jetzt aus dem Term-Meta `product_count_<Taxonomie>`, mit dem Rohwert als Rückfall
+
+### Hinweis zum Update
+- Die Suchergebnisseite zeigt danach mehr Treffer: Produkte, die nur über eine passende Kategorie auffindbar sind, kommen vollständig dazu (Standard seit 2.17.2). Kategorien lassen sich per `mlw_search_taxonomies` ausschließen
+- Die gemerkten Treffermengen (`mls_ids_*`) laufen nach 5 Minuten ab, wer sofort neue Ergebnisse braucht, leert sie
+
+## [2.19.1] - 2026-10-15
+
+### Changed
+- Wunschliste (Shop-Modus): Der Entfernen-Button (✕) sitzt jetzt in der ersten
+  Spalte neben der Checkbox statt in der Thumbnail-Zelle. Zeilen ohne Checkbox
+  (nicht auswählbar) erhalten einen Platzhalter. Erste Tabellenspalte von 32px
+  auf 64px verbreitert (`templates/wishlist/item-row-shop.php`, `page.php`).
+
+*(Theme-seitig, gehört ins Theme-Changelog: Standard-Styles für die
+Shop-Modus-Wunschlisten-Tabelle in `components/_wishlist.scss` – Tabelle,
+Auswahl-Zelle mit Checkbox und Entfernen-Button, Karten-Ansicht unter 1100px.)*
+
+## [2.19.0] - 2026-10-14
+
+### Changed
+- **Unterkategorie-Filter als Mehrfachauswahl** (`inc/filters/filter-bar.php`,
+  `inc/filters/ajax-handlers.php`) – die Gruppe „Kategorie“ der Filterleiste auf
+  Kategorie-Archiven nutzt jetzt Checkboxen (`name="subcat[]"`) statt
+  Radio-Buttons (`name="subcat"`). Mehrere Unterkategorien lassen sich
+  kombinieren (ODER-Verknüpfung innerhalb der Gruppe).
+  - Der Zähler am Gruppen-Button zeigt die Anzahl der gesetzten Haken
+    (vorher fest `1`).
+  - Initialzustand aus der URL: `?subcat=damenuhren,herrenuhren`
+    (kommagetrennt); ein einzelner Wert (`?subcat=slug`) funktioniert weiterhin.
+  - `mlwf_ajax_filter_products()` akzeptiert `subcat` als Liste und filtert mit
+    `operator => IN`; der Parameter `subcat` in der Pagination wird
+    kommagetrennt ausgegeben.
+
+### Fixed
+- Eine einmal gewählte Unterkategorie ließ sich nicht mehr abwählen
+  (Radio-Button).
+
+### Hinweis
+- Benötigt `custom-theme` ab 1.18.0: `mlwf-filters.js` sammelt `subcat[]` als
+  Liste, schreibt sie in die URL und berücksichtigt sie im Zähler und bei
+  „Zurücksetzen“. Mit älterem Theme-JS wirkt bei mehreren Haken nur der zuletzt
+  gesetzte.
+
+## [2.18.0] - 2026-10-13
+
+### Added
+- Kategorien und Marken als eigene Einträge in der Suche (`inc/search-woo-extras.php`): Live-Suche (ab media-lab-agency-core 1.36.0): bis zu 3 Einträge ganz oben mit Label „Kategorie“ bzw. „Marke“, Name, Produktanzahl und Link auf die Archivseite. Ergebnisseite: Zeile „Passende Kategorien und Marken“ unter dem Suchfeld (`mlw_get_search_term_links()`, wird von `search.php` des Themes ausgegeben, Kit-Theme 1.17.0). Reihenfolge: exakter Name, Wortanfang, „enthält“; innerhalb davon Kategorien vor Marken, dann nach Produktanzahl. Hooks: `mlw_search_term_taxonomies` (Standard `product_cat`, `product_brand`; leer = keine Einträge), `mlw_search_term_results_max` (Standard 3)
+
+### Hinweis zum Update
+- Ohne media-lab-agency-core 1.36.0 erscheint nur die Zeile auf der Ergebnisseite, die Live-Suche zeigt die Einträge erst mit dem neuen Core
+
+## [2.17.2] - 2026-10-13
+
+### Changed
+- Such-Erweiterungen (`inc/search-woo-extras.php`): Kategorien zählen wieder standardmäßig als Treffer (Rücknahme der Änderung aus 2.17.1). Ohne Kategorien fand „Eheringe" keine Produkte, weil die Trauringe nur über die Kategorie auffindbar sind und das Wort weder im Titel noch im Text steht. Nachteil: Kurze Begriffe finden alle Produkte passender Kategorien („ring" bei Janecka etwa dreimal so viele Treffer). Per Filter `mlw_search_taxonomies` lassen sich Kategorien ausschließen, ein Beispiel steht im Kopfkommentar der Datei
+
+### Fixed
+- Such-Erweiterungen (`inc/search-woo-extras.php`): Treffer über Kategorien und Marken wurden je Term bei 500 Produkten abgeschnitten (z. B. fehlten bei einer Kategorie mit 508 Produkten acht). Die Obergrenze legt jetzt der Aufrufer fest: Live-Suche klein, Ergebnisseite und Produktfilter bis 5000 (zusammen mit media-lab-agency-core 1.35.1)
+
+### Hinweis zum Update
+- Der Filter `mlw_search_taxonomies` hat wieder den Standard `[ 'product_cat', 'product_brand' ]`. Projekte, die zu 2.17.1 einen Block im Theme einkommentiert haben, um Kategorien zu aktivieren, brauchen ihn nicht mehr
+
+## [2.17.1] - 2026-10-13
+
+### Changed
+- Such-Erweiterungen (`inc/search-woo-extras.php`): Kategorien zählen nicht mehr standardmäßig als Treffer, nur noch Marken. Mit Kategorien fand „ring" auch alle Produkte der Kategorien Ringe, Eheringe, Ohrringe … (bei Janecka 439 statt 139 Treffer). Per Filter `mlw_search_taxonomies` lassen sich Kategorien wieder einschalten (Beispiel im Code)
+
+### Hinweis zum Update
+- Projekte, die Kategorien als Treffer wollen (wie „Suche in Kategorie" bei Advanced Woo Search): `add_filter( 'mlw_search_taxonomies', fn( array $t ): array => array_merge( $t, [ 'product_cat' ] ) );`
+
+## [2.17.0] - 2026-10-13
+
+### Added
+- Produktfilter auf der Suchergebnisseite (`inc/filters/search-filters.php`): Kategorie, Marke und alle Produktattribute werden aus der Treffermenge der Suche berechnet, nicht aus der globalen Filter-Konfiguration. Angezeigt werden nur Werte, die in mindestens einem gefundenen Produkt vorkommen, mit Anzahl (eine gruppierte Abfrage), Filter mit nur einem Wert entfallen. Dazu Preis-Slider mit der Preisspanne der Treffer und eine Sortierung (Relevanz, Preis auf- und absteigend, Neueste). Das Markup entspricht der Shop-Filterleiste, Styling und `mlwf-filters.js` greifen ohne Anpassung. Hooks: `mlwf_search_facet_taxonomies`, `mlwf_search_facet_min_terms`, `mlwf_search_facets`, `mlwf_search_filter_min_products`, `mlwf_search_sort_options`
+- Mobil und Tablet: Schalter „Filter" mit Zähler der aktiven Filter (`.js-filter-toggle-mobile`), die Gruppen sind zugeklappt, bis er gedrückt wird. Das Layout steht im Theme-CSS
+- Trefferanzeige „Ergebnisse 1–24 von 139 werden angezeigt" unter der Leiste (`.wc-loop-header`, `.js-product-count`), Text aus der Core-Einstellung `serp_range`
+- Filter-URLs der Suche mit Präfix `f_` (`?s=ring&f_product_cat=eheringe`): Kategorie, Marke und Attribute werden beim Neuladen auf die Haupt-Abfrage angewendet, ebenso `price_min`, `price_max` und `orderby`. Ohne Präfix lädt WordPress `?s=ring&product_cat=…` als Kategorie-Archiv statt der Suchergebnisseite
+- AJAX-Handler `mlwf_filter_products` und `mlwf_get_price_range`: Parameter `search` (nur Treffer der Suche, Preisspanne der Treffer, Ergebnisse pro Seite wie die Suchergebnisseite, Pagination-Links mit `s` und Präfix)
+- Such-Erweiterungen (`inc/search-woo-extras.php`): Produkte mit Katalog-Sichtbarkeit „Nur Shop" oder „Versteckt" erscheinen nicht in der Suche (bei „Nicht vorrätige Artikel ausblenden" auch ausverkaufte), SKU-Teilsuche (Varianten führen zum Elternprodukt), Kategorien und Marken als Treffer. Hooks: `mlw_search_excluded_visibility_terms`, `mlw_search_taxonomies`
+- Die Suchergebnisseite übernimmt als Standard für „Ergebnisse pro Seite" die Anzahl der Shop-Seite, wenn im Core `0` eingestellt ist (Filter `media_lab_search_serp_per_page`)
+- Filter `mlwf_enqueue_frontend_data` in `inc/filters/setup.php`: weitere Seiten können das Filter-Objekt anfordern
+
+### Changed
+- `mlwf_enqueue_frontend_data()` gibt `window.mlwf` und `window.janeckaWC` auch auf der Suchergebnisseite aus
+
+### Hinweis zum Update
+- Das Filter-JS lädt nur dort, wo das Theme es einreiht. Themes, die es selbst einreihen (z. B. Janecka), müssen es auf der Suche zulassen (`is_search()`), und die `search.php` des Themes muss `mlwf_get_search_filter_bar()` ausgeben
+- `mlwf-filters.js` schreibt und liest im Such-Kontext die URL-Parameter mit Präfix `f_`. Projekt-Kopien des Skripts aktualisieren
+- Produkte mit der Sichtbarkeit „Nur Shop" erscheinen nicht mehr in Live-Suche und Ergebnisseite. Wer sie in der Suche haben will, stellt sie im Produkt auf „Shop und Suchergebnisse"
+
+## [2.16.0] - 2026-10-09
+
+### Added
+- Die Einstellung "Telefon" (`mlw_phone_mode`, seit 2.14.0 nur im Wunschlisten-Formular) gilt jetzt in allen Anfrage-Formularen: Anfrage-Seite/Checkout (`templates/inquiry-checkout.php`), Shortcode `[mlw_inquiry_form]` (`templates/inquiry-form.php`), Konfigurator-Kontaktformular (`templates/configurator/fields/contact-form.php`) und Wunschliste. Das eingebaute Telefonfeld ist optional (Standard), Pflichtfeld oder ausgeblendet
+- Konfigurator: Bei "Pflichtfeld" blockiert `isStepValid()` in `configurator.js` den Kontaktdaten-Schritt ohne Telefonnummer (neuer Wert `configuratorData.phoneRequired`)
+- Reservierte Basisfeld-Keys (`MediaLab_Inquiry_Settings::RESERVED_FIELD_KEYS`: `name`, `email`, `phone`, `message`, `privacy_consent`): Im Repeater "Zusätzliche Felder" lassen sie sich als Feld-Key nicht mehr speichern (ACF-Validierung `validate_field_key()`)
+
+### Changed
+- Die Telefon-Prüfung sitzt zentral in `MediaLab_Inquiry_Engine::submit()` (Fehlercode `mlw_missing_phone`) und gilt damit für Warenkorb, Konfigurator und Wunschliste gleich. Der eigene Block in `MediaLab_Wishlist_Ajax::submit()` entfällt, die Meldung bleibt dieselbe. Bei "Ausblenden" wird eine mitgesendete Nummer verworfen
+- `MediaLab_Inquiry_Settings::get_form_fields()` filtert Zeilen mit reserviertem Key heraus. Das wirkt einheitlich auf Templates, Ajax-Handler, Engine und die an das Konfigurator-JS übergebenen Listen (`extraFieldKeys`, `requiredExtraFieldKeys`). Die Sonderbehandlung von `phone` in `templates/wishlist/page.php` ist damit redundant, bleibt aber unschädlich
+- Hilfetexte der Einstellung "Telefon" und des Feld-Keys angepasst (Beispiel jetzt "company" oder "position" statt "phone")
+
+### Fixed
+- Eine Zusatzzeile mit dem Feld-Key `phone` erzeugte auf der Anfrage-Seite, im Shortcode-Formular und im Konfigurator ein zweites Telefonfeld. Beim Absenden überschrieb das spätere, leere Feld die Nummer des eingebauten Felds (gleicher Feldname im Formular bzw. `extraFieldKeys` im Konfigurator-JS). Im Wunschlisten-Formular war das seit 2.14.0 behoben, jetzt gilt es für alle Formulare
+
+### Hinweis zum Update
+- Projekte mit einer Zusatzzeile `phone`: Die Zeile wird nicht mehr ausgegeben. Einstellung "Telefon" auf den gewünschten Modus stellen und die Zeile löschen. Label und Platzhalter der alten Zeile entfallen. Bestandszeilen finden: `wp option list --search='options_mlw_form_fields_*_field_key'`
+- Das Standard-Mail-Template (Admin) enthält weiterhin die Zeile `Telefon: {phone}`. Bei "Ausblenden" bleibt sie leer, projektspezifische Templates ggf. anpassen
+
+## [2.15.0] - 2026-10-09
+
+### Added
+- Text "Verfügbarkeit: ohne Bestand" (z. B. "Lieferzeit auf Anfrage") im Wording-System der Anfrage-Einstellungen: `MediaLab_Inquiry_Settings::wording( 'availability_on_request' )`, einsprachig als Feld `mlw_availability_on_request`, mehrsprachig als Unterfeld in der Sprach-Zeile. Der Code-Standard ist leer (ohne Eintrag ändert sich nichts). Projekte nutzen den Text für Produkte ohne Bestand
+
+## [2.14.0] - 2026-10-07
+
+### Added
+- Einstellung "Telefon" (Tab Formularfelder, `mlw_phone_mode`, `MediaLab_Inquiry_Settings::phone_mode()`): Das eingebaute Telefonfeld im Wunschlisten-Formular ist optional (Standard), Pflichtfeld (Browser und Server prüfen) oder ausgeblendet
+
+### Changed
+- Eine Zusatzzeile mit dem Feld-Key `phone` wird im Wunschlisten-Formular nicht mehr ausgegeben (sie erzeugte ein zweites Telefonfeld unter demselben Namen). Die Pflicht dafür steht jetzt in der Einstellung "Telefon"
+
+## [2.13.0] - 2026-10-07
+
+### Added
+- Einzelproduktseite mit Mengenfeld: Summenzeile "Gesamt (N Stück): Summe" unter dem Preis (Stückpreis mal Menge, Format aus den WooCommerce-Einstellungen; bei variablen Produkten mit dem Preis der gewählten Variante). Der Stückpreis steht als `data-unit-price` am Block `.mlw-wishlist-action`, `mlwWishlist.price` und `i18n.totalFor` im lokalisierten Skript, Stil `.mlw-price-total`. Der Preis ist das erste `.price` der Summary, das kein Germanized-Zusatzelement (`.wc-gzd-additional-info`) ist
+- JS-Haken für Projekte: `window.mlwUnitPriceFilters` (Funktionen `( preis, menge, ctx ) => neuerPreis`, z. B. für eine Mengenstaffel), Events `mlw:recalculate` und `mlw:price-updated`, Hilfsfunktion `window.mlwFormatMoney()`. Weicht der Stückpreis vom Ausgangspreis ab, ersetzt er auch den Preis oben
+- Mengeneinheit hinter der Zahl im Lagertext ("250 Stück vorrätig"), auf der Produktseite, bei Varianten und in den Produktkarten. Quelle ist das Germanized-Feld "Einheit", sonst der Filter `mlw_stock_unit( $einheit, $produkt )`; abschaltbar mit `mlw_stock_unit_enabled`. Texte ohne Zahl bleiben unverändert
+
+### Changed
+- Artikel auf der Wunschliste: Das Mengenfeld bleibt sichtbar, zeigt die Menge des Eintrags (bei variablen Produkten pro Variante, `data-wishlist-quantities` am Button) und übernimmt Änderungen über `mlw_wishlist_update_qty`. Das Theme blendet das Feld nicht mehr aus
+
+## [2.12.0] - 2026-10-07
+
+### Added
+- Wunschliste: Varianten. Variable Produkte werden mit der gewählten Variante gespeichert (Eintrag `variation_<id>` mit Variations-ID, Menge wird beim erneuten Hinzufügen ersetzt). Der Button auf der Produktseite nimmt die gewählte Variante aus dem Variationsformular und zeigt den Zustand pro Variante; auf Produktkarten führt das Herz bei variablen Produkten zur Produktseite. Wunschzettel-Seite, geteilte Liste und Anfrage (Mail, gespeicherte Anfrage, Kanäle: `variation_id` und `sku`) zeigen Variante, Varianten-SKU und Merkmale. Shop-Modus: Variante direkt in den Warenkorb
+- Filter `mlw_wishlist_unit_price( $preis, $item, $produkt, $menge )`: Projekte können den Stückpreis nach Menge anpassen (z. B. Mengenstaffel). Gilt nicht für konfigurierte Artikel
+- `MediaLab_Wishlist_Storage::has_product()` nimmt optional eine `$variation_id`, neue Methode `get_variation_display()`
+
+### Changed
+- Variable Produkte ohne gewählte Variante lassen sich nicht zur Wunschliste hinzufügen ("Bitte zuerst eine Variante wählen."). Bestehende Einträge ohne Variante bleiben sichtbar
+
+## [2.11.2] - 2026-10-07
+
+### Added
+- Wunschliste: Einstellung "Entfernen-Button" (Standard "Von der Wunschliste entfernen", im Mehrsprachig-Modus als Unterfeld). Der Button zeigt diesen Text, solange das Produkt auf der Liste steht, und wechselt per JS ohne Neuladen (`data-label-add`, `data-label-remove`)
+
+### Fixed
+- Wunschzettel-Seite: Das `<form>` in `templates/wishlist/page.php` hat jetzt die Klasse `mlw-wishlist__form` (Theme `_wishlist.scss`: Flex-Spalte mit Abstand, Absenden-Button nur so breit wie sein Inhalt, Abstand nach unten). Vorher hatte das Formular keine Klasse, Felder und Button standen ohne Abstand untereinander, und das Plugin-CSS dehnte den Button auf 100 % Breite
+
+## [2.11.1] - 2026-10-06
+
+### Fixed
+- Konfigurator: Basispreis bei variablen Produkten. Am Parent ist `get_regular_price()` leer, Wizard (`wizard.php`) und Preisrechner (`class-price-calculator.php`) rechneten deshalb mit 0 (Anzeige 0,00 €, auch im Warenkorb). Jetzt gilt `get_price()` (günstigste Variante), wenn der reguläre Preis leer ist
+
+## [2.11.0] - 2026-10-06
+
+### Added
+- Catalog Mode: neue Option "Variantenauswahl anzeigen" (ACF-Feld `wc_catalog_mode_show_variations`, Standard aus). Zeigt bei variablen Produkten mit "Kaufbuttons verstecken" die Auswahlfelder (Farbe, Größe) wieder an, ohne Kaufbutton und Mengenfeld. Preis, Verfügbarkeit und weitere Variantendaten (z. B. eine Staffel über `woocommerce_available_variation`) reagieren auf die Auswahl. Konfigurierbare Produkte bleiben unverändert
+- Catalog Mode: Mit aktiver Variantenauswahl entfällt der Lagerstatus des Elternprodukts, die Verfügbarkeit der gewählten Variante erscheint nach der Auswahl im Formular
+
+## [2.10.0] - 2026-10-03
+
+### Added
+- Modul `inc/single-product-layout.php` (Opt-in per Filter, Standard aus): `mlw_single_product_layout` (Summary-Reihenfolge, Beschreibung im Summary, Preis hinter dem Anfrage-Button), `mlw_loop_product_info` (Marke und Verfügbarkeit auf Produktkarten, überschreibbar über `mlw_loop_availability`), `mlw_reviews_always_open`
+- Wunschliste: optionales Mengenfeld auf der Einzelproduktseite (`mlw_wishlist_single_quantity`), eigener Button-Stil dort (`mlw_wishlist_single_button_style`); `wishlist.js` sendet die Menge mit
+
+### Changed
+- `configurator.css`: Regel für `flex-basis: 50%` mit `:where()` entschärft, damit Theme-Layouts sie überstimmen können
+- `templates/configurator/wizard.php`: Beschreibungsblock des Wizards entfällt bei aktivem `mlw_single_product_layout` (Beschreibung und Lagerstatus stehen dann unter dem Titel)
+- `wishlist.js`: Text-/Icon+Text-Button setzt nach dem Hinzufügen `aria-pressed` (Zustand wechselt ohne Neuladen)
+- `Storage::add()`: Bei einfachen Produkten ersetzt eine erneute Anfrage die Menge statt sie zu addieren (Filter `mlw_wishlist_replace_quantity`)
+
+## [2.9.1] - 2026-10-01
+
+### Fixed
+- **Lagerstatus-Text verschwand bei aktiviertem "Kaufbuttons verstecken"**
+  (`inc/catalog-mode.php`) – `wc_get_stock_html()` wurde bisher
+  ausschließlich innerhalb des Add-to-Cart-Templates
+  (`single-product/add-to-cart/simple.php`) aufgerufen. Da Catalog Mode
+  bei aktiver "Kaufbuttons verstecken"-Einstellung den kompletten
+  `woocommerce_template_single_add_to_cart`-Hook entfernt, fiel der
+  Lagerstatus-Text ("Vorrätig"/"Nicht vorrätig"/projektspezifische
+  Overrides via `woocommerce_get_availability`) versehentlich mit weg.
+  Betraf jedes Projekt mit dieser Kombination. Neue Methode
+  `display_stock_status()`, an derselben Priorität neu eingehängt, wo
+  vorher der Button saß. Gefunden und zuerst lokal kompensiert in
+  `at.media-lab` (01.10.2026).
+
+## [2.9.0] - 2026-08-25
+
+### Added
+- **Shop-Modus für die Wunschlisten-Seite** (`templates/wishlist/page.php`,
+  neu: `templates/wishlist/item-row-shop.php`) – Projekte ohne Catalog
+  Mode (echter WooCommerce-Checkout, z.B. `juwelier-janecka`) bekommen
+  jetzt eine Tabellen-Ansicht mit Checkboxen, Hinzufügedatum,
+  Lagerstatus und direktem "In den Warenkorb" statt des
+  Anfrage-Formulars – niemand will ein Kontaktformular ausfüllen, um bei
+  aktivem Checkout einzukaufen. Verzweigt automatisch über
+  `get_field('wc_catalog_mode_enabled', 'option')`; Catalog-Mode-Projekte
+  verhalten sich unverändert (Grid + Anfrage-Formular).
+- **Gesammeltes/einzelnes "In den Warenkorb" verschiebt statt kopiert**
+  (`inc/wishlist/class-ajax.php`, neuer Endpunkt `bulk_add_to_cart`) –
+  erfolgreich in den Warenkorb gelegte Artikel werden im selben Zug aus
+  der Wunschliste entfernt. Bei Teilerfolg (z.B. ein Artikel nicht mehr
+  vorrätig) bleibt man auf der Seite, erfolgreich verschobene Zeilen
+  verschwinden live, übersprungene bleiben mit Meldung stehen – bei
+  vollständigem Erfolg direkte Weiterleitung zum Warenkorb.
+  Übersprungen werden: konfigurierte Artikel, variable Produkte (Größen-/
+  Farbvarianten, die eine explizite Auswahl brauchen) und nicht (mehr)
+  ausreichend vorrätige Artikel (echte Mengen-Prüfung, nicht nur der
+  `is_in_stock()`-Status).
+- **Herz-Icon: Klick zum Entfernen (Toggle)** (`inc/wishlist/class-ajax.php`,
+  neuer Endpunkt `remove_by_product`) – erneuter Klick auf ein bereits
+  aktives Herz-Icon auf der Produktkarte/Einzelproduktseite entfernt den
+  Artikel wieder, statt ihn erneut hinzuzufügen.
+- **Live-Updates ohne Reload im Shop-Modus** (`assets/js/wishlist.js`) –
+  Entfernen und Warenkorb-Verschieben aktualisieren die Tabelle direkt im
+  DOM (Zeile raus, Empty-State bei Bedarf einblenden), kein
+  `window.location.reload()` mehr.
+
+### Fixed
+- `MediaLab_Wishlist_Storage::has_product()`-basierter Aktiv-Zustand des
+  Herz-Icons wurde beim ersten Hinzufügen nicht angezeigt, wenn die
+  Wunschliste beim Seitenaufruf leer war (Badge-`<span>` wurde nur bei
+  `count > 0` überhaupt gerendert) – wird jetzt immer gerendert, nur per
+  Inline-Style versteckt.
+
+---
+
+## [2.8.2] - 2026-08-24
+
+### Fixed
+- **Globale Filter-Konfiguration ging beim `2.7.0`-Redesign verloren**
+  (`inc/filters/filter-config.php`, `mlwf_get_default_filter_config()`)
+  – las zuvor `mlwf_attributes`/`mlwf_show_price` aus einer ACF-Optionsseite,
+  wurde beim Umbau auf die neue `MediaLab_Filter_Settings`-Klasse
+  versehentlich durch ein leeres Array bzw. hartcodiertes `true` ersetzt.
+  Betraf aktiv genutzte Konfigurationen (bei `at.janecka-2026` z.B. vier
+  konfigurierte Attribute), die als Fallback dienen, wann immer eine
+  Kategorie keine eigene Filter-Konfiguration hat. Gefunden beim
+  Datei-Audit nach dem `2.7.0`-Merge.
+- **"Produkte pro Seite" wurde bei AJAX-gefilterten Shop-Ansichten
+  ignoriert** (`inc/filters/ajax-handlers.php`) – nutzte den alten
+  Options-Namen `posts_per_page_shop` statt `mlw_products_per_page`
+  (siehe `inc/shop-products-per-page.php`, seit `2.2.0` die maßgebliche
+  Option). Zwei Stellen betroffen: Query-Args und der `per_page`-Wert in
+  der JSON-Response.
+- **HPOS-Produkttyp-Cache-Priming bei AJAX-Filter-Requests entfernt**
+  (`inc/filters/ajax-handlers.php`) – `mlwf_ajax_filter_products()` nutzte
+  wieder rohes `new WP_Query()` statt `medialab_prime_and_query_products()`
+  (`inc/hpos-product-type-cache-fix.php`). Der reguläre
+  `pre_get_posts`-Fix deckt AJAX-Handler-Queries nicht ab
+  (`is_main_query()`-Guard schließt sie aus), das Priming war hier
+  weiterhin nötig.
+
+### Documentation
+- Docblock-Kommentar in `inc/configurator/class-configurator.php` stand
+  über der falschen Methode (Placeholder-Bild statt
+  `move_tabs_before_configurator()`) - kosmetisch, keine funktionale
+  Auswirkung.
+
+---
+
+## [2.8.1] - 2026-08-24
+
+### Fixed
+- **UTF-8/Latin-1-Mojibake in `inc/catalog-mode.php`** – acht Stellen mit
+  doppelt-kodierten Umlauten (`Ã¼`/`Ã¤`/`Ã¶` statt `ü`/`ä`/`ö`), eine
+  davon in einem nutzersichtbaren String-Literal
+  (`wp_send_json_error('UngÃ¼ltige Menge')`), der Rest in Kommentaren.
+  Gefunden beim Datei-Audit bei `at.janecka-2026` (`cp -r` hatte die
+  Korruption von hier aus mitgebracht) — Ursache lag im Starter Kit
+  selbst, nicht im Client-Projekt.
+
+---
+
+## [2.8.0] - 2026-08-24
+
+### Added
+- **Wunschlisten-Button: drei Stile statt nur Text** (`inc/wishlist/class-frontend.php`,
+  `inc/wishlist/class-storage.php`, `assets/js/wishlist.js`, `assets/css/wishlist.css`)
+  – `render_button_html()` bekommt einen neuen `$style`-Parameter (`'icon'`
+  | `'text'` | `'icon_text'`). Standard für die automatischen Hooks
+  (`render_loop_button()`/`render_single_button()`) ist jetzt `'icon'`
+  (reines Herz-Icon, vorher Text-Button "Zur Wunschliste hinzufügen").
+  Zeigt beim Rendern sofort den korrekten "schon auf der Liste"-Zustand
+  (`is-active`, neue `MediaLab_Wishlist_Storage::has_product()`), kein
+  Aufblitzen des falschen Zustands beim Seitenaufruf. Per neuem
+  `mlw_wishlist_button_style`-Filter projektweise umstellbar, ohne
+  Core-Code anzufassen:
+```php
+  add_filter( 'mlw_wishlist_button_style', fn() => 'text' );       // nur Text
+  add_filter( 'mlw_wishlist_button_style', fn() => 'icon_text' );  // Icon + Text
+```
+  **Sichtbarer Verhaltenswechsel** für Projekte, die das Plugin auf
+  diesen Stand aktualisieren (betrifft keine bereits deployten
+  Kunden-Sites, da Plugins pro Client-Repo committed werden, keine
+  Auto-Updates).
+
+---
+
+## [2.7.0] - 2026-08-23
+
+### Added
+- **Konfigurierbare und mehrsprachige Filter-Labels:** Neue Optionsseite
+  *Produkte → Filter-Einstellungen* (`inc/filters/class-settings.php`):
+  Preis-/Kategorie-/Marke-/Zurücksetzen-Label, Attribut-Label-Overrides, je Sprache
+  pflegbar (eigener, von der Inquiry-Engine entkoppelter Sprachen-Repeater +
+  plugin-agnostische Spracherkennung, `inc/filters/class-i18n.php`, Polylang → WPML
+  → WP-Locale-Fallback).
+- **Konfigurator-Schritte als Shop-Filter nutzbar (kuratierter Ansatz):**
+  `config_steps` (select/radio/checkbox/color_picker) können optional mit einem
+  bestehenden WooCommerce-Attribut verknüpft werden (`use_as_filter` +
+  `filter_attribute`, `inc/configurator/class-acf-fields.php`).
+  - `inc/configurator/filter-sync.php`: gleicht Options-Labels beim Produkt-Speichern
+    mit Terms der gewählten Taxonomie ab (Matching per Label, Neuanlage falls nötig),
+    schreibt die ermittelte term_id zusätzlich in `filter_term_id` zurück (Brücke,
+    ohne das interne `value`-Feld anzufassen).
+  - `wp mlwf sync-configurator-filters [--dry-run]`: einmaliger Bulk-Sync für
+    Bestandsprodukte, die vor diesem Feature gespeichert wurden.
+  - Wichtig: `value` (Konfigurator-intern) und Attribut-Term-Slug bleiben getrennte
+    Bezeichner — künftige Verknüpfungen (z.B. Vorauswahl im Wizard) müssen explizit
+    über das Label brücken.
+- **Interaktive Filter-Bar (Frontend-JS und Styling):**
+  - `assets/src/js/components/mlwf-filters.js`: portiert & generalisiert aus dem
+    Janecka-Projekt (at.janecka-2026) — Action-Namen/Nonce jetzt dynamisch aus
+    `window.mlwf` statt hartkodiert.
+  - Preis-Slider (noUISlider), Dropdown-Filtergruppen, AJAX-Filterung, URL-State,
+    Pagination-Interception.
+  - SCSS ebenfalls aus Janecka portiert, an Starter-Kit-Breakpoints (`respond-to`)
+    und Design-Tokens angepasst (Dark-Mode-sicher statt hartkodierter Farben);
+    Fullwidth-Breakout entfernt, Bar liegt innerhalb `.container`.
+  - noUiSlider-CSS läuft über die Sass- statt JS-Pipeline (`@use` in
+    `_woocommerce.scss`, `--load-path=node_modules` in `build:css`) — Vite bindet
+    aus JS importiertes CSS im Production-Build nicht automatisch ein.
+
+### Changed
+- `mlwf_get_attribute_labels()` nutzt jetzt Custom-Labels vor dem WC-nativen
+  Attribut-Label.
+
+### Fixed
+- **Produktfilter-Bar war nie mit dem Theme verdrahtet:**
+  `mlwf_render_filter_bar()` existierte bereits vollständig, wurde aber nirgends
+  gehookt. Jetzt selbst-registrierend an `woocommerce_before_shop_loop` (Prio 15) —
+  funktioniert in jedem Projekt ohne Theme-seitige Verdrahtung.
+  Neuer `.wc-products-container`-Wrapper um `ul.products` + Pagination
+  (`woocommerce_before_shop_loop`/`_after_shop_loop`, Prio 20), Ziel für den
+  AJAX-Ergebnisaustausch im Frontend-JS.
+
+---
+
+## [2.6.0] - 2026-08-22
+
+### Added
+- **Wunschlisten-Button-API für Custom-Card-Themes** (`inc/wishlist/class-frontend.php`)
+  – neue öffentliche Methode `render_button_html()` gibt das Button-HTML
+  zurück statt es auszugeben. Zwei neue Filter
+  `mlw_wishlist_auto_loop_button`/`mlw_wishlist_auto_single_button`
+  (Default `true`, kein Breaking Change) erlauben Themes mit komplett
+  selbst gebautem Produktkarten-Markup, die automatischen Hooks
+  abzuschalten und den Button an eigener Stelle zu platzieren. Erster
+  Baustein der TI-Wishlist-Migration bei `juwelier-janecka` (siehe
+  docs/BACKLOG.md).
+- **Wunschlisten-Sharing per Token-Link** (`inc/wishlist/class-share.php`,
+  neue Tabelle `wp_mlw_shared_wishlists`) – Kunden und Gäste können ihre
+  Wunschliste über einen dauerhaften Link mit Dritten teilen, nutzt
+  `medialab_share()` aus agency-core für die Button-UI. Bei eingeloggten
+  Kunden zeigt der Link immer den aktuellen Listenstand (Live-Load); bei
+  Gästen wird ein Snapshot gespeichert (Session-Storage ist nicht
+  dauerhaft genug für einen teilbaren Link), automatisches Cleanup nach
+  90 Tagen (`mlw_wishlist_share_guest_retention_days`-Filter). Neue
+  Read-Only-Ansicht (`templates/wishlist/shared.php`) für Empfänger,
+  inkl. "In den Warenkorb"/"Produkt ansehen" pro Artikel.
+- **Wunschlisten-Seiten-Templates** (`templates/wishlist/page.php`,
+  `templates/wishlist/item-row.php`) – existierten bisher nicht,
+  `[mlw_wishlist_page]` lief ins Leere. Item-Zeilen als Grid-Spalten
+  (Bild/Details/Einzelpreis/Menge/Positionsgesamtpreis/Entfernen), die
+  sich mit der Gesamtsumme-Zeile dasselbe Spalten-Raster teilen
+  (`assets/src/scss/components/_wishlist.scss`), sodass
+  Positionsgesamtpreise exakt über dem Gesamtbetrag ausgerichtet sind.
+- **Hinweistext "Wunschliste leer" backend-steuerbar + mehrsprachig**
+  (`inc/inquiry/class-settings.php`) – neuer Wording-Key `wishlist_empty`,
+  volle Fallback-Kette wie alle anderen Wording-Felder (Sprache →
+  einsprachiges Flat-Feld → Code-Default).
+
+### Fixed
+- **Preisformatierung driftete nach Ajax-Updates** (`inc/wishlist/class-storage.php`,
+  `inc/wishlist/class-ajax.php`, `assets/js/wishlist.js`) – JS formatierte
+  Preise nach Menge-Ändern/Entfernen selbst nach (hartcodiertes `€`,
+  keine Rücksicht auf WooCommerce-Währungseinstellungen), wodurch die
+  Darstellung vom initialen PHP-Render abweichen konnte. Server liefert
+  jetzt fertig formatiertes `wc_price()`-HTML (`unit_price_html`,
+  `line_total_html`, `grand_total_html`) mit, JS übernimmt es 1:1.
+
+### Changed
+- `inc/wishlist/class-storage.php::get_items_for_display()` akzeptiert
+  jetzt optional eine explizite Item-Liste statt immer nur die des
+  aktuellen Besuchers (nötig für die Token-Sharing-Ansicht). Neue
+  öffentliche `get_items_for_user_id()`.
+
+---
+
+## [2.5.1] - 2026-08-12
+
+### media-lab-woocommerce 2.5.1
+
+Hotfix, unabhängig von den BACKLOG.md-Paketen entdeckt (beim Testen von
+"Test - Step-Typen Abdeckung (Custom T-Shirt)").
+
+#### Fixed
+
+- **Kritisch: Jedes Produkt mit Konfigurator-Typ "Textilien" zeigte 0
+  Konfigurationsschritte** (Wizard sprang direkt zur Zusammenfassung,
+  "Schritt 1 von 1"), unabhängig davon wie viele Zeilen im
+  "Konfigurationsschritte"-Repeater tatsächlich gepflegt waren.
+
+  Ursache: `get_configuration_steps()` verzweigte bei `config_type ===
+  'textile'` in `get_textile_steps()` - eine Methode, die die Steps über
+  ein separates CPT-basiertes System laden sollte (Post-IDs in der
+  `config_steps`-Postmeta erwartet). Diese CPT-Registrierung existiert im
+  Plugin nirgends; die tatsächlichen Schritte werden für alle
+  Konfigurator-Typen im ACF-Repeater `config_steps` direkt auf dem
+  Produkt gespeichert. Ein roher `get_post_meta()`-Aufruf auf ein
+  ACF-Repeater-Feld liefert aber nur die interne Zeilenanzahl als String
+  (z.B. `"5"`) statt eines Arrays - der `is_array()`-Guard in
+  `get_textile_steps()` schlug dadurch immer fehl, die Methode gab immer
+  `array()` zurück.
+
+  Fix: `get_configuration_steps()` lädt jetzt für alle Konfigurator-Typen
+  konsistent aus dem ACF-Repeater. `get_textile_steps()` bleibt
+  unverändert (privat, ungenutzt) im Code, falls das CPT-basierte System
+  an anderer Stelle doch noch benötigt wird.
+
+---
+
+## [2.5.0] - 2026-08-12
+
+### media-lab-woocommerce 2.5.0
+
+Behebt den Staffelpreis-Doppelsteuer-Bug aus BACKLOG.md ("Paket C") - kritisch
+für jedes Projekt mit Bruttopreis-Eingabe (`woocommerce_prices_include_tax = yes`,
+üblich bei DACH-B2C-Shops).
+
+#### Fixed
+
+- **Kritisch: Staffelpreis-Tabelle im Konfigurator zeigte bei
+  Bruttopreis-Eingabe einen zu hohen Preis/Stück.** Die Live-Preisvorschau
+  (`get_breakdown()`) war bereits korrekt (siehe 2.1.0), aber
+  `calculateTierPrice()` in `configurator.js` hat den client-seitig
+  übergebenen `subtotal`-Wert weiterhin immer als netto behandelt und bei
+  Bruttopreis-Anzeige selbst Steuer aufgeschlagen - obwohl `subtotal` bei
+  Bruttopreis-Eingabe bereits brutto war. Ergebnis: Steuer wurde ein
+  zweites Mal aufgeschlagen (Beispiel aus dem Backlog: 135€/Stück korrekt
+  vs. 162€/Stück fälschlich angezeigt in der Tabelle).
+
+  Umgesetzt wie im Backlog skizziert:
+  - `class-price-calculator.php`: neue Methode `get_tiers_with_prices()`
+    berechnet pro Preisstufe den korrekten Preis/Stück mit denselben
+    `wc_get_price_excluding_tax()`/`wc_get_price_including_tax()`-Aufrufen
+    wie `get_breakdown()` - keine geratene Netto/Brutto-Logik mehr.
+  - `class-configurator.php`, `ajax_calculate_price()`: `price_breakdown`
+    um `tiers_with_prices` ergänzt.
+  - `configurator.js`, `calculateTierPrice()`: schlägt jetzt bevorzugt den
+    vom Server gelieferten `unit_price` aus `tiers_with_prices` nach,
+    alte client-seitige Berechnung bleibt nur noch als Fallback (falls
+    `tiers_with_prices` einmal fehlen sollte, z.B. während einer
+    Deploy-Übergangsphase).
+  - `wizard.php`: `calculateTierPrice()`-Aufruf und `is-active`-Vergleich
+    casten `min_quantity`/`discount_percent` jetzt explizit zu (int)/(float)
+    beim Ausgeben in den JS-Kontext - verhindert einen stillen Fallback auf
+    die alte Berechnung durch einen Typ-Mismatch beim `parseFloat()`-Vergleich
+    in `configurator.js`.
+
+---
+
+## [2.4.0] - 2026-08-12
+
+### media-lab-woocommerce 2.4.0
+
+Kompatibilitäts-Ergänzungen aus BACKLOG.md ("Paket B") - Filter-System
+kompatibler zu abweichenden Theme-Konventionen (Janecka-Merge), plus ein
+generisches Sortier-Layout für die Filter-Bar.
+
+#### Added
+
+- **Sortier-Layout** (`inc/filters/filter-bar.php`): WooCommerce's native
+  Sortierung (`woocommerce_catalog_ordering()`) wird jetzt standardmäßig in
+  einem eigenen `.wc-filter-bar__groups-sort`-Container neben den
+  Filter-Gruppen gerendert - abschaltbar per
+  `add_filter( 'mlwf_filter_bar_show_sort', '__return_false' )`. Bewusst
+  außerhalb von `.js-filter-form`, da `woocommerce_catalog_ordering()` ein
+  eigenes `<form>`-Tag ausgibt (kein verschachteltes `<form>` möglich).
+  **Follow-up offen:** volle AJAX-Integration (Sortierwechsel ohne
+  Page-Reload) erfordert einen zusätzlichen Change-Handler in
+  `ajax-filters.js` - lag bei diesem Release nicht vor.
+
+#### Fixed
+
+- **`inc/filters/ajax-handlers.php`:** Theme-Alias-Action `ajax_filter_posts`
+  ergänzt - manche Theme-Konventionen (z.B. Janeckas Theme) senden
+  AJAX-Filter-Requests unter diesem Namen statt
+  `janecka_filter_products`/`mlwf_filter_products`. Rein additiver Alias,
+  wirkungslos für Projekte, die den Namen nicht nutzen.
+- **`inc/filters/ajax-handlers.php`:** Duale Nonce-Prüfung
+  (`mlwf_filter_nonce` + `ajax_filters_nonce`) über neue
+  `mlwf_verify_filter_nonce()`-Hilfsfunktion, angewendet in
+  `mlwf_ajax_filter_products()` und `mlwf_ajax_get_price_range()`. Ohne
+  Fallback: 403 bei jedem Filter-Request in Projekten, deren Theme den
+  Nonce unter dem abweichenden Namen erzeugt.
+
+---
+
+## [2.3.0] - 2026-08-12
+
+### media-lab-woocommerce 2.3.0
+
+Bugfixes und ein neuer Shortcode, gefunden beim WooCommerce-Sync
+`at.janecka-2026` ↔ Starter Kit (siehe BACKLOG.md, "Paket A" - vorbestehende
+Bugs im Starter Kit selbst, unabhängig vom Janecka-Merge).
+
+#### Added
+
+- Neuer Shortcode `[mlw_inquiry_form]` (`inc/inquiry/class-shortcode.php`)
+  macht `templates/inquiry-form.php` nutzbar - das Template war zuvor an
+  keiner Stelle in `inc/` eingebunden (totes Template). Für Nutzung
+  außerhalb des automatischen Catalog-Mode-Checkout-Flows, z.B. auf einer
+  eigenen Landingpage. Unterstützt Theme-Override via
+  `yourtheme/media-lab-woocommerce/inquiry-form.php`.
+- ACF-Feldgruppe des Konfigurators: Step-Type `contact_form` als Auswahl
+  ergänzt (`inc/configurator/class-acf-fields.php`) - wurde von
+  `wizard.php`, `class-configurator.php` und `class-price-calculator.php`
+  bereits aktiv unterstützt, war im Produkt-Editor aber nicht auswählbar
+
+#### Fixed
+
+- **`templates/inquiry-checkout.php`:** hartcodierter Steuersatz
+  (`$tax_rate = 20`) durch echte `WC()->cart`-Steuerwerte
+  (`get_subtotal()`/`get_subtotal_tax()`/`get_total()`) ersetzt -
+  berücksichtigt jetzt Steuerklasse und Kundenland/-status statt eines
+  fixen österreichischen Standardsatzes
+- **`templates/configurator/fields/number.php`:** `isset()`-Bug behoben -
+  ACF liefert bei leer gelassenem Feld einen leeren String statt `null`,
+  wodurch der min/max-Fallback (1/10000) nie griff und die
+  Mengenschalter (+/-) ohne gesetztes Maximum funktionslos waren
+- **`templates/configurator/wizard.php`:** Wishlist-Button jetzt hinter
+  `class_exists('MediaLab_Wishlist_Ajax')`-Guard - Projekte ohne
+  `inc/wishlist/` (z.B. `at.janecka-2026`) zeigten zuvor einen sichtbaren,
+  aber funktionslosen Button
+- **`inc/inquiry/class-mail.php`:** Preisaufschlüsselung in der
+  Anfrage-Mail um Zwischensumme (pro Stück), Menge, Zwischensumme vor
+  Steuer und eine eigene MwSt.-Zeile erweitert - der angezeigte
+  Gesamtbetrag war zuvor korrekt, aber für den Kunden nicht
+  nachvollziehbar, wie er zustande kam
+
+#### Known Issues / Follow-ups
+
+- Kommentarverweis in `inc/catalog-mode.php`, der auf
+  `templates/inquiry-form.php` zeigt, ist vermutlich fehlgeleitet und
+  sollte im Zuge des neuen Shortcodes geprüft/korrigiert werden - Datei
+  lag bei diesem Release nicht vor
+- `templates/inquiry-form.php` selbst unverändert übernommen (kein
+  eigener Fix, nur über den neuen Shortcode erreichbar)
+
+---
+
+## [2.2.0] - 2026-08-10
+
+### media-lab-woocommerce 2.2.0
+
+Kritische Bugfixes rund um bisher ungetestete Konfigurator-Step-Typen
+(size_matrix, color_picker, checkbox, radio, textarea), Wunschlisten-
+Übernahme aus dem Konfigurator, sowie zwei unabhängige Shop-Einstellungen.
+
+#### Added
+
+- Artikelnummer/SKU wird jetzt bei allen drei Inquiry-Quellen (Cart-Anfrage,
+  Konfigurator, Wunschliste) sowohl in der Mail als auch auf der
+  Wunschlisten-Seite angezeigt
+- Kontaktdaten (Name/E-Mail/Telefon/Firma) UND alle textarea-Felder
+  (z.B. "Besondere Wünsche") werden beim Übernehmen vom Konfigurator in die
+  Wunschliste automatisch gemerkt und das Wunschlisten-Formular damit
+  vorausgefüllt - bei mehreren textarea-Feldern werden diese zu einer
+  Nachricht mit Label-Präfix kombiniert
+- Eigene, unabhängig konfigurierbare und mehrsprachige Erfolgsmeldung für
+  die Wunschliste (vorher geteilt mit Cart-/Konfigurator-Anfrage)
+- Neues Feld "Produkte pro Seite" unter WooCommerce → Einstellungen →
+  Produkte → Anzeige (`inc/shop-products-per-page.php`) - überschreibt den
+  bisher im Theme hartcodierten Wert (12), wirkt auf Shop-/Kategorie-
+  Übersichtsseiten und die native Produktsuche, unabhängig von der
+  Inquiry-Engine nutzbar
+- Client-seitige Validierung vor "Zur Zusammenfassung": prüft jetzt auch
+  konfigurierte Pflicht-Zusatzfelder und die Datenschutz-Checkbox, nicht
+  mehr nur Name/E-Mail
+- Sanftes Scrollen zum Konfigurator-Anfang bei jedem Schrittwechsel
+
+#### Fixed
+
+- **Fataler Fehler `Call to undefined function wc_get_price_suffix()`** bei
+  jeder Ajax-Preisberechnung und jedem Absenden (Anfrage & Wunschliste) -
+  WooCommerce-Frontend-Funktionen sind bei reinen Ajax-Requests nicht
+  zuverlässig geladen, Datei wird jetzt bei Bedarf gezielt nachgeladen
+- Größen-Matrix-Aufpreise (z.B. XL/XXL) flossen nie in die Preisberechnung
+  ein - mengengewichteter Durchschnittsaufpreis pro Stück ergänzt
+- Wunschliste blieb nach Ajax-Hinzufügen leer: WooCommerce setzt seinen
+  Session-Cookie bei reinen Ajax-Requests nicht zuverlässig, wird jetzt
+  explizit erzwungen
+- Wunschlisten-Einzelpreis nutzte versehentlich `price_breakdown['total']`
+  (Gesamtpreis für die volle Konfigurations-Menge) statt `unit_price` -
+  führte bei Produkten mit Mengen-/Größen-Matrix-Step zu einer doppelten
+  Multiplikation und absurd hohen Anzeigepreisen
+- Wunschlisten-Badge zeigte die Summe aller Mengen statt der Positionsanzahl
+- `color_picker`-Auswahl zeigte den rohen Hex-Wert statt des Farbnamens
+  (fehlte bei der Label-Auflösung)
+- Platzhalterbild-Fallback fehlte im JS-Nachrendern der Wunschliste (nur im
+  PHP-Template vorhanden) - führte zu einem kaputten Bild-Icon nach
+  Mengen-Änderungen
+- `foreach()`-Warnung bei Step-Typen ohne Optionen (`contact_form`,
+  `file_upload`, `textarea`)
+- Native Browser-Validierungs-Sprechblase (nicht stylbar, nicht
+  mehrsprachig) durch `novalidate` + eigene, übersetzbare Validierung ersetzt
+
+---
+
+## [2.1.0] - 2026-08-07
+
+### media-lab-woocommerce 2.1.0
+
+Konfigurator-Feinschliff: korrekte Steuerberechnung über WooCommerce, Layout-Fixes,
+Mengen-/Staffelpreis-UX, WP-Germanized-Integration.
+
+#### Added
+
+- Freier, mehrsprachiger „Preis-Hinweistext" in den Inquiry-Einstellungen (Wording/Sprachen-Tab)
+- `inc/price-suffix.php` – globaler Hook in `woocommerce_get_price_suffix`, **nicht** an die Inquiry-Engine gekoppelt: nutzt die eigene mehrsprachige Einstellung, falls konfiguriert, sonst WooCommerce's natives „Preis-Anzeige-Suffix"-Feld (Einstellungen → Steuern) - funktioniert damit auch in Projekten ohne Inquiry-Engine
+- WP-Germanized-Rechtshinweise (Steuer/Versandkosten) direkt unter der Live-Preisvorschau im Konfigurator, über die offiziellen WPG-Shortcodes (`gzd_product_tax_notice`, `gzd_product_shipping_notice`) statt WPGs Standard-Ausgabeposition
+- `create-category-test-products.php` (WP-CLI-Skript) – 36 Testprodukte über 3 Kategorien (Drucksorten/Textilien/Give-aways), inkl. Mengen-Step für Staffelpreis-Tests
+
+#### Changed
+
+- `class-price-calculator.php`: komplette Preisberechnung auf WooCommerce's eigene Steuer-Funktionen (`wc_get_price_excluding_tax()`/`wc_get_price_including_tax()`) umgestellt statt hartcodierter 20 % - berücksichtigt jetzt Steuerklasse, `wc_prices_include_tax()` und die tatsächliche Shop-Steueranzeige-Einstellung (`woocommerce_tax_display_shop`)
+- Konfigurator-Navigation: „Anfrage absenden" bekommt bei drei Buttons (Zurück/Wunschliste/Anfrage) eine eigene volle Zeile, statt mit den anderen um Platz zu konkurrieren
+- Schritt-Zähler („Schritt X von Y") zählt den Zusammenfassungs-Schritt jetzt korrekt mit (Denominator `totalSteps + 1`)
+
+#### Fixed
+
+- **Layout-Kollaps der `.summary`-Spalte** auf Produktseiten ohne eigenes Bild: mehrere ineinandergreifende Ursachen gefunden und behoben - u.a. eine zu allgemeine theme-weite `[data-columns]`-Grid-Regel, die ungewollt auch auf die WooCommerce-Produktgalerie griff (kollidierte mit demselben, für andere Theme-Komponenten gedachten Attribut)
+- Rezensionen wurden bei konfigurierbaren Produkten innerhalb von `.summary` ausgegeben (dadurch auf 50 % Breite gequetscht) - jetzt über einen eigenen Hook (`woocommerce_after_single_product_summary`) außerhalb davon
+- `unit_price` in der Preisaufschlüsselung enthielt keine MwSt., während `total` sie enthielt - beide Werte widersprachen sich sichtbar bei Menge 1 (jetzt behoben, da beide über dieselbe WooCommerce-Steuerfunktion laufen)
+- Native Browser-Spinner-Pfeile im Mengenfeld überlagerten die eigenen Plus/Minus-Buttons
+- Zwei vorbestehende Bugs in meinem eigenen Testprodukt-Anlage-Skript: fehlender Mengen-Step (keine Staffelpreis-Anzeige testbar) und bei 10 Give-away-Produkten fehlender Kontaktdaten-Step (identischer Bug wie schon einmal beim Kinder-T-Shirt-Testprodukt gefunden)
+
+---
+
+## [2.0.0] - 2026-08-06
+
+### media-lab-woocommerce 2.0.0
+
+Große Erweiterung: zentrale **Inquiry-Engine** (gemeinsamer Kern für Cart-Anfrage,
+Konfigurator-Anfrage und die neue **Wunschliste**) plus vollständiges
+Wunschlisten-Feature inkl. Frontend, Mehrsprachigkeit und Navigations-Icon.
+
+#### Added
+
+**Inquiry-Engine (`inc/inquiry/`)**
+- `class-cpt.php` – neuer CPT `mlw_inquiry` für alle Anfragen (Cart/Konfigurator/Wunschliste), eigene Stati (Offen/In Bearbeitung/Erledigt/Archiviert), Backend-Menü mit Quelle/Kanäle/Status-Spalten
+- `class-settings.php` – zentrale ACF-Optionsseite: editierbare Formularfelder (Pflicht/Optional, projektspezifisch), Kanäle (E-Mail/WhatsApp/Webhook), editierbare Mail-Templates, Mehrsprachigkeit (siehe unten), Navigation (siehe unten)
+- `class-i18n.php` – Sprach-Erkennung (Polylang → WPML → WP-Locale-Fallback), plugin-agnostisch
+- `class-mail.php` – Platzhalter-Ersetzung, HTML-Wrapper, Produktlisten-Formatierung inkl. Konfigurator-Daten/Preisaufschlüsselung/Datei-Anhängen
+- `class-channels.php` – Versand an aktive Kanäle (E-Mail, WhatsApp-Link, Webhook mit Secret-Header)
+- `class-inquiry-engine.php` – zentrale `submit()`-Methode: Validierung (inkl. konfigurierbarer Pflichtfelder & Datenschutz-Zustimmung), CPT-Speicherung, Multi-Channel-Versand
+- `class-upload-cleanup.php` – täglicher Cron, löscht ausschließlich explizit als "pending" getaggte, nie einer Anfrage zugeordnete Konfigurator-Uploads nach 30 Tagen
+
+**Mehrsprachigkeit**
+- Tab "Sprachen" in den Einstellungen: beliebig viele Sprachen, Wording/Mail-Templates/Datenschutztext pro Sprache
+- Formularfeld-Labels/Placeholder/Optionen ebenfalls pro Sprache pflegbar (verschachtelter Repeater)
+- Dreistufige Fallback-Kette: passende Sprache → erste konfigurierte Sprache → sprachneutrales Flat-Feld → Code-Default
+- Vollständigkeits-Hinweis im Backend (welche Sprache hat noch fehlende Übersetzungen)
+
+**Wunschliste (`inc/wishlist/`, `templates/wishlist/`)**
+- `class-storage.php` – eigenständige Datenhaltung unabhängig vom `WC()->cart` (Gast: `WC()->session`, eingeloggt: User-Meta inkl. Login-Merge), unterstützt Konfigurator-Items (Konfiguration, Preisaufschlüsselung, Datei-Uploads)
+- `class-ajax.php` – add/remove/update_qty/get/submit; Preis & Konfigurationsanzeige werden bei konfigurierbaren Produkten serverseitig neu berechnet (verhindert manipulierte Preise über den Client)
+- `class-frontend.php` – Add-to-Wishlist-Buttons (Shop-Loop + Einzelproduktseite), Shortcode `[mlw_wishlist_page]`, optionales Wunschlisten-Icon im Hauptmenü (Desktop + Mobile automatisch) mit Mengen-Badge
+- `class-enqueue.php` – Frontend-Assets, lokalisierte Daten (Nonce, Wording, i18n-Strings)
+- `templates/wishlist/page.php` + `item-row.php` – Wunschlisten-Seite mit Menge ändern/entfernen, Einzelpreis, Zeilensumme, Gesamtsumme, Absende-Formular
+- `assets/js/wishlist.js` – vollständige Frontend-Logik (Add/Remove/Menge/Absenden), Live-Neurendering ohne Reload
+- Konfigurator-Wunschlisten-Abzweig: neuer Button "Zur Wunschliste hinzufügen" im Wizard neben "Anfrage senden"
+
+**Navigation**
+- Neue Einstellungen (Tab "Navigation" bzw. pro Sprache): Icon im Hauptmenü an/aus, Anzahl-Badge an/aus, Wunschlisten-Seite (pro Sprache wählbar, mit Fallback)
+
+**Testdaten**
+- `create-test-products.php` (WP-CLI-Skript) – legt ein einfaches und ein konfigurierbares Testprodukt an
+
+#### Changed
+
+- `inc/catalog-mode.php`: `handle_inquiry_submission()` auf dünnen Wrapper um die Inquiry-Engine umgestellt (vorher: eigene, hartcodierte Klartext-`wp_mail()`-Logik ohne Validierung/Mehrsprachigkeit)
+- `inc/configurator/class-configurator.php`:
+  - `ajax_configurator_inquiry()` ebenfalls auf die Inquiry-Engine umgestellt
+  - Neue wiederverwendbare Helper: `get_config_display_array()`, `get_attachment_ids_from_config()`, `get_price_breakdown()` (jetzt gemeinsame Quelle für Cart-Anzeige, Wunschliste und Mail-Versand statt dreifach dupliziertem Code)
+  - `display_configuration_in_cart()` nutzt jetzt `get_config_display_array()`
+- `templates/inquiry-checkout.php`: rendert jetzt dynamisch konfigurierte Zusatzfelder + Datenschutz-Checkbox; JS sammelt Formularfelder generisch statt hartcodiert
+- `templates/configurator/fields/contact-form.php`: ebenso um dynamische Zusatzfelder + Datenschutz-Checkbox erweitert
+- `assets/js/configurator.js`: `sendInquiry()` sammelt Zusatzfelder generisch; neue `addToWishlist()`-Methode
+
+#### Fixed
+
+Mehrere vorbestehende, bis dato unbemerkte Bugs (unabhängig von den neuen Features gefunden und behoben):
+
+- **Catalog Mode × Konfigurator:** Hook-Kollision an `woocommerce_before_add_to_cart_button` – bei aktivem "Kaufbuttons verstecken" feuerte der Konfigurator nie, da Catalog Mode den übergeordneten Hook entfernt. Konfigurator hängt jetzt an `woocommerce_single_product_summary` mit fester Priorität.
+- **`class-configurator.php`, `canProceed()`:** fehlende Existenzprüfung führte zu einem JS-Crash auf dem Zusammenfassungs-Schritt (Alpine.js `:disabled`-Binding wird auch bei `x-show="false"` ausgewertet).
+- **`templates/configurator/wizard.php`:** doppelte, hartcodierte `<script>`-Tags (Alpine.js, configurator.js, `configuratorData`) kollidierten mit der korrekten `wp_enqueue_script()`/`wp_localize_script()`-Registrierung (`SyntaxError: Identifier 'configuratorData' has already been declared`) – entfernt.
+- **`class-configurator.php`, `enqueue_scripts()`:** verließ sich auf `global $product`, das am `wp_enqueue_scripts`-Hook bei WooCommerce unzuverlässig gesetzt ist – auf `wc_get_product( get_queried_object_id() )` umgestellt.
+- **`get_config_display_array()`:** leere Werte (Konfigurator initialisiert jedes Step-Feld beim Start mit `''` bzw. `[]`) wurden fälschlich als "vorhanden" angezeigt (z.B. leere "Logo-Datei"-Zeile ohne Upload) – zusätzliche Leer-Prüfung ergänzt.
+- **`inc/inquiry/class-cpt.php`:** Backend-Hinweis-Anzeige (Vollständigkeits-Check) prüfte auf einen von der Menü-*Beschriftung* abhängigen Screen-ID-Präfix statt auf den stabilen Options-Page-Slug.
+- **`inc/inquiry/class-cpt.php`:** Standard-„Alle"-Ansicht im Backend zeigte 0 Einträge, da WordPress bei CPTs mit ausschließlich Custom-Post-Stati ohne expliziten Query-Parameter nicht zuverlässig alle registrierten Stati berücksichtigt – `pre_get_posts`-Fix ergänzt.
+- **`inc/inquiry/class-settings.php`:** Sprach-Fallback-Kette fiel bei einer konfigurierten, aber leeren Sprachzeile direkt auf den (hartcodiert deutschen) Code-Default durch, statt zuerst die erste konfigurierte Sprache zu versuchen.
+
+#### Known Issues / Follow-ups
+
+- Theme-CSS-Layout-Bug bei Produkten ohne eigenes Bild (Text bricht zeichenweise um) – vermutlich Platzhalterbild ohne `max-width:100%` in der Produktgalerie. Nicht Teil dieses Plugins, separates Ticket empfohlen.
+- Client-seitige Pflichtfeld-Validierung im Konfigurator-Wizard prüft neue Zusatzfelder/Datenschutz-Checkbox noch nicht inline (serverseitige Validierung greift zuverlässig, aber ohne Schritt-für-Schritt-UX-Hinweis).
+- "Schritt X von Y"-Anzeige im Konfigurator-Wizard zählt den Zusammenfassungs-Schritt nicht korrekt mit (kosmetisch).
+- Honeypot-Mindestzeit (Core-Plugin, Standard 3s) kann bei sehr schnellem Ausfüllen/Autofill zu Fehlversuchen führen – ggf. projektweit über Agency-Core-Einstellungen anpassen.
+
+---
+
+## [1.0.2] - vor dieser Session
+
+Letzter Stand vor Beginn der Wunschlisten-Entwicklung (Catalog Mode, Konfigurator-Basisfunktion, Filter/Suche).

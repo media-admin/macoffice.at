@@ -1,0 +1,17 @@
+/*
+Theme Name: macoffice
+Theme URI: https://www.media-lab.at
+Description: Theme für macoffice.at (Neuaufbau auf Basis des Media Lab Starter Kits)
+Author: Media Lab Tritremmel GmbH
+Author URI: https://www.media-lab.at
+Version: 0.1.0
+Requires at least: 6.0
+Tested up to: 6.4
+Requires PHP: 8.0
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: macoffice
+Tags: custom, woocommerce
+*/
+
+/* Theme styles werden über Vite kompiliert */

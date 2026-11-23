@@ -12,6 +12,7 @@
 # ============================================
 # WORDPRESS CONFIG (sensible Daten!)
 # ============================================
+/wp-content
 /cms/wp-config.php
 /cms/wp-config-local.php
 /cms/wp-config-staging.php

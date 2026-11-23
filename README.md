@@ -18,9 +18,20 @@ Nicht im Repo (laut `.gitignore`): WordPress-Core, `wp-config*.php`, Uploads, Dr
 
 ## Umgebungen
 
-- **LocalDev:** `https://macoffice.localdev` (Laravel Valet)
+- **LocalDev:** `https://at.macoffice-2026.localdev` (Laravel Valet)
 - **Staging:** `https://macoffice.media-lab.dev` (Hetzner)
 - **Live:** `https://macoffice.at` (bleibt unverändert, bis die Abnahme erfolgt ist)
+
+## LocalDev einrichten (Laravel Valet)
+
+```bash
+cd ~/Valet-Umgebung
+git clone https://github.com/media-admin/macoffice.at.git at.macoffice-2026
+cd at.macoffice-2026
+bash scripts/local-setup.sh
+```
+
+Das Script legt DB `at_macoffice_2026` (Präfix `mo_`) an, installiert WordPress in `cms/` (siteurl mit `/cms`, home ohne), aktiviert Plugins und Theme, setzt den `wp-content`-Symlink, verlinkt und sichert die Domain in Valet und baut die Assets. Optionen und Variablen stehen im Kopf des Scripts. ACF Pro (Lizenz) wird aus einem bestehenden Projektordner kopiert.
 
 ## Entwicklung
 

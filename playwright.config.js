@@ -32,7 +32,7 @@ export default defineConfig({
   // Shared settings for all the projects below
   use: {
     // Base URL to use in actions like `await page.goto('/')`
-    baseURL: process.env.TEST_URL || 'https://macoffice.localdev',
+    baseURL: process.env.TEST_URL || 'https://at.macoffice-2026.localdev',
     
     // Collect trace when retrying the failed test
     trace: 'on-first-retry',
@@ -73,7 +73,7 @@ export default defineConfig({
   // Run local dev server before starting tests
   webServer: process.env.CI ? undefined : {
     command: 'npm run dev',
-    url: 'https://macoffice.localdev',
+    url: 'https://at.macoffice-2026.localdev',
     reuseExistingServer: !process.env.CI,
     ignoreHTTPSErrors: true,
   },

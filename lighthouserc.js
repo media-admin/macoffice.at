@@ -2,9 +2,9 @@ module.exports = {
   ci: {
     collect: {
       url: [
-        'https://macoffice.localdev/',
-        'https://macoffice.localdev/beispiel-seite/',
-        'https://macoffice.localdev/blog/',
+        'https://at.macoffice-2026.localdev/',
+        'https://at.macoffice-2026.localdev/beispiel-seite/',
+        'https://at.macoffice-2026.localdev/blog/',
       ],
       numberOfRuns: 3,
       settings: {

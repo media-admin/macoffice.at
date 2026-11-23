@@ -12,7 +12,7 @@
 
     {
       "label": "Homepage",
-      "url": "https://macoffice.localdev/",
+      "url": "https://at.macoffice-2026.localdev/",
       "delay": 500,
       "hideSelectors": [".cookie-notice", ".admin-bar"],
       "removeSelectors": [],
@@ -22,7 +22,7 @@
 
     {
       "label": "Einzelbeitrag (single.php)",
-      "url": "https://macoffice.localdev/beispiel-beitrag/",
+      "url": "https://at.macoffice-2026.localdev/beispiel-beitrag/",
       "delay": 300,
       "hideSelectors": [".cookie-notice", ".admin-bar"],
       "misMatchThreshold": 0.2,
@@ -31,7 +31,7 @@
 
     {
       "label": "Archiv (archive.php)",
-      "url": "https://macoffice.localdev/category/allgemein/",
+      "url": "https://at.macoffice-2026.localdev/category/allgemein/",
       "delay": 300,
       "hideSelectors": [".cookie-notice", ".admin-bar"],
       "misMatchThreshold": 0.2,
@@ -40,7 +40,7 @@
 
     {
       "label": "Suche – mit Ergebnissen",
-      "url": "https://macoffice.localdev/?s=beispiel",
+      "url": "https://at.macoffice-2026.localdev/?s=beispiel",
       "delay": 300,
       "hideSelectors": [".cookie-notice", ".admin-bar"],
       "misMatchThreshold": 0.2,
@@ -49,7 +49,7 @@
 
     {
       "label": "Suche – leer (kein Ergebnis)",
-      "url": "https://macoffice.localdev/?s=xyzohnenErgebnis123",
+      "url": "https://at.macoffice-2026.localdev/?s=xyzohnenErgebnis123",
       "delay": 300,
       "hideSelectors": [".cookie-notice", ".admin-bar"],
       "misMatchThreshold": 0.1,
@@ -58,7 +58,7 @@
 
     {
       "label": "404-Seite",
-      "url": "https://macoffice.localdev/diese-seite-gibt-es-nicht-xyz/",
+      "url": "https://at.macoffice-2026.localdev/diese-seite-gibt-es-nicht-xyz/",
       "delay": 300,
       "hideSelectors": [".cookie-notice", ".admin-bar"],
       "misMatchThreshold": 0.1,
@@ -67,7 +67,7 @@
 
     {
       "label": "Navigation – Desktop Flyout",
-      "url": "https://macoffice.localdev/",
+      "url": "https://at.macoffice-2026.localdev/",
       "delay": 500,
       "hideSelectors": [".cookie-notice", ".admin-bar"],
       "hoverSelectors": [".nav__item--has-children > .nav__link"],
@@ -78,7 +78,7 @@
 
     {
       "label": "Back-to-Top Button – sichtbar",
-      "url": "https://macoffice.localdev/beispiel-beitrag/",
+      "url": "https://at.macoffice-2026.localdev/beispiel-beitrag/",
       "delay": 300,
       "hideSelectors": [".cookie-notice", ".admin-bar"],
       "scrollToSelector": "footer",
@@ -88,7 +88,7 @@
 
     {
       "label": "Scroll Progress Bar",
-      "url": "https://macoffice.localdev/beispiel-beitrag/",
+      "url": "https://at.macoffice-2026.localdev/beispiel-beitrag/",
       "delay": 300,
       "hideSelectors": [".cookie-notice", ".admin-bar"],
       "scrollToSelector": ".entry-content",
@@ -99,7 +99,7 @@
 
     {
       "label": "Hero Image – volle Breite",
-      "url": "https://macoffice.localdev/",
+      "url": "https://at.macoffice-2026.localdev/",
       "delay": 500,
       "hideSelectors": [".cookie-notice", ".admin-bar"],
       "selectors": [".hero-image"],
@@ -109,7 +109,7 @@
 
     {
       "label": "Cookie Consent Banner",
-      "url": "https://macoffice.localdev/",
+      "url": "https://at.macoffice-2026.localdev/",
       "delay": 800,
       "removeSelectors": [],
       "hideSelectors": [".admin-bar"],
@@ -121,7 +121,7 @@
 
     {
       "label": "WooCommerce Shop",
-      "url": "https://macoffice.localdev/shop/",
+      "url": "https://at.macoffice-2026.localdev/shop/",
       "delay": 500,
       "hideSelectors": [".cookie-notice", ".admin-bar"],
       "misMatchThreshold": 0.2,
@@ -130,7 +130,7 @@
 
     {
       "label": "WooCommerce Einzelprodukt",
-      "url": "https://macoffice.localdev/produkt/beispielprodukt/",
+      "url": "https://at.macoffice-2026.localdev/produkt/beispielprodukt/",
       "delay": 500,
       "hideSelectors": [".cookie-notice", ".admin-bar"],
       "misMatchThreshold": 0.2,
@@ -139,7 +139,7 @@
 
     {
       "label": "Dark Mode – Homepage",
-      "url": "https://macoffice.localdev/",
+      "url": "https://at.macoffice-2026.localdev/",
       "delay": 800,
       "hideSelectors": [".cookie-notice", ".admin-bar"],
       "misMatchThreshold": 0.2,

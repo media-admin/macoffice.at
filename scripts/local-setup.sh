@@ -108,11 +108,11 @@ if [ ! -d "$PLUG/advanced-custom-fields-pro" ]; then
     warn "ACF Pro nicht gefunden ($ACF_PRO_SRC). Manuell nach cms/wp-content/plugins/ legen."
   fi
 fi
-# Plugins aus dem WordPress.org-Verzeichnis (Drittanbieter sind nicht im Repo)
-for p in woocommerce wordpress-seo contact-form-7; do
+# Plugins aus dem WordPress.org-Verzeichnis (Drittanbieter sind nicht im Repo; SEO übernimmt media-lab-seo, kein Yoast)
+for p in woocommerce contact-form-7; do
   wp plugin is-installed "$p" 2>/dev/null || wp plugin install "$p"
 done
-for p in advanced-custom-fields-pro media-lab-agency-core woocommerce wordpress-seo contact-form-7 media-lab-woocommerce media-lab-backup macoffice-project; do
+for p in advanced-custom-fields-pro media-lab-agency-core woocommerce contact-form-7 media-lab-seo media-lab-woocommerce media-lab-bookings media-lab-backup macoffice-project; do
   if wp plugin is-installed "$p" 2>/dev/null; then wp plugin activate "$p" || warn "'$p' ließ sich nicht aktivieren"; fi
 done
 wp theme activate macoffice

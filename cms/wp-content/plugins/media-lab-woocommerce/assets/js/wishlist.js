@@ -548,13 +548,13 @@
         const bulkActions = document.querySelector( '.mlw-wishlist__bulk-actions' );
         const shareFooter = document.querySelector( '.mlw-wishlist__share--footer' );
         const noticeEl     = document.querySelector( '.mlw-wishlist-notice--empty' );
-        const backToShopEl = document.querySelector( '.mlw-wishlist-back-to-shop' );
+        const backToShopEls = document.querySelectorAll( '.mlw-wishlist-back-to-shop' );
 
         if ( table )       table.style.display = 'none';
         if ( bulkActions ) bulkActions.style.display = 'none';
         if ( shareFooter ) shareFooter.style.display = 'none';
         if ( noticeEl )     noticeEl.style.display = 'block';
-        if ( backToShopEl ) backToShopEl.style.display = 'inline-block';
+        backToShopEls.forEach( function ( el ) { el.style.display = 'inline-block'; } );
     }
 
     // ── Remove (Catalog-Modus) ───────────────────────────────────────────────
@@ -625,6 +625,22 @@
             return;
         }
 
+        // Regel bei sichtbarem Freitextfeld "Weitere Artikel aus den Blätterkatalogen":
+        // mindestens ein Artikel auf der Liste oder ein Eintrag im Freitextfeld.
+        const catalogField = form.querySelector( '#mlw-wishlist-catalog-items' );
+        if ( catalogField ) {
+            const hasItems = !! document.querySelector( '.mlw-wishlist-items .mlw-wishlist-item' );
+            if ( ! hasItems && ! catalogField.value.trim() ) {
+                if ( msg ) {
+                    msg.textContent = mlwWishlist.i18n.itemsOrCatalog || mlwWishlist.i18n.genericError;
+                    msg.className = 'mlw-wishlist-message mlw-wishlist-message--error';
+                    msg.style.display = 'block';
+                }
+                catalogField.focus();
+                return;
+            }
+        }
+
         if ( btn ) btn.disabled = true;
 
         // Alle Formularfelder generisch einsammeln (Basisfelder + konfigurierte
@@ -688,22 +704,33 @@
         const totalEl        = document.querySelector( '.mlw-wishlist-grand-total' );
         const totalAmountEl  = document.querySelector( '.mlw-wishlist-grand-total__amount' );
         const noticeEl       = document.querySelector( '.mlw-wishlist-notice--empty' );
-        const backToShopEl   = document.querySelector( '.mlw-wishlist-back-to-shop' );
+        const backToShopEls  = document.querySelectorAll( '.mlw-wishlist-back-to-shop' );
+        const introEl        = document.querySelector( '.mlw-wishlist__intro' );
         const formEl         = document.getElementById( 'mlw-wishlist-form' );
         const submitBtn      = document.querySelector( '.mlw-wishlist-submit' );
 
         if ( ! items || items.length === 0 ) {
             container.innerHTML = '';
-            if ( submitBtn )    submitBtn.disabled = true;
             if ( totalEl )      totalEl.style.display = 'none';
             if ( noticeEl )     noticeEl.style.display = 'block';
-            if ( backToShopEl ) backToShopEl.style.display = 'inline-block';
+            backToShopEls.forEach( function ( el ) { el.style.display = 'inline-block'; } );
+            if ( introEl )      introEl.style.display = '';
+
+            // Mit sichtbarem Freitextfeld "Weitere Artikel aus den Blätterkatalogen" bleibt das Formular
+            // auch bei leerer Liste bestehen (Anfrage nur mit Freitext möglich). Nach erfolgreichem Absenden
+            // blendet handleSubmit() das Formular selbst aus, hier wird es nicht wieder eingeblendet.
+            if ( formEl && formEl.querySelector( '#mlw-wishlist-catalog-items' ) ) {
+                return;
+            }
+
+            if ( submitBtn )    submitBtn.disabled = true;
             if ( formEl )       formEl.style.display = 'none';
             return;
         }
 
         if ( noticeEl )     noticeEl.style.display = 'none';
-        if ( backToShopEl ) backToShopEl.style.display = 'none';
+        backToShopEls.forEach( function ( el ) { el.style.display = 'none'; } );
+        if ( introEl )      introEl.style.display = 'none';
         if ( formEl )        formEl.style.display = '';
 
         container.innerHTML = items.map( renderItemRow ).join( '' );

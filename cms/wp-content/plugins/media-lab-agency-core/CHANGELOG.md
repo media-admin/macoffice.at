@@ -20,6 +20,80 @@ Ende.
 
 ---
 
+## [Unreleased]
+
+### media-lab-agency-core (geplant: 1.41.0)
+
+#### Added
+- **Hardening-Modul (`inc/hardening.php`, Klasse `MLA_Hardening`): Plugin-/Theme-Installation im Backend gesperrt.** Auslöser: Vorfall vom 25.11.2026 auf `at.media-lab.dev` (Hetzner-Malware-Meldung, Ticket 2026112603015684) — eine Webshell wurde als Plugin per `wp-admin/update.php?action=upload-plugin` mit gültiger Admin-Session hochgeladen. Dasselbe Muster gab es zuvor bei ib-mosbacher.at.
+  - Gesperrt für alle Benutzer (auch Administratoren): `install_plugins`, `upload_plugins`, `install_themes`, `upload_themes`, `edit_plugins`, `edit_themes`, `edit_files` (über den `map_meta_cap`-Filter, wirkt auch bei Multisite-Super-Admins).
+  - Nicht gesperrt: Updates (`update_core`, `update_plugins`, `update_themes`) — automatische Updates und MainWP-Updates laufen weiter.
+  - Das Plugin schützt sich selbst: Deaktivieren/Löschen von `media-lab-agency-core` ist gesperrt (Capability-Filter, Entfernen des „Deaktivieren"-Links, Filter auf `active_plugins`), damit der Schutz nicht per „deaktivieren → hochladen" umgangen werden kann.
+  - Blockierte Versuche (`update.php`-Installationsaktionen, AJAX `install-plugin`/`install-theme`/`edit-theme-plugin-file`) werden im Activity Log protokolliert (`blocked_file_mod`) und per E-Mail gemeldet (max. 1 Mail / 15 Min., Empfänger `mla_security_notify_email`, sonst `admin_email`).
+  - Aufruf von `plugin-install.php`, `theme-install.php`, `plugin-editor.php`, `theme-editor.php` zeigt eine verständliche Sperr-Meldung statt der generischen WordPress-Fehlermeldung.
+  - **Ausnahmen nur per Code, nie per Datenbank-Option** (sonst könnte ein Angreifer mit Admin-Rechten den Schutz selbst abschalten): `define( 'MLA_ALLOW_FILE_MODS', true );` in der `wp-config.php` (temporär, für Backend-Installationen), `WP_ENVIRONMENT_TYPE` = `local` oder `development` (lokale Entwicklung mit Valet), Filter `mla_hardening_active`.
+- **Security Scanner: neuer Hardening-Check „Plugin-/Theme-Installation im Backend gesperrt"** (`file_mods_blocked`). `ok` = aktiv, `warn` = lokale/Development-Umgebung, `fail` = per Konstante oder Filter abgeschaltet (löst die Alarm-Mail des wöchentlichen Scans aus, damit `MLA_ALLOW_FILE_MODS` nicht vergessen wird).
+
+#### Hinweise
+- Neue Plugins und Themes kommen nur noch per SFTP/Git auf den Server. Auf lokalen Installationen `define( 'WP_ENVIRONMENT_TYPE', 'local' );` in die `wp-config.php` setzen.
+- Grenzen: Der Schutz gilt für das Standard-Backend und die REST-API. Plugins, die selbst Code entpacken oder ausführen (z. B. All-in-One WP Migration beim Import, Code-Snippet-Plugins), bleiben ein Risiko und gehören auf Live-Seiten nicht aktiv.
+- `DISALLOW_FILE_EDIT` in der `wp-config.php` bleibt als zusätzliche Absicherung empfohlen (wirkt auch, wenn das Plugin nicht geladen ist); der bestehende Health-Check dafür ist unverändert.
+
+---
+
+## [1.40.1] - 2026-11-24
+
+### media-lab-agency-core 1.40.1
+
+#### Fixed
+- **Schritte (`medialab/step`), Anordnung nebeneinander: Titel standen auf unterschiedlicher Höhe.** Die Rasterzelle jedes Schritts ist so hoch wie der längste Schritt; die überschüssige Höhe wurde auf die Zeilen (Nummer, Text) verteilt, sodass Titel bei kürzerem Text tiefer standen. `.ml-step` hat jetzt `align-content: start`.
+- **Kachel (`medialab/tile`): Titel im Dark Mode unsichtbar.** Das Theme setzt Überschriften auf `--color-text` (im Dark Mode hell), die Kachel hat einen hellen Hintergrund. Der Titel erbt jetzt die Textfarbe der Kachel (`color: inherit`).
+- **Kachel: Button flackerte beim Überfahren der Kachel.** `.btn--outline:hover` setzt ein `transform`; dadurch wurde der Button zum Bezugsrahmen des über die Kachel gespannten `::after`-Overlays, das Overlay schrumpfte auf Button-Größe, der Hover ging verloren und kam wieder. Der Kachel-Button hat jetzt kein `transform`, und sein Hover-Zustand (gefüllt) wird bei Hover über die ganze Kachel angezeigt.
+
+- **Dark Mode:** Die Kachel folgt jetzt den Theme-Variablen (`--color-card-bg`, `--color-text`, `--color-text-muted`, `--color-border`) und ist im Dark Mode dunkel. Titel und Button-Text bleiben hell (Rot hat auf dunklem Grund zu wenig Kontrast), Rahmen und Button-Füllung beim Hover rot. Im hellen Modus unverändert.
+- **Schritte (`medialab/step`): Beschreibungstext im Dark Mode kaum lesbar** (fester dunkelgrauer Text auf dunklem Grund). Text und Links folgen im Dark Mode den Theme-Variablen.
+
+#### Added
+- **Kachel: Icon-Auswahl im Editor.** Schaltfläche „Icon auswählen“ in der Seitenleiste mit kuratiertem Raster nach Kategorien (Werbemittel, Druck & Design, Service, Kontakt, Zeichen), „Icon entfernen“, Tooltips mit Namen je Icon. Das Textfeld bleibt für eigene Emoji und Zeichen („Eigenes Icon“).
+- **Icon-Bibliothek (einfarbige SVG-Icons):** 818 Icons aus **Tabler Icons** (Linien, MIT) und 317 aus **Elegant Icons** (gefüllt, MIT/GPL) in 17 Kategorien (Werbemittel & Textilien, Druck & Design, Büro & Business, Kontakt & Kommunikation, Social Media, Service & Prozess, Versand & Lager, Natur & Umwelt, Essen & Trinken, Pfeile, Symbole & Zeichen, Medien & Marketing, Menschen & Gesten, Orte & Verkehr, Sport & Freizeit, Technik & Geräte, Preise & Zahlen). Deutsche Namen und Suchbegriffe (z. B. „Tasse“, „Shirt“, „liefer“).
+  - `assets/icons/sprite-tabler.svg`, `sprite-elegant.svg` (SVG-Sprites), `index.json` (Katalog für den Editor), `LICENSES.md`, `README.md`.
+  - `inc/icons.php`: `medialab_icon_is_id()` (prüft `tabler:NAME` / `elegant:NAME`), `medialab_icon_svg()` (gibt Inline-SVG mit `currentColor`, `aria-hidden` zurück), `medialab_icon_editor_config()`.
+  - `tools/icon-library/` (`build.py`, `curated.py`, `de.py`) zum Neuaufbau der Bibliothek (`npm i @tabler/icons elegant-icons`, dann `python3 tools/icon-library/build.py --node-modules ./node_modules --out assets/icons`).
+  - Editor: Auswahl mit Reitern „Icons“/„Emoji“, Suche, Kategorie- und Bibliotheksfilter, „Mehr anzeigen“, Vorschau, Fehlerhinweis; Konfiguration über `window.mlIconLibrary`.
+  - Frontend: Icons werden inline gerendert (Farbe folgt dem Text, Größe 1em, Tabler-Linienstärke 1.5); keine externen Anfragen.
+
+#### Changed
+- Kachel: Hilfetext des Icon-Felds nennt die Emoji-Auswahl von macOS und Windows.
+- Kachel: Das Textfeld heißt jetzt „Eigenes Icon (Emoji oder Zeichen)“; gespeichert wird entweder Text (Emoji) oder eine Icon-ID (`tabler:…`/`elegant:…`) im Attribut `icon`. Bestehende Kacheln mit Emoji funktionieren unverändert.
+
+---
+
+## [1.40.0] - 2026-11-23
+
+### media-lab-agency-core 1.40.0
+
+#### Added
+- **Block „Kachel-Raster“** (`medialab/tile-grid`) mit Kind-Block **„Kachel“** (`medialab/tile`), `blocks/tile-grid/`, `blocks/tile/`:
+  - Kachel: Titel, Text, optional Icon (Emoji/Zeichen, dekorativ) **oder** Bild, Link beziehungsweise Button je Kachel (optional in neuem Tab).
+  - Raster: Spaltenzahl 1–4 einstellbar (Smartphone immer 1, Tablet höchstens 2), Überschriftenebene H2–H4 (Standard H3) für alle Kacheln.
+  - Barrierefreiheit: je Kachel genau ein Link; mit Button-Text ist der Button der Link, ohne Button-Text der Titel; der Link wird per CSS über die ganze Kachel gespannt (kein verschachtelter Link). Zusatztext für Screenreader nennt Titel und „öffnet in neuem Tab“. Dekorative Bilder mit leerem Alternativtext. Titel und Text erlauben nur Fett/Kursiv (keine Links). Raster als `<ul role="list">`.
+  - Leere Kacheln werden im Frontend nicht ausgegeben.
+- **Block „Schritte“** (`medialab/steps`) mit Kind-Block **„Schritt“** (`medialab/step`), `blocks/steps/`, `blocks/step/`:
+  - Nummerierte Schritte mit Titel und Text; Nummern erzeugt ein CSS-Zähler aus der Reihenfolge (nichts gespeichert, Umsortieren ohne Nacharbeit).
+  - Anordnung am Desktop nebeneinander oder untereinander (Smartphone immer untereinander), Überschriftenebene H2–H4 (Standard H3).
+  - Semantik `<ol role="list">`; Nummer mit leerem Alternativtext im `content`, damit Screenreader sie nicht doppelt vorlesen.
+- Styles in `assets/src/scss/blocks.scss` ausschließlich über Variablen (`--ml-color-*`, `--ml-space-*`, `--ml-radius`), keine festen Farbwerte; Layout für die Editor-Vorschau in `assets/css/block-editor-overrides.css`.
+- Einsatz laut Aufgabe: Katalog-Einstieg (fünf Kacheln, vier Schritte), Werbemittel-Sammelseite (elf Kategorien), Startseite, Leistungsseiten („So läuft die Zusammenarbeit“).
+
+#### Changed
+- `inc/blocks.php`: native Blöcke `tile-grid`, `tile`, `steps`, `step` registriert.
+- Die Kind-Blöcke sind dynamisch (`render.php`), weil die Überschriftenebene per Block-Kontext (`medialab/headingLevel`) vom Eltern-Block kommt; `save()` hat keinen Zugriff auf Kontext.
+
+#### Hinweis zum Ausrollen
+- Nach dem Update einmal `npm run build:blocks` im Starter-Kit-Wurzelordner ausführen (erzeugt `assets/dist/js/blocks.js` und `assets/dist/css/blocks.css` neu). Ohne Build erscheinen die Blöcke weder im Editor noch mit Styles im Frontend.
+
+---
+
 ## [1.39.1] - 2026-11-17
 
 ### media-lab-agency-core 1.39.1

@@ -11,6 +11,8 @@ Neuaufbau der Website **macoffice.at** auf Basis des Media Lab Starter Kits (Med
 | `cms/wp-content/plugins/media-lab-agency-core/` | Media Lab Agency Core (gemeinsam gepflegt) |
 | `cms/wp-content/plugins/media-lab-woocommerce/` | Shop-Funktionen inkl. Katalogmodus (gemeinsam gepflegt) |
 | `cms/wp-content/plugins/media-lab-backup/` | Media Lab Backup (gemeinsam gepflegt) |
+| `cms/wp-content/plugins/media-lab-seo/` | Media Lab SEO Toolkit (ersetzt Yoast SEO; gemeinsam gepflegt) |
+| `cms/wp-content/plugins/media-lab-bookings/` | Media Lab Bookings (gemeinsam gepflegt) |
 | `cms/wp-content/mu-plugins/` | Must-Use-Plugins |
 | `docs/` | Kit-Dokumentation (`docs/01–15`) sowie `docs/starter-kit/` (ehemalige Root-Dokumente des Kits) |
 

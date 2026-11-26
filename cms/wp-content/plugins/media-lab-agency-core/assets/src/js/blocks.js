@@ -16,7 +16,7 @@ wp.domReady( function () {
 
     const { registerBlockType } = wp.blocks;
     const { __ }                = wp.i18n;
-    const { createElement: el, Fragment } = wp.element; // wp.element exportiert kein "el" – Alias auf createElement
+    const { createElement: el, Fragment, useState, useEffect, useMemo } = wp.element; // wp.element exportiert kein "el" – Alias auf createElement
     const {
         RichText,
         InspectorControls,
@@ -28,6 +28,7 @@ wp.domReady( function () {
         MediaUpload,
         MediaUploadCheck,
         useBlockProps,
+        useInnerBlocksProps,
     } = wp.blockEditor;
     const {
         PanelBody,
@@ -725,6 +726,501 @@ wp.domReady( function () {
                     ),
                 ),
             );
+        },
+    } );
+
+    // =============================================================================
+    // Kachel-Raster + Kachel (seit 1.40.0)
+    //
+    // Eltern-Block (tile-grid): <ul role="list"> mit InnerBlocks, statisch.
+    // Kind-Block (tile):        dynamisch (render.php), weil die Überschriften-
+    //                           ebene per Block-Kontext vom Raster kommt.
+    // =============================================================================
+
+    const HEADING_LEVEL_OPTIONS = [
+        { label: 'H2', value: 'h2' },
+        { label: 'H3', value: 'h3' },
+        { label: 'H4', value: 'h4' },
+    ];
+
+    const safeHeading = ( level ) => ( [ 'h2', 'h3', 'h4' ].indexOf( level ) !== -1 ? level : 'h3' );
+
+    registerBlockType( 'medialab/tile-grid', {
+        edit( { attributes, setAttributes } ) {
+            const { columns, headingLevel } = attributes;
+            const cols = Math.min( 4, Math.max( 1, columns || 3 ) );
+
+            const blockProps = useBlockProps( {
+                className: `ml-block-tile-grid ml-tile-grid--cols-${cols}`,
+            } );
+            const innerBlocksProps = useInnerBlocksProps( blockProps, {
+                allowedBlocks:  [ 'medialab/tile' ],
+                template:       [ [ 'medialab/tile' ], [ 'medialab/tile' ], [ 'medialab/tile' ] ],
+                orientation:    'horizontal',
+                renderAppender: InnerBlocks.ButtonBlockAppender,
+            } );
+
+            return el( Fragment, null,
+                el( InspectorControls, null,
+                    el( PanelBody, { title: __( 'Raster', 'media-lab-agency-core' ), initialOpen: true },
+                        el( RangeControl, {
+                            label:    __( 'Spalten (Desktop)', 'media-lab-agency-core' ),
+                            value:    cols,
+                            min:      1,
+                            max:      4,
+                            onChange: val => setAttributes( { columns: val } ),
+                            help:     __( 'Auf Tablets sind es höchstens 2, auf dem Smartphone 1 Spalte.', 'media-lab-agency-core' ),
+                        } ),
+                        el( SelectControl, {
+                            label:    __( 'Überschriftenebene der Kacheln', 'media-lab-agency-core' ),
+                            value:    safeHeading( headingLevel ),
+                            options:  HEADING_LEVEL_OPTIONS,
+                            onChange: val => setAttributes( { headingLevel: val } ),
+                            help:     __( 'Unter einer H2-Abschnittsüberschrift H3 wählen, direkt unter der Seiten-H1 H2.', 'media-lab-agency-core' ),
+                        } ),
+                    ),
+                ),
+                el( 'ul', innerBlocksProps ),
+            );
+        },
+
+        save( { attributes } ) {
+            const cols = Math.min( 4, Math.max( 1, attributes.columns || 3 ) );
+            const blockProps = useBlockProps.save( {
+                className: `ml-block-tile-grid ml-tile-grid--cols-${cols}`,
+                role:      'list', // Safari/VoiceOver: Listensemantik trotz list-style:none erhalten
+            } );
+            return el( 'ul', useInnerBlocksProps.save( blockProps ) );
+        },
+    } );
+
+    // -------------------------------------------------------------------------
+    // Icon-Auswahl für die Seitenleiste: Icon-Bibliothek (Tabler, Elegant Icons) mit Suche
+    // und Kategorien sowie kuratierte Emoji; das Textfeld bleibt für eigene Zeichen.
+    // -------------------------------------------------------------------------
+    const ML_ICON_GROUPS = [
+        { label: 'Werbemittel', icons: [
+            [ '👕', 'T-Shirt' ], [ '👔', 'Hemd' ], [ '🧥', 'Jacke' ], [ '🧢', 'Kappe' ], [ '🧣', 'Schal' ],
+            [ '🧤', 'Handschuhe' ], [ '👜', 'Tasche' ], [ '🎒', 'Rucksack' ], [ '🛍️', 'Einkaufstaschen' ],
+            [ '🎁', 'Geschenk' ], [ '🖊️', 'Kugelschreiber' ], [ '✏️', 'Bleistift' ], [ '📓', 'Notizbuch' ],
+            [ '☕', 'Tasse' ], [ '🥤', 'Trinkbecher' ], [ '🍶', 'Flasche' ], [ '🎈', 'Luftballon' ],
+            [ '🎉', 'Feier' ], [ '🏆', 'Pokal' ], [ '🏅', 'Medaille' ], [ '☂️', 'Regenschirm' ],
+            [ '🔑', 'Schlüssel' ], [ '🕶️', 'Sonnenbrille' ], [ '🏷️', 'Etikett' ],
+        ] },
+        { label: 'Druck & Design', icons: [
+            [ '🖨️', 'Drucker' ], [ '🎨', 'Farbpalette' ], [ '🖌️', 'Pinsel' ], [ '✂️', 'Schere' ],
+            [ '📐', 'Dreieck-Lineal' ], [ '📏', 'Lineal' ], [ '🖼️', 'Bild' ], [ '📄', 'Dokument' ],
+            [ '📰', 'Zeitung' ], [ '📖', 'Buch' ], [ '📚', 'Bücher' ], [ '🔍', 'Lupe' ],
+            [ '💡', 'Idee' ], [ '✨', 'Funken' ], [ '🌈', 'Regenbogen' ], [ '📸', 'Kamera' ],
+            [ '🎬', 'Filmklappe' ], [ '🎥', 'Videokamera' ], [ '🖥️', 'Bildschirm' ], [ '📱', 'Smartphone' ],
+        ] },
+        { label: 'Service', icons: [
+            [ '✅', 'Haken' ], [ '✔️', 'Häkchen' ], [ '⭐', 'Stern' ], [ '🚀', 'Rakete' ], [ '🎯', 'Ziel' ],
+            [ '📋', 'Checkliste' ], [ '📝', 'Notiz' ], [ '🗓️', 'Kalender' ], [ '⏱️', 'Stoppuhr' ],
+            [ '🚚', 'Lieferung' ], [ '📦', 'Paket' ], [ '🔄', 'Wiederholen' ], [ '🤝', 'Handschlag' ],
+            [ '🛠️', 'Werkzeug' ], [ '⚙️', 'Zahnrad' ], [ '🔒', 'Schloss' ], [ '🌱', 'Pflanze' ],
+            [ '♻️', 'Recycling' ], [ '👍', 'Daumen hoch' ], [ '💶', 'Euro' ], [ '🧮', 'Rechner' ],
+            [ '🏭', 'Fabrik' ], [ '🌍', 'Weltkugel' ], [ '❤️', 'Herz' ],
+        ] },
+        { label: 'Kontakt', icons: [
+            [ '📞', 'Telefon' ], [ '✉️', 'Brief' ], [ '📧', 'E-Mail' ], [ '💬', 'Sprechblase' ],
+            [ '📍', 'Standort' ], [ '🕐', 'Uhr' ], [ '🌐', 'Globus' ], [ '👤', 'Person' ],
+            [ '👥', 'Personen' ], [ '🎧', 'Headset' ], [ '❓', 'Fragezeichen' ], [ 'ℹ️', 'Information' ],
+            [ '📣', 'Megafon' ], [ '🔔', 'Glocke' ],
+        ] },
+        { label: 'Zeichen', icons: [
+            [ '→', 'Pfeil rechts' ], [ '←', 'Pfeil links' ], [ '↑', 'Pfeil hoch' ], [ '↓', 'Pfeil runter' ],
+            [ '➜', 'Pfeil kräftig' ], [ '▶', 'Dreieck rechts' ], [ '✓', 'Haken' ], [ '✗', 'Kreuz' ],
+            [ '★', 'Stern gefüllt' ], [ '☆', 'Stern leer' ], [ '●', 'Punkt' ], [ '■', 'Quadrat' ],
+            [ '◆', 'Raute' ], [ '+', 'Plus' ], [ '%', 'Prozent' ], [ '€', 'Euro' ],
+        ] },
+    ];
+
+    // Icon-Bibliothek (Sprites unter assets/icons/): index.json wird beim ersten Öffnen der Auswahl geladen.
+    const mlIconCfg   = window.mlIconLibrary || {};
+    const ML_ICON_ID  = /^(tabler|elegant):[a-z0-9_-]+$/;
+    const mlIsIconId  = ( v ) => typeof v === 'string' && ML_ICON_ID.test( v );
+    let   mlIconIndex = null;
+    let   mlIconIndexPromise = null;
+
+    function mlLoadIconIndex() {
+        if ( mlIconIndex ) { return Promise.resolve( mlIconIndex ); }
+        if ( ! mlIconCfg.baseUrl ) { return Promise.reject( new Error( 'no base url' ) ); }
+        if ( ! mlIconIndexPromise ) {
+            mlIconIndexPromise = fetch( mlIconCfg.baseUrl + 'index.json?ver=' + encodeURIComponent( mlIconCfg.version || '' ) )
+                .then( ( r ) => { if ( ! r.ok ) { throw new Error( 'index ' + r.status ); } return r.json(); } )
+                .then( ( data ) => {
+                    data.icons = data.icons.map( ( i ) => ( {
+                        id: i[ 0 ], label: i[ 1 ], cat: i[ 3 ],
+                        hay: ( i[ 0 ] + ' ' + i[ 1 ] + ' ' + i[ 2 ] ).toLowerCase(),
+                    } ) );
+                    mlIconIndex = data;
+                    return data;
+                } )
+                .catch( ( err ) => { mlIconIndexPromise = null; throw err; } );
+        }
+        return mlIconIndexPromise;
+    }
+
+    function mlIconHref( id ) {
+        const [ set, name ] = id.split( ':' );
+        return mlIconCfg.baseUrl + 'sprite-' + set + '.svg#' + set + '-' + name;
+    }
+
+    function mlIconGraphic( id, size ) {
+        return el( 'svg', { width: size, height: size, 'aria-hidden': 'true', focusable: 'false', style: { display: 'block' } },
+            el( 'use', { href: mlIconHref( id ) } )
+        );
+    }
+
+    const ML_ICON_PAGE = 120;
+
+    function MlIconPicker( { value, onChange } ) {
+        const [ open, setOpen ]       = useState( false );
+        const [ tab, setTab ]         = useState( 'icons' );
+        const [ group, setGroup ]     = useState( 0 );
+        const [ query, setQuery ]     = useState( '' );
+        const [ cat, setCat ]         = useState( '' );
+        const [ set, setSet ]         = useState( '' );
+        const [ limit, setLimit ]     = useState( ML_ICON_PAGE );
+        const [ index, setIndex ]     = useState( mlIconIndex );
+        const [ failed, setFailed ]   = useState( false );
+
+        useEffect( () => {
+            if ( ! open || tab !== 'icons' || index ) { return; }
+            let alive = true;
+            mlLoadIconIndex().then( ( d ) => { if ( alive ) { setIndex( d ); } } ).catch( () => { if ( alive ) { setFailed( true ); } } );
+            return () => { alive = false; };
+        }, [ open, tab, index ] );
+
+        const results = useMemo( () => {
+            if ( ! index ) { return []; }
+            const words = query.toLowerCase().split( /\s+/ ).filter( Boolean );
+            return index.icons.filter( ( i ) =>
+                ( ! cat || i.cat === cat ) &&
+                ( ! set || i.id.indexOf( set + ':' ) === 0 ) &&
+                words.every( ( w ) => i.hay.indexOf( w ) !== -1 )
+            );
+        }, [ index, query, cat, set ] );
+
+        const pick = ( v ) => { onChange( v ); setOpen( false ); };
+        const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(36px, 1fr))', gap: '4px' };
+        const cellStyle = { justifyContent: 'center', height: '36px', minWidth: 0, padding: 0 };
+
+        const iconsTab = () => {
+            if ( failed || ! mlIconCfg.baseUrl ) {
+                return el( 'p', null, __( 'Die Icon-Bibliothek konnte nicht geladen werden. Eigene Zeichen sind im Feld darunter weiterhin möglich.', 'media-lab-agency-core' ) );
+            }
+            if ( ! index ) {
+                return el( 'p', null, __( 'Icons werden geladen …', 'media-lab-agency-core' ) );
+            }
+            const shown = results.slice( 0, limit );
+            return el( Fragment, null,
+                el( TextControl, {
+                    label:       __( 'Suchen', 'media-lab-agency-core' ),
+                    type:        'search',
+                    value:       query,
+                    placeholder: __( 'z. B. Shirt, Tasse, Telefon, Lieferung', 'media-lab-agency-core' ),
+                    onChange:    ( v ) => { setQuery( v ); setLimit( ML_ICON_PAGE ); },
+                } ),
+                el( SelectControl, {
+                    label:   __( 'Kategorie', 'media-lab-agency-core' ),
+                    value:   cat,
+                    options: [ { label: __( 'Alle Kategorien', 'media-lab-agency-core' ), value: '' } ]
+                        .concat( index.categories.map( ( c ) => ( { label: c, value: c } ) ) ),
+                    onChange: ( v ) => { setCat( v ); setLimit( ML_ICON_PAGE ); },
+                } ),
+                el( SelectControl, {
+                    label:   __( 'Bibliothek', 'media-lab-agency-core' ),
+                    value:   set,
+                    options: [
+                        { label: __( 'Alle', 'media-lab-agency-core' ), value: '' },
+                        { label: index.sets.tabler.label,  value: 'tabler' },
+                        { label: index.sets.elegant.label, value: 'elegant' },
+                    ],
+                    onChange: ( v ) => { setSet( v ); setLimit( ML_ICON_PAGE ); },
+                } ),
+                el( 'p', { style: { margin: '0 0 8px' }, 'aria-live': 'polite' },
+                    results.length + ' ' + __( 'Icons', 'media-lab-agency-core' ) ),
+                el( 'div', { style: gridStyle },
+                    shown.map( ( i ) => el( Button, {
+                        key:            i.id,
+                        label:          i.label + ( i.id.indexOf( 'elegant:' ) === 0 ? ' (Elegant)' : '' ),
+                        showTooltip:    true,
+                        variant:        i.id === value ? 'primary' : 'secondary',
+                        'aria-pressed': i.id === value,
+                        onClick:        () => pick( i.id ),
+                        style:          cellStyle,
+                    }, mlIconGraphic( i.id, 22 ) ) )
+                ),
+                results.length > limit && el( Button, {
+                    variant: 'tertiary',
+                    style:   { marginTop: '8px' },
+                    onClick: () => setLimit( limit + ML_ICON_PAGE ),
+                }, __( 'Mehr anzeigen', 'media-lab-agency-core' ) )
+            );
+        };
+
+        const emojiTab = () => {
+            const current = ML_ICON_GROUPS[ group ];
+            return el( Fragment, null,
+                el( 'div', { style: { display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '8px' } },
+                    ML_ICON_GROUPS.map( ( g, i ) => el( Button, {
+                        key:            g.label,
+                        variant:        i === group ? 'primary' : 'tertiary',
+                        size:           'small',
+                        onClick:        () => setGroup( i ),
+                        'aria-pressed': i === group,
+                    }, g.label ) )
+                ),
+                el( 'div', { style: gridStyle },
+                    current.icons.map( ( [ glyph, name ] ) => el( Button, {
+                        key:            glyph,
+                        label:          name,
+                        showTooltip:    true,
+                        variant:        glyph === value ? 'primary' : 'secondary',
+                        'aria-pressed': glyph === value,
+                        onClick:        () => pick( glyph ),
+                        style:          Object.assign( { fontSize: '20px' }, cellStyle ),
+                    }, glyph ) )
+                )
+            );
+        };
+
+        return el( 'div', { className: 'ml-icon-picker', style: { marginBottom: '16px' } },
+            el( 'div', { style: { display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' } },
+                value && el( 'span', { style: { display: 'inline-flex', width: '36px', height: '36px', alignItems: 'center', justifyContent: 'center', border: '1px solid #ddd', borderRadius: '4px', fontSize: '20px' } },
+                    mlIsIconId( value ) ? mlIconGraphic( value, 24 ) : value
+                ),
+                el( Button, {
+                    variant:         'secondary',
+                    onClick:         () => setOpen( ! open ),
+                    'aria-expanded': open,
+                }, open ? __( 'Auswahl schließen', 'media-lab-agency-core' ) : __( 'Icon auswählen', 'media-lab-agency-core' ) ),
+                value && el( Button, {
+                    variant:       'link',
+                    isDestructive: true,
+                    onClick:       () => onChange( '' ),
+                }, __( 'Icon entfernen', 'media-lab-agency-core' ) )
+            ),
+            open && el( 'div', { style: { marginTop: '12px' } },
+                el( 'div', { style: { display: 'flex', gap: '4px', marginBottom: '12px' } },
+                    el( Button, { variant: tab === 'icons' ? 'primary' : 'tertiary', size: 'small', 'aria-pressed': tab === 'icons', onClick: () => setTab( 'icons' ) }, __( 'Icons', 'media-lab-agency-core' ) ),
+                    el( Button, { variant: tab === 'emoji' ? 'primary' : 'tertiary', size: 'small', 'aria-pressed': tab === 'emoji', onClick: () => setTab( 'emoji' ) }, __( 'Emoji', 'media-lab-agency-core' ) )
+                ),
+                tab === 'icons' ? iconsTab() : emojiTab()
+            )
+        );
+    }
+
+    registerBlockType( 'medialab/tile', {
+        edit( { attributes, setAttributes, context } ) {
+            const { icon, imageId, imageUrl, imageAlt, title, text, linkUrl, linkText, linkTarget } = attributes;
+            const level = safeHeading( context && context[ 'medialab/headingLevel' ] );
+
+            const onSelectImage = ( media ) => {
+                setAttributes( {
+                    imageId:  media.id,
+                    imageUrl: ( media.sizes && media.sizes.large && media.sizes.large.url ) || media.url,
+                    imageAlt: media.alt || '',
+                } );
+            };
+            const onRemoveImage = () => setAttributes( { imageId: 0, imageUrl: '', imageAlt: '' } );
+
+            const blockProps = useBlockProps( { className: 'ml-tile ml-tile--editor' } );
+
+            return el( Fragment, null,
+                el( InspectorControls, null,
+                    el( PanelBody, { title: __( 'Icon oder Bild', 'media-lab-agency-core' ), initialOpen: true },
+                        el( MlIconPicker, {
+                            value:    icon,
+                            onChange: val => setAttributes( { icon: val } ),
+                        } ),
+                        el( TextControl, {
+                            label:    __( 'Eigenes Icon (Emoji oder Zeichen)', 'media-lab-agency-core' ),
+                            value:    mlIsIconId( icon ) ? '' : icon,
+                            onChange: val => setAttributes( { icon: val } ),
+                            help:     __( 'Alternativ ein eigenes Emoji oder Zeichen einfügen (Mac Ctrl+Cmd+Leertaste, Windows Win+Punkt). Rein dekorativ, wird Screenreadern nicht vorgelesen.', 'media-lab-agency-core' ),
+                        } ),
+                        el( MediaUploadCheck, null,
+                            el( MediaUpload, {
+                                onSelect:     onSelectImage,
+                                allowedTypes: [ 'image' ],
+                                value:        imageId,
+                                render( { open } ) {
+                                    return el( Fragment, null,
+                                        imageUrl && el( 'img', {
+                                            src:   imageUrl,
+                                            alt:   '',
+                                            style: { maxWidth: '100%', height: 'auto', marginBottom: '8px' },
+                                        } ),
+                                        el( Button, { onClick: open, variant: 'secondary' },
+                                            imageUrl
+                                                ? __( 'Bild ersetzen', 'media-lab-agency-core' )
+                                                : __( 'Bild auswählen', 'media-lab-agency-core' )
+                                        ),
+                                        imageUrl && el( Button, { onClick: onRemoveImage, variant: 'link', isDestructive: true, style: { marginLeft: '12px' } },
+                                            __( 'Bild entfernen', 'media-lab-agency-core' )
+                                        ),
+                                    );
+                                },
+                            } ),
+                        ),
+                        imageUrl && el( TextControl, {
+                            label:    __( 'Alternativtext', 'media-lab-agency-core' ),
+                            value:    imageAlt,
+                            onChange: val => setAttributes( { imageAlt: val } ),
+                            help:     __( 'Leer lassen, wenn das Bild nur Dekoration ist.', 'media-lab-agency-core' ),
+                        } ),
+                    ),
+                    el( PanelBody, { title: __( 'Link', 'media-lab-agency-core' ), initialOpen: true },
+                        el( TextControl, {
+                            label:       __( 'Link-URL', 'media-lab-agency-core' ),
+                            value:       linkUrl,
+                            onChange:    val => setAttributes( { linkUrl: val } ),
+                            placeholder: 'https://',
+                            help:        __( 'Mit Button-Text wird ein Button angezeigt, ohne Button-Text ist der Titel der Link. In beiden Fällen ist die ganze Kachel klickbar.', 'media-lab-agency-core' ),
+                        } ),
+                        el( ToggleControl, {
+                            label:    __( 'In neuem Tab öffnen', 'media-lab-agency-core' ),
+                            checked:  linkTarget,
+                            onChange: val => setAttributes( { linkTarget: val } ),
+                        } ),
+                    ),
+                ),
+                el( 'li', blockProps,
+                    imageUrl && el( 'div', { className: 'ml-tile__media' },
+                        el( 'img', { src: imageUrl, alt: imageAlt, className: 'ml-tile__img' } )
+                    ),
+                    icon && el( 'div', { className: 'ml-tile__icon', 'aria-hidden': 'true' }, icon ),
+                    el( 'div', { className: 'ml-tile__body' },
+                        el( RichText, {
+                            tagName:        level,
+                            className:      'ml-tile__title',
+                            value:          title,
+                            onChange:       val => setAttributes( { title: val } ),
+                            placeholder:    __( 'Titel…', 'media-lab-agency-core' ),
+                            allowedFormats: [ 'core/bold', 'core/italic' ],
+                        } ),
+                        el( RichText, {
+                            tagName:        'p',
+                            className:      'ml-tile__text',
+                            value:          text,
+                            onChange:       val => setAttributes( { text: val } ),
+                            placeholder:    __( 'Text…', 'media-lab-agency-core' ),
+                            allowedFormats: [ 'core/bold', 'core/italic' ],
+                        } ),
+                        el( 'p', { className: 'ml-tile__action' },
+                            el( RichText, {
+                                tagName:        'span',
+                                className:      'btn btn--outline ml-tile__link',
+                                value:          linkText,
+                                onChange:       val => setAttributes( { linkText: val } ),
+                                placeholder:    __( 'Button-Text (optional)…', 'media-lab-agency-core' ),
+                                allowedFormats: [],
+                            } ),
+                        ),
+                    ),
+                ),
+            );
+        },
+
+        // Dynamisch: Ausgabe über blocks/tile/render.php
+        save() {
+            return null;
+        },
+    } );
+
+    // =============================================================================
+    // Schritte + Schritt (seit 1.40.0)
+    //
+    // Eltern-Block (steps): <ol role="list"> mit InnerBlocks, statisch.
+    // Kind-Block (step):    dynamisch (render.php). Die Nummer erzeugt CSS aus
+    //                       der Reihenfolge (counter), sie wird nicht gespeichert.
+    // =============================================================================
+
+    registerBlockType( 'medialab/steps', {
+        edit( { attributes, setAttributes } ) {
+            const { orientation, headingLevel } = attributes;
+            const orient = orientation === 'vertical' ? 'vertical' : 'horizontal';
+
+            const blockProps = useBlockProps( {
+                className: `ml-block-steps ml-steps--${orient}`,
+            } );
+            const innerBlocksProps = useInnerBlocksProps( blockProps, {
+                allowedBlocks:  [ 'medialab/step' ],
+                template:       [ [ 'medialab/step' ], [ 'medialab/step' ], [ 'medialab/step' ] ],
+                orientation:    orient,
+                renderAppender: InnerBlocks.ButtonBlockAppender,
+            } );
+
+            return el( Fragment, null,
+                el( InspectorControls, null,
+                    el( PanelBody, { title: __( 'Schritte', 'media-lab-agency-core' ), initialOpen: true },
+                        el( SelectControl, {
+                            label:    __( 'Anordnung (Desktop)', 'media-lab-agency-core' ),
+                            value:    orient,
+                            options:  [
+                                { label: __( 'Nebeneinander', 'media-lab-agency-core' ), value: 'horizontal' },
+                                { label: __( 'Untereinander', 'media-lab-agency-core' ), value: 'vertical' },
+                            ],
+                            onChange: val => setAttributes( { orientation: val } ),
+                            help:     __( 'Auf dem Smartphone stehen die Schritte immer untereinander.', 'media-lab-agency-core' ),
+                        } ),
+                        el( SelectControl, {
+                            label:    __( 'Überschriftenebene der Schritte', 'media-lab-agency-core' ),
+                            value:    safeHeading( headingLevel ),
+                            options:  HEADING_LEVEL_OPTIONS,
+                            onChange: val => setAttributes( { headingLevel: val } ),
+                        } ),
+                    ),
+                ),
+                el( 'ol', innerBlocksProps ),
+            );
+        },
+
+        save( { attributes } ) {
+            const orient = attributes.orientation === 'vertical' ? 'vertical' : 'horizontal';
+            const blockProps = useBlockProps.save( {
+                className: `ml-block-steps ml-steps--${orient}`,
+                role:      'list',
+            } );
+            return el( 'ol', useInnerBlocksProps.save( blockProps ) );
+        },
+    } );
+
+    registerBlockType( 'medialab/step', {
+        edit( { attributes, setAttributes, context } ) {
+            const { title, text } = attributes;
+            const level = safeHeading( context && context[ 'medialab/headingLevel' ] );
+
+            const blockProps = useBlockProps( { className: 'ml-step ml-step--editor' } );
+
+            return el( 'li', blockProps,
+                el( 'div', { className: 'ml-step__body' },
+                    el( RichText, {
+                        tagName:        level,
+                        className:      'ml-step__title',
+                        value:          title,
+                        onChange:       val => setAttributes( { title: val } ),
+                        placeholder:    __( 'Titel des Schritts…', 'media-lab-agency-core' ),
+                        allowedFormats: [ 'core/bold', 'core/italic' ],
+                    } ),
+                    el( RichText, {
+                        tagName:        'p',
+                        className:      'ml-step__text',
+                        value:          text,
+                        onChange:       val => setAttributes( { text: val } ),
+                        placeholder:    __( 'Text…', 'media-lab-agency-core' ),
+                        allowedFormats: [ 'core/bold', 'core/italic', 'core/link' ],
+                    } ),
+                ),
+            );
+        },
+
+        // Dynamisch: Ausgabe über blocks/step/render.php
+        save() {
+            return null;
         },
     } );
 

@@ -4,6 +4,59 @@ Alle wesentlichen Änderungen werden in dieser Datei dokumentiert.
 Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/),
 Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
+## [2.40.0] - 2026-11-24
+
+### Hinzugefügt
+- **Acht neue Wording-Felder** (Anfragen → Einstellungen → Wording, je Sprache im Tab „Sprachen“ übersetzbar; Wording-Schlüssel in Klammern). Alle sind optional, ohne Eintrag bleibt das Verhalten wie bisher (Ausnahme: siehe „Geändert“).
+  - **Formular: Hinweis ohne Wunschliste** (`form_intro`): Absatz `.mlw-wishlist__intro` über dem Formular, nur sichtbar, solange keine Artikel auf der Liste stehen und das Freitextfeld für Katalogartikel eingeschaltet ist (zum Beispiel beim Öffnen über „Werbemittel besprechen“). Wird beim Entfernen des letzten Artikels ein- und beim Hinzufügen ausgeblendet. Standard: leer.
+  - **Meldung: weder Artikel noch Freitext** (`items_or_catalog_error`).
+  - **Hinweis unter dem Absenden-Button** (`submit_note`): Absatz `.mlw-wishlist__submit-note`. Standard: leer.
+  - **Leere Liste: Button zum Sortiment** (`empty_shop_label`, Standard „Zurück zum Shop“) und **zweiter Button** (`empty_contact_label` und `empty_contact_url`, Standard: nicht angezeigt). Der zweite Button erscheint nur mit Beschriftung **und** Link (relativer Pfad oder vollständige Adresse, mit `esc_url()` bereinigt), trägt die Klassen `mlw-wishlist-back-to-shop mlw-wishlist-back-to-shop--contact` und wird gemeinsam mit dem ersten ein- und ausgeblendet.
+  - **Bestätigung: Überschrift** (`success_title`): fett gesetzte Zeile `.mlw-feedback__title` über der Erfolgsmeldung (Wunschliste und Anfrage, nicht bei „Zur Wunschliste hinzugefügt“). Standard: keine.
+  - **Bestätigung: Button zurück zum Shop** (`continue_label`, Standard „Weiter einkaufen“).
+- **Position je Zusatzfeld** (Anfragen → Einstellungen → Formularfelder → Zusätzliche Felder, neue Spalte „Position im Formular“, Schlüssel `field_position`): *Vor Name*, *Nach Telefon* (Standard, so standen die Felder bisher), *Vor Nachricht* (nach dem Freitextfeld für Katalogartikel) oder *Nach Nachricht* (vor der Datenschutz-Zustimmung). Innerhalb einer Position gilt die Reihenfolge der Tabelle (Drag & Drop). Bestehende Zeilen ohne Position bleiben „Nach Telefon“, es ändert sich nichts.
+  - `MediaLab_Inquiry_Settings::get_form_fields()` liefert die Felder jetzt stabil nach Position sortiert (ungültige oder fehlende Position = `after_phone`); dadurch folgen Formular, Validierung, Mail-Platzhalter und Backend-Ansicht derselben Reihenfolge. Neue Konstante `MediaLab_Inquiry_Settings::FIELD_POSITIONS`.
+  - `templates/wishlist/page.php` gibt die Zusatzfelder über eine Funktion je Position aus (vier Stellen im Formular). Name, E-Mail, Telefon, Freitext für Katalogartikel, Nachricht und Datenschutz bleiben fest.
+
+### Geändert
+- **Fehlermeldung ohne Artikel und ohne Freitext:** Der Standardtext lautet jetzt „Bitte wählen Sie Artikel aus oder beschreiben Sie uns Ihr Vorhaben.“ (bisher „… oder tragen Sie weitere Artikel aus den Blätterkatalogen ein.“, Stand 2.39.0). Die Meldung kommt aus dem Wording-Feld und gilt in Browser, Wunschlisten-Ajax und Inquiry-Engine gleich.
+- Die Beschriftung „Zurück zum Shop“ bei leerer Liste und „Weiter einkaufen“ in der Bestätigung sind jetzt Wording-Felder statt fester Texte (gleicher Standardtext).
+- `assets/js/wishlist.js`: Die Buttons bei leerer Liste (`.mlw-wishlist-back-to-shop`) werden als Gruppe ein- und ausgeblendet (bisher nur der erste).
+
+### Behoben
+- **Zusatzfeld vom Typ Checkbox im Wunschlisten-Formular** (zum Beispiel „Beratung gewünscht“): Die Zeile hat jetzt eigenes Markup `.mlw-wishlist__form-row--checkbox` mit `<label><input type="checkbox"> <span>Beschriftung</span></label>` (Kästchen links neben dem Text, wie bei der Datenschutz-Zustimmung) statt Beschriftung oben und Kästchen darunter. Das Theme braucht dafür eine Regel für `.mlw-wishlist__form-row--checkbox` (siehe Theme-Doku). Außerdem trägt die Checkbox bei „Pflichtfeld“ jetzt das Attribut `required`, damit die Browser-Prüfung in `wishlist.js` greift (serverseitig wurde das Pflichtfeld schon bisher geprüft).
+
+### Nicht enthalten
+- Kein Logo-/Motiv-Upload im Wunschlisten-Formular (Upload gibt es weiterhin nur im Konfigurator).
+- Keine Änderung an den Feldbeschriftungen „Name“, „E-Mail“, „Telefon“, „Nachricht“, „Gesamt“. Die festen Felder lassen sich nicht verschieben, nur die Zusatzfelder (siehe „Position je Zusatzfeld“). Die Überschrift der Seite („Ihre Produktauswahl“) kommt weiterhin aus dem Seitentitel.
+- Im Plugin gibt es für die neuen Elemente kein CSS außer `.mlw-feedback__title`; Gestaltung von Hinweis und Button-Hinweis im Theme.
+
+## [2.39.0] - 2026-11-24
+
+### Hinzugefügt
+- **Freitextfeld „Weitere Artikel aus den Blätterkatalogen“ im Anfrageformular der Wunschliste** (Katalogmodus), für Artikel, die nicht als Produkte im Katalog stehen, zum Beispiel aus Blätterkatalogen (Katalog, Artikelnummer und Menge je Zeile). Eingeschaltet wird es unter **Anfragen → Einstellungen → Formularfelder** („Weitere Artikel aus Blätterkatalogen“: *Ausblenden* (Standard) oder *Freitextfeld anzeigen*). Ohne Einstellung ändert sich bei bestehenden Projekten nichts.
+  - **Regel „mindestens ein Artikel oder ein Freitext“:** Ist das Feld sichtbar, erscheint das Formular auch bei leerer Wunschliste, und eine Anfrage braucht entweder mindestens einen Artikel auf der Liste oder einen Eintrag im Freitextfeld. Geprüft wird serverseitig (`MediaLab_Inquiry_Engine::submit()`, Wunschlisten-Ajax) und zusätzlich im Browser (`wishlist.js`). Ohne Artikel und ohne Text erscheint die Meldung „Bitte wählen Sie Artikel aus oder tragen Sie weitere Artikel aus den Blätterkatalogen ein.“ Bei ausgeblendetem Feld bleibt die Prüfung wie bisher („Ihre Wunschliste ist leer.“), ein mitgesendeter Wert wird verworfen.
+  - Bezeichnung und Hinweistext sind im Tab „Wording“ pflegbar (Standard: „Weitere Artikel aus den Blätterkatalogen“ und „Katalog, Artikelnummer und Menge je Zeile“) und je Sprache im Tab „Sprachen“ übersetzbar (Wording-Schlüssel `catalog_items_label` und `catalog_items_hint`).
+  - Der Text wird als reiner Text bereinigt (Tags entfernt, Zeilenumbrüche bleiben) und auf 5000 Zeichen begrenzt (Filter `mlw_catalog_items_max_length`). Er steht in der Anfrage (Meta `mlw_inquiry_catalog_items`, Backend-Detailansicht), in `{product_list}` der Kunden- und Admin-Mail als eigener Block unter der Produktliste (angepasste Mail-Vorlagen müssen nicht geändert werden), im Webhook (`catalog_items`) und in `$data['catalog_items']` für `mlw_before_save_inquiry` und `mlw_after_save_inquiry`.
+  - Bei einer Anfrage ohne Artikel auf der Liste zeigt die Mail nur den Freitextblock statt „Keine Produkte angegeben.“
+  - Gilt für die Wunschliste (Quelle `wishlist`). Konfigurator, Warenkorb-Anfrage und `[mlw_inquiry_form]` bleiben unverändert.
+  - Ein Feld „Beratung gewünscht“ lässt sich ohne Code über **Zusätzliche Felder** (Typ Checkbox) anlegen.
+- **Link-Vorbelegung des Wunschlisten-Formulars** (für Buttons wie „Werbemittel besprechen“ und „Anfrage zu diesem Katalog“): Ein Link auf die Wunschlisten-Seite mit `?mlw_prefill[feldkey]=wert` belegt die in den Einstellungen angelegten Zusatzfelder und das Freitextfeld `catalog_items` vor, zum Beispiel `/wunschliste/?mlw_prefill[beratung]=1` (Checkbox „Beratung gewünscht“ angehakt) oder `?mlw_prefill[catalog_items]=Luftballone%3A%20` (Katalog im Freitextfeld vorgetragen). Unterstützt werden Text, E-Mail, Telefon, Datum, Textarea, Auswahl (nur vorhandene Optionen) und Checkbox (`0`, `false`, `no`, `nein` = nicht angehakt).
+  - Name, E-Mail, Telefon, Nachricht und Datenschutz-Zustimmung werden nie vorbelegt. Werte werden bereinigt, gekürzt (Felder 500 Zeichen, Freitext wie dessen Höchstlänge) und escaped ausgegeben; Arrays werden ignoriert. Es wird nichts gespeichert oder gesendet, bevor der Besucher absendet (reine Anzeige, daher ohne Nonce).
+  - Wer bei sichtbarem Freitextfeld mit leerer Wunschliste über einen solchen Link ankommt, sieht den Hinweis „Wunschliste leer“ samt „Zurück zum Shop“ nicht, sondern direkt das Formular. Ohne Link-Parameter bleibt die Seite unverändert.
+
+## [2.38.0] - 2026-11-24
+
+### Hinzugefügt
+- **Feld „SEO-Titel (Titel-Tag)“ je Produktkategorie** (`inc/category-heading.php`, gleiche ACF-Feldgruppe, Meta-Schlüssel `mlw_category_seo_title`). Leer = Standardtitel (Kategoriename), das bisherige Verhalten bleibt also bei allen Projekten gleich. Ist das Feld gepflegt, ersetzt es den Titelteil des Titel-Tags (Filter `document_title_parts`, Priorität 20, nur auf Produktkategorie-Seiten); Trennzeichen, „Seite 2“ und Seitenname hängt WordPress wie bisher an. `og:title` und `twitter:title` des SEO-Plugins lesen den Titel über `wp_get_document_title()` und folgen deshalb dem SEO-Titel.
+  - Unverändert bleiben Kategoriename, Breadcrumbs, Meta-Beschreibung und der Seitenname im Schema (`name` der Kategorieseite kommt aus dem Archivtitel).
+  - Neuer Filter `mlw_category_seo_title( $titel, $term )`; leerer Rückgabewert = Standardtitel.
+- **Feld „Überschrift (H1)“ je Produktkategorie** (`inc/category-heading.php`, ACF-Feldgruppe „Überschrift (H1) und SEO-Titel“ an `product_cat`, Meta-Schlüssel `mlw_category_h1`). Leer = Name der Kategorie, das bisherige Verhalten bleibt also bei allen Projekten gleich. Ist das Feld gepflegt, zeigt die Kategorieseite diese Überschrift (Ausgabe über `woocommerce_page_title()`, Filter `woocommerce_page_title`, Priorität 20, nur auf Produktkategorie-Seiten). Die Ausgabe wird escaped, im Feld eingegebene Tags werden entfernt.
+  - Unverändert bleiben der Kategoriename (Menü, Breadcrumbs, Filter, Suche, Produktkarten) sowie Shop-Seite, Schlagwörter und Marken. Titel-Tag und Open-Graph-Titel bleiben von diesem Feld unberührt und folgen nur dem SEO-Titel. Das Breadcrumb des SEO-Plugins (`media-lab-seo`) liest den Kategorienamen direkt und ist deshalb nicht betroffen.
+  - Die Einleitung kommt wie bisher aus der **Beschreibung der Kategorie**: WooCommerce gibt sie auf der ersten Seite des Archivs unter der Überschrift aus und das SEO-Plugin nimmt sie als Meta-Beschreibung. Dafür ist keine Änderung nötig.
+  - Neuer Filter `mlw_category_heading( $ueberschrift, $term )` zum Anpassen oder Ersetzen; leerer Rückgabewert = Kategoriename.
+  - Lesen funktioniert auch ohne ACF (Term-Meta), zum Bearbeiten wird ACF Pro gebraucht wie bei den Filter-Feldern.
+
 ## [2.37.3] - 2026-11-19
 
 ### Behoben

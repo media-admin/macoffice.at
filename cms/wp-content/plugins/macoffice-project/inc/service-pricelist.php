@@ -5,8 +5,9 @@
  * Auswahl über GET-Parameter (verlinkbar, funktioniert ohne JavaScript):
  *   ?cat=<Geräte-Art>&cat2=<Kategorie>&cat3=<Unterkategorie>&device=<Modell>&repair=<Thema>
  *
- * Daten: drei eigene Tabellen (categories, devices, repairs), befüllt per WP-CLI aus dem SQL-Export der bisherigen
- * Service-Datenbank:  wp macoffice service-prices import <datei.sql>
+ * Daten: drei eigene Tabellen (categories, devices, repairs), befüllt aus dem SQL-Export der bisherigen Service-Datenbank:
+ *   - im Backend unter Werkzeuge > Servicepreise (Upload der .sql-Datei, siehe service-pricelist-admin.php) oder
+ *   - per WP-CLI:  wp macoffice service-prices import <datei.sql>
  *
  * Reparaturbonus (bisherige Regel): bei "repbon" = 1 und Preis > 400 € → 200 €, sonst die Hälfte des Preises (abgerundet).
  *
@@ -248,14 +249,28 @@ function macoffice_sp_import_file( string $file ) {
                         'repbon'    => (int) ( $row['repbon'] ?? 0 ),
                     );
             }
-            if ( false !== $wpdb->insert( macoffice_sp_table( $table ), $record ) ) {
-                $counts[ $table ]++;
+            if ( false === $wpdb->insert( macoffice_sp_table( $table ), $record ) ) {
+                // Eine fehlerhafte Zeile bricht den ganzen Import ab, die bisherigen Daten bleiben erhalten
+                $wpdb->query( 'ROLLBACK' );
+                return new WP_Error( 'insert_failed', sprintf( 'Import abgebrochen (Tabelle %s, ID %d): %s', $table, (int) $row['id'], $wpdb->last_error ) );
             }
+            $counts[ $table ]++;
         }
     }
 
     $wpdb->query( 'COMMIT' );
 
+    return $counts;
+}
+
+/** Aktuelle Anzahl der Datensätze je Tabelle. */
+function macoffice_sp_counts(): array {
+    global $wpdb;
+    macoffice_sp_install();
+    $counts = array();
+    foreach ( array( 'categories', 'devices', 'repairs' ) as $table ) {
+        $counts[ $table ] = (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . macoffice_sp_table( $table ) ); // phpcs:ignore WordPress.DB.PreparedSQL
+    }
     return $counts;
 }
 
@@ -282,6 +297,10 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
         }
     }
     WP_CLI::add_command( 'macoffice service-prices', 'Macoffice_Service_Prices_CLI' );
+}
+
+if ( is_admin() ) {
+    require_once __DIR__ . '/service-pricelist-admin.php';
 }
 
 // ── Ausgabe ──────────────────────────────────────────────────────────────────────

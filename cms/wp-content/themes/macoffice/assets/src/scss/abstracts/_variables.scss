@@ -23,9 +23,9 @@
 //    Primärfarben – direkt aus Figma
 // ─────────────────────────────────────────────────────────────────
 
-$color-primary:   #d40000;  // Figma: "Primary" – WCAG AA Fix (war: #ff0000)
-$color-secondary: #ff6b6b;  // Figma: "Secondary"
-$color-accent:    #00d9ff;  // Figma: "Accent"
+$color-primary:   #A12528;  // macoffice Rot (Alt-Theme $color-primary), 7,5:1 auf Weiß
+$color-secondary: #707070;  // macoffice Grau (Alt-Theme $color-secondary)
+$color-accent:    #A12528;  // macoffice kennt keine eigene Akzentfarbe, gleich Primär
 
 // Hero-Slider Gradient (ersetzt hardcodiertes #667eea)
 $color-hero-gradient: #667eea;
@@ -44,14 +44,14 @@ $color-white: #ffffff;
 $color-gray-25:  #fafafa;  // interpoliert zwischen $color-white/50
 $color-gray-50:  #f5f5f5;
 $color-gray-100: #f0f0f0;
-$color-gray-200: #e0e0e0;
+$color-gray-200: #e0e1e1;  // macoffice: Alt-Theme $color-tertiary
 $color-gray-300: #bebebe;  // interpoliert zwischen 200/400
 $color-gray-400: #9b9b9b;
-$color-gray-500: #808080;  // interpoliert zwischen 400/700
-$color-gray-600: #656565;  // interpoliert zwischen 400/700
+$color-gray-500: #707070;  // macoffice: Alt-Theme $color-secondary  // interpoliert zwischen 400/700
+$color-gray-600: #5f5f5f;  // macoffice: 5,9:1 auf #f5f5f5 (Fließtext-Grau)  // interpoliert zwischen 400/700
 $color-gray-700: #4a4a4a;
 $color-gray-800: #323232;  // interpoliert zwischen 700/900
-$color-gray-900: #1a1a1a;
+$color-gray-900: #1f1e1e;  // macoffice: Alt-Theme $color-black
 
 // Skala komplett (25–900, 11 Stufen). Deckt sich strukturell mit dem
 // Figma-/Untitled-UI-Schema. Die konkreten Hex-Werte hier sind aber
@@ -108,8 +108,8 @@ $color-purple: #8b5cf6;   // Highlights, Badges
 //     NICHT in Components verwenden – nur über diese Tokens!
 // ─────────────────────────────────────────────────────────────────
 
-$color-primary-dark:        #b30000;  // darken($color-primary, 10%)
-$color-primary-darker:      #990000;  // darken($color-primary, 15%)
+$color-primary-dark:        #861e21;  // darken($color-primary, 7%)
+$color-primary-darker:      #6f191c;  // darken($color-primary, 12%)
 
 $color-success-dark:        #075b3f;  // darken($color-success, 20%)
 $color-success-light-bg:    #b5f8e2;  // lighten($color-success, 45%)
@@ -153,8 +153,14 @@ $color-input-bg:   $color-white;
   --color-secondary:      #{$color-secondary};
   --color-accent:         #{$color-accent};
 
+  // Markenrot in zwei Rollen (wichtig für Dark Mode):
+  //  --color-primary       Füllung (Buttons, Badges) mit --color-on-primary als Schrift
+  //  --color-primary-text  Rot als Schrift/Icon/Link auf Hintergrund oder Fläche
+  --color-primary-text:   #{$color-primary};
+  --color-on-primary:     #{$color-white};
+
   // Hintergrund & Oberflächen
-  --color-background:     #{$color-white};
+  --color-background:     #{$color-gray-50};   // macoffice: Seitenhintergrund #f5f5f5 (Alt-Theme)
   --color-surface:        #{$color-white};
   --color-card-bg:        #{$color-white};
   --color-input-bg:       #{$color-white};
@@ -241,19 +247,30 @@ $color-input-bg:   $color-white;
 }
 
 [data-theme="dark"] {
-  --color-background:     #1a1a1a;
-  --color-surface:        #242424;
-  --color-card-bg:        #2a2a2a;
-  --color-input-bg:       #2a2a2a;
-  --color-dark:           #f5f5f5;   // Invertiert: dark → hell
-  --color-light:          #1a1a1a;   // Invertiert: light → dunkel
+  color-scheme: dark;
 
-  --color-text:           #f5f5f5;
-  --color-text-muted:     #a0a0a0;
-  --color-text-light:     #b0b0b0;
-  --color-text-secondary: #a0a0a0;
+  // Palette abgeleitet aus den Markenfarben (Kontraste nach WCAG 2.x berechnet):
+  //  Text #f2f2f2 auf #141414 = 16,5:1 · Gedämpft #a3a3a3 auf #1e1e1e = 6,6:1
+  //  Rot als Schrift #e5686c auf #1e1e1e = 5,2:1 · Weiß auf Füllung #c23b3f = 5,3:1
+  --color-background:     #141414;
+  --color-surface:        #1e1e1e;
+  --color-card-bg:        #242424;
+  --color-input-bg:       #242424;
+  --color-dark:           #f2f2f2;   // Invertiert: dark → hell
+  --color-light:          #141414;   // Invertiert: light → dunkel
 
-  --color-border:         #333333;
+  --color-text:           #f2f2f2;
+  --color-text-muted:     #a3a3a3;
+  --color-text-light:     #8c8c8c;
+  --color-text-secondary: #a3a3a3;
+
+  --color-border:         #3a3a3a;
+
+  --color-primary:        #c23b3f;
+  --color-primary-text:   #e5686c;
+  --color-on-primary:     #ffffff;
+  --color-secondary:      #a3a3a3;
+  --color-accent:         #e5686c;
 }
 
 // SCSS-Variablen auf CSS Custom Properties umschalten (Dark-Mode-fähig)
@@ -274,7 +291,7 @@ $color-border:         var(--color-border);
 // ─────────────────────────────────────────────────────────────────
 
 $font-primary:   'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-$font-secondary: 'Merriweather', Georgia, serif;
+$font-secondary: $font-primary;  // macoffice nutzt ausschließlich Inter
 
 // Statische Skala (für Kontexte wo clamp() nicht passt, z.B. Icons, Badges)
 $font-size-xs:   12px;
@@ -371,6 +388,7 @@ $radius-base: 8px;
 $radius-md:   8px;   // Alias für $radius-base
 $radius-lg:   16px;
 $radius-xl:   24px;
+$radius-2xl:  28px;   // macoffice: Buttons und Karten (Alt-Theme 28px)
 $radius-full: 9999px;
 
 

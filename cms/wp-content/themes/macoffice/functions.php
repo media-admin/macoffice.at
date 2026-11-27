@@ -202,5 +202,5 @@ add_filter( 'mlw_configurator_tabs_under_gallery', '__return_true' );
 add_filter( 'mlw_configurator_hide_wizard_attributes', '__return_true' );
 add_filter( 'mlw_loop_product_info', '__return_true' );            // Marke + Verfuegbarkeit auf Produktkarten
 add_filter( 'mlw_loop_sku', '__return_true' );                     // Art.-Nr. unter Preis und Verfuegbarkeit (wie auf der bisherigen Seite)
-// Kein Mengenfeld vor dem Merkzettel-Button (wie auf der bisherigen Seite): mlw_wishlist_single_quantity bleibt aus
-add_filter( 'mlw_wishlist_single_button_style', fn() => 'icon_text' );  // Herz + Text wie auf der bisherigen Seite
+add_filter( 'mlw_wishlist_single_quantity', '__return_true' );     // Mengenfeld vor dem Anfrage-Button
+add_filter( 'mlw_wishlist_single_button_style', fn() => 'text' );  // Textbutton statt Herz

@@ -11,6 +11,18 @@
     border-bottom: 3px solid var(--color-primary);
 }
 
+// Top-Leiste: kompakt und einzeilig ab Desktop-Breite
+.top-header {
+    font-size: var(--text-sm);
+
+    @include respond-to('lg') {
+        .top-header__inner,
+        .top-header__contact { flex-wrap: nowrap; }
+
+        .top-header__contact { gap: var(--space-md); }
+    }
+}
+
 // Top-Leiste: Zusatzangaben
 .top-header__emergency,
 .top-header__remote {

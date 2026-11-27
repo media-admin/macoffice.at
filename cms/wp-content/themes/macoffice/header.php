@@ -93,6 +93,8 @@
     <?php esc_html_e( 'Zum Inhalt springen', 'macoffice' ); ?>
 </a>
 
+<div id="page" class="site">
+
 <?php
 // ── Scroll Progress Bar ───────────────────────────────────────────────────
 // Sichtbarkeit per ACF gesteuert (Agency Core → Logo / Globale Einstellungen)
@@ -142,7 +144,6 @@ if ( function_exists( 'get_field' ) && get_field( 'top_header_enable', 'option' 
                     <a href="<?php echo esc_url( $th_address['maps_link'] ); ?>" target="_blank" rel="noopener">
                 <?php endif; ?>
                 <?php echo esc_html( trim( ( $th_address['street'] ?? '' ) . ', ' . ( $th_address['city'] ?? '' ), ', ' ) ); ?>
-                <?php if ( ! empty( $th_address['country'] ) ) : ?>, <?php echo esc_html( $th_address['country'] ); ?><?php endif; ?>
                 <?php if ( ! empty( $th_address['maps_link'] ) ) : ?></a><?php endif; ?>
             </span>
             <?php

@@ -166,26 +166,40 @@
     transition: opacity 0.2s ease;
   }
 
-  // Kopfzeile mit "Zurücksetzen"
+  // Kopfzeile: Überschrift, direkt daneben ein dezenter "Zurücksetzen"-Link
   &__head {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: $spacing-2 $spacing-4;
-    margin-bottom: $spacing-3;
+    align-items: baseline;
+    gap: $spacing-1 $spacing-2;
+    margin-bottom: $spacing-2;
 
     .wp-block-heading {
       margin: 0;
     }
   }
 
-  &__reset.is-hidden {
-    visibility: hidden;
+  &__reset {
+    font-size: $font-size-sm;
+    color: var(--color-text-muted, inherit);
+    text-decoration: none;
+    opacity: 0.75;
+    transition: $transition-fast;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--color-primary);
+      text-decoration: underline;
+      opacity: 1;
+    }
+
+    &.is-hidden {
+      visibility: hidden;
+    }
   }
 
   &__section {
-    margin-bottom: $spacing-4;
+    margin-bottom: $spacing-3;
   }
 
   // Abschnitte und Ergebnis blenden ein bzw. klappen weg, statt zu springen
@@ -213,14 +227,14 @@
   }
 
   &__heading {
-    margin: 0 0 $spacing-2;
+    margin: 0 0 $spacing-1;
     font-size: var(--text-lg);
   }
 
   &__list {
     display: flex;
     flex-wrap: wrap;
-    gap: $spacing-2;
+    gap: $spacing-1;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -230,9 +244,17 @@
     }
   }
 
-  &__option.is-selected {
-    background: var(--color-primary);
-    color: var(--color-white);
+  // Kompakte Auswahl-Buttons (brauchen weniger Platz als normale Buttons)
+  &__option {
+    min-height: 0;
+    padding: $spacing-1 $spacing-2;
+    font-size: $font-size-sm;
+    line-height: 1.3;
+
+    &.is-selected {
+      background: var(--color-primary);
+      color: var(--color-white);
+    }
   }
 
   &__result {

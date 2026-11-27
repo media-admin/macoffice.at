@@ -6,7 +6,8 @@
  *   abgeglichen: unveränderte Abschnitte bleiben stehen, neue blenden ein, nicht mehr passende klappen weg. Die Auswahl
  *   wird sofort markiert, die Antwort beim Darüberfahren vorgeladen. Die Scrollposition bleibt erhalten.
  * - Die Adresse wird per History-API aktualisiert (Zurück-Button, Teilen).
- * - Gerät und Thema samt Preis werden in das Reparatur-Anfrageformular (Contact Form 7, Felder "device" und "repair") eingetragen.
+ * - Gerät und Thema samt Preis werden in das Reparatur-Anfrageformular (Contact Form 7, Felder "device", "repair" und
+ *   als erste Zeile der "error-description") eingetragen.
  */
 
 const PARAMS = ['cat', 'cat2', 'cat3', 'device', 'repair'];
@@ -280,6 +281,8 @@ export default class ServicePrices {
       if (!form.querySelector('[name="device"]') || !form.querySelector('[name="repair"]')) return;
       this.setField(form.querySelector('[name="device"]'), device);
       this.setField(form.querySelector('[name="repair"]'), repair, true);
+      const description = form.querySelector('[name="error-description"]');
+      if (description) this.setDescription(description, repair ? `Thema: ${repair}` : '');
     });
   }
 
@@ -293,5 +296,24 @@ export default class ServicePrices {
     else delete input.dataset.spAuto;
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  /**
+   * Fehlerbeschreibung: Die erste Zeile "Thema: … – € … inkl. USt." wird automatisch gesetzt bzw. ersetzt. Was der
+   * Kunde selbst schreibt, bleibt darunter unverändert erhalten.
+   */
+  setDescription(textarea, line) {
+    const last = textarea.dataset.spAuto || '';
+    let rest = textarea.value;
+
+    if (last && rest.startsWith(last)) rest = rest.slice(last.length).replace(/^\n\n?/, '');
+    const next = line ? (rest ? `${line}\n\n${rest}` : `${line}\n\n`) : rest;
+    if (next === textarea.value) return;
+
+    textarea.value = next;
+    if (line) textarea.dataset.spAuto = line;
+    else delete textarea.dataset.spAuto;
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    textarea.dispatchEvent(new Event('change', { bubbles: true }));
   }
 }

@@ -401,7 +401,7 @@ function macoffice_sp_render( array $sel, string $base ): string {
     ob_start();
     // Kopfzeile mit "Zurücksetzen" (immer vorhanden, ohne Auswahl nur unsichtbar: kein Springen des Layouts)
     printf(
-        '<div class="service-prices__head"><h2 class="wp-block-heading">Wählen Sie zur Anzeige der Reparaturkosten Ihr Gerät aus:</h2><a class="btn btn--outline service-prices__reset%s" href="%s"%s>Zurücksetzen</a></div>',
+        '<div class="service-prices__head"><h2 class="wp-block-heading">Wählen Sie zur Anzeige der Reparaturkosten Ihr Gerät aus:</h2><a class="service-prices__reset%s" href="%s"%s><span aria-hidden="true">↺</span> Zurücksetzen</a></div>',
         $cat ? '' : ' is-hidden',
         esc_url( $base . '#service-prices' ),
         $cat ? '' : ' aria-hidden="true" tabindex="-1"'

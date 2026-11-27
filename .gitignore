@@ -137,7 +137,12 @@ php_error.log
 # ============================================
 *.sql
 *.sql.gz
+*.sql.zip
 *.sqlite
+
+# Live-Import (Dumps enthalten Kunden- und Bestelldaten, Repo ist öffentlich!)
+/_import/
+/cms/wp-content/mu-plugins/zz-local-no-mail.php
 database-backup/
 db-backup/
 

@@ -11,6 +11,7 @@
 #
 # Optional per Umgebungsvariable:
 #   DB_USER=root DB_PASS=root DB_NAME=at_macoffice_2026 DB_PREFIX=mo_
+#   (DB_PASS= leer übergeben = ohne Passwort)
 #   ADMIN_USER=admin ADMIN_EMAIL=... ADMIN_PASS=...   (leer = zufälliges Passwort)
 #   ACF_PRO_SRC=/pfad/zu/advanced-custom-fields-pro    (ACF Pro ist lizenzpflichtig)
 #
@@ -25,8 +26,8 @@ URL="https://${DOMAIN}"
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CMS="${PROJECT_ROOT}/cms"
 
-DB_USER="${DB_USER:-root}"
-DB_PASS="${DB_PASS:-root}"
+DB_USER="${DB_USER-root}"
+DB_PASS="${DB_PASS-root}"
 DB_NAME="${DB_NAME:-at_macoffice_2026}"
 DB_PREFIX="${DB_PREFIX:-mo_}"
 ADMIN_USER="${ADMIN_USER:-admin}"

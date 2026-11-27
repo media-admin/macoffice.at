@@ -92,6 +92,19 @@ foreach ( $texts as $key => $value ) {
 $existing_rows = get_field( 'field_fp_services', $page_id, false );
 if ( ! empty( $existing_rows ) ) {
 	WP_CLI::log( 'Leistungs-Karten sind bereits befüllt (nicht überschrieben).' );
+
+	// Reparatur: ältere Läufe hatten den Tippfehler „serivice“ aus der Live-Startseite im Anker.
+	$repaired = false;
+	foreach ( $existing_rows as $i => $row ) {
+		if ( ! empty( $row['url'] ) && false !== strpos( $row['url'], 'serivice-' ) ) {
+			$existing_rows[ $i ]['url'] = str_replace( 'serivice-', 'service-', $row['url'] );
+			$repaired                   = true;
+		}
+	}
+	if ( $repaired ) {
+		update_field( 'field_fp_services', $existing_rows, $page_id );
+		WP_CLI::log( 'Anker-Tippfehler in den Leistungs-Karten korrigiert.' );
+	}
 } else {
 	/** Theme-Bild einmalig in die Mediathek holen, danach wiederverwenden. */
 	$import_image = static function ( string $relative, string $alt ) {
@@ -127,8 +140,7 @@ if ( ! empty( $existing_rows ) ) {
 	$cards = array(
 		array( 'Kompetenz trifft Liebe zum Produkt', 'Verkauf',          '/leistungen/#verkauf',          'services/verkauf.webp',          'Bereich Verkauf' ),
 		array( 'Reparaturen vom Profi',              'Service Hardware', '/leistungen/#service-hardware', 'services/service-hardware.webp', 'Bereich Service Hardware' ),
-		// Anker wie live (mit Tippfehler „serivice“), damit der Link auf der Leistungsseite trifft.
-		array( 'Erfahrung nutzbar gemacht',          'Software Service', '/leistungen/#serivice-software', 'services/service-software.webp', 'Bereich Software Service' ),
+		array( 'Erfahrung nutzbar gemacht',          'Software Service', '/leistungen/#service-software',  'services/service-software.webp', 'Bereich Software Service' ),
 		array( 'Fachwissen auf Abruf',               'Consulting',       '/leistungen/#consulting',       'services/consulting.webp',       'Bereich Consulting' ),
 	);
 

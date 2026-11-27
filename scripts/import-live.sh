@@ -11,11 +11,14 @@
 #   OLD_URL=https://macoffice.at   (sonst aus der Option 'home' des Dumps gelesen)
 #   DUMP_PREFIX=wp_                (sonst aus dem Dump erkannt)
 #   ASSUME_YES=1                   (keine Rückfrage vor dem Überschreiben der lokalen DB)
+#   KEEP_FLAMINGO=1 KEEP_PENDING_ORDERS=1   (Altlasten nicht entfernen)
 #
 # Was passiert:
 #   1. Lokale DB wird gesichert (_import/lokal-vor-import-*.sql) und geleert
 #   2. Dump wird eingespielt, Tabellenpräfix in wp-config.php wird angepasst
-#   3. URLs werden auf https://at.macoffice-2026.localdev umgeschrieben
+#   3. Flamingo-Einträge und unbezahlte Alt-Bestellungen werden aus der lokalen Kopie entfernt
+#      (KEEP_FLAMINGO=1 / KEEP_PENDING_ORDERS=1 behalten sie)
+#   3b. URLs werden auf https://at.macoffice-2026.localdev umgeschrieben
 #   4. Aktive Plugins werden auf den neuen Satz zurückgesetzt (kein Yoast etc.)
 #   5. Mailversand wird lokal blockiert (mu-plugin zz-local-no-mail.php)
 #   6. Lokaler Admin wird angelegt/zurückgesetzt, Seeds laufen (Branding, Startseite, Menüs)
@@ -95,6 +98,25 @@ read_dump \
 CHECK="$(wp db query "SHOW TABLES LIKE '${DUMP_PREFIX}options'" --skip-plugins --skip-themes --skip-column-names)"
 [ -n "$CHECK" ] || die "Import fehlgeschlagen: ${DUMP_PREFIX}options fehlt"
 ok "Dump importiert"
+
+step "Altlasten entfernen"
+# Flamingo-Einträge (Formular-Archiv, im Mai 2026 von Bots geflutet) und unbezahlte
+# Alt-Bestellungen (wc-pending, 2024) werden lokal nicht gebraucht. Nur die lokale Kopie
+# wird bereinigt, die Live-Seite bleibt unberührt.
+# KEEP_FLAMINGO=1 behält die Flamingo-Einträge, KEEP_PENDING_ORDERS=1 die Alt-Bestellungen.
+JUNK_TYPES="'flamingo_inbound','flamingo_contact'"
+[ "${KEEP_FLAMINGO:-0}" = 1 ] && JUNK_TYPES="''"
+JUNK_WHERE="p.post_type IN (${JUNK_TYPES})"
+if [ "${KEEP_PENDING_ORDERS:-0}" != 1 ]; then
+  JUNK_WHERE="${JUNK_WHERE} OR (p.post_type IN ('shop_order','shop_order_refund','shop_order_placehold') AND p.post_status = 'wc-pending')"
+fi
+P="$DUMP_PREFIX"
+wp db query "
+  DELETE pm FROM \`${P}postmeta\` pm JOIN \`${P}posts\` p ON p.ID = pm.post_id WHERE ${JUNK_WHERE};
+  DELETE tr FROM \`${P}term_relationships\` tr JOIN \`${P}posts\` p ON p.ID = tr.object_id WHERE ${JUNK_WHERE};
+  DELETE p FROM \`${P}posts\` p WHERE ${JUNK_WHERE};
+" --skip-plugins --skip-themes
+ok "Flamingo-Einträge und unbezahlte Alt-Bestellungen entfernt"
 
 step "URLs umschreiben"
 if [ -z "${OLD_URL:-}" ]; then

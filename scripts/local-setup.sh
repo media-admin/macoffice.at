@@ -31,7 +31,9 @@ DB_NAME="${DB_NAME:-at_macoffice_2026}"
 DB_PREFIX="${DB_PREFIX:-mo_}"
 ADMIN_USER="${ADMIN_USER:-admin}"
 ADMIN_EMAIL="${ADMIN_EMAIL:-markus.tritremmel@media-lab.at}"
-ADMIN_PASS="${ADMIN_PASS:-$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 20)}"
+# Zufallspasswort (php ist Voraussetzung). Keine Pipe mit head: unter pipefail
+# beendet SIGPIPE das Script sonst lautlos.
+ADMIN_PASS="${ADMIN_PASS:-$(php -r 'echo bin2hex(random_bytes(12));')}"
 ACF_PRO_SRC="${ACF_PRO_SRC:-$HOME/Valet-Umgebung/media-lab-starter-kit/cms/wp-content/plugins/advanced-custom-fields-pro}"
 
 step() { printf '\n\033[1;36m━━ %s\033[0m\n' "$*"; }

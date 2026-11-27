@@ -57,7 +57,7 @@ ok "Dump: $DUMP ($(du -h "$DUMP" | cut -f1))"
 read_dump() {
   case "$DUMP" in
     *.gz)  gunzip -c "$DUMP" ;;
-    *.zip) unzip -p "$DUMP" '*.sql' ;;
+    *.zip) unzip -p "$DUMP" '*.sql' -x '__MACOSX/*' ;;
     *)     cat "$DUMP" ;;
   esac
 }
@@ -90,7 +90,7 @@ fi
 step "Dump einspielen"
 # USE/CREATE DATABASE/DEFINER entfernen, damit nur in die lokale DB geschrieben wird
 read_dump \
-  | sed -E '/^(USE |CREATE DATABASE )/d; s/DEFINER=`[^`]*`@`[^`]*`//g' \
+  | LC_ALL=C sed -E '/^(USE |CREATE DATABASE )/d; s/DEFINER=`[^`]*`@`[^`]*`//g' \
   | wp db import - --skip-plugins --skip-themes
 CHECK="$(wp db query "SHOW TABLES LIKE '${DUMP_PREFIX}options'" --skip-plugins --skip-themes --skip-column-names)"
 [ -n "$CHECK" ] || die "Import fehlgeschlagen: ${DUMP_PREFIX}options fehlt"

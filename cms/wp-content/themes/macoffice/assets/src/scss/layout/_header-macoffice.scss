@@ -61,11 +61,19 @@
     &--dark  { display: block; }
 }
 
+// ── Hauptmenü: vertikal mittig ────────────────────────────────────────────────
+// Die globale Regel li { margin-bottom } schob die Menüpunkte um die Hälfte dieses Abstands nach oben,
+// während Logo, Zertifikate und Aktions-Icons mittig standen.
+.primary-menu li {
+    margin-bottom: 0;
+}
+
 // ── Aktionen: Suche und Umschalter ────────────────────────────────────────────
 
 .site-header__actions {
     display:     flex;
     align-items: center;
+    align-self:  center;
     gap:         $spacing-1;
     margin-left: auto;
 }

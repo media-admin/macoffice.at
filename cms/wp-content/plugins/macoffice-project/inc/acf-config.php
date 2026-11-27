@@ -36,3 +36,12 @@ add_filter('acf/settings/load_json', function($paths) {
 add_filter('acf/load_value/name=search_nav_display', function () {
     return 'none';
 });
+
+/**
+ * Beiträge: Das Beitragsbild wird nicht automatisch zum Hero-Bild.
+ * Die Beitragsbilder liegen im Produktbild-Format vor (nicht im Hero-Format); sie erscheinen
+ * stattdessen neben dem Titel (single.php). Ein ausdrücklich gesetztes Hero-Bild gilt weiterhin.
+ */
+add_filter('media_lab_hero_use_featured_image', function ($use, $post_id) {
+    return 'post' === get_post_type($post_id) ? false : $use;
+}, 10, 2);

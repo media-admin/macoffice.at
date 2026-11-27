@@ -6,6 +6,9 @@
 // =============================================================================
 
 // Die Startseite nutzt mehr Breite als das Kit (1200px) – sonst wirken Karten-Raster schmal.
+// Breite für Fließtext-Bereiche der Startseite (FAQ, Über uns)
+$home-text-width: 64rem; // 1024px
+
 .home {
   overflow-x: clip; // Sicherheitsnetz: nie horizontal scrollen
 
@@ -23,6 +26,11 @@
   &--services,
   &--about {
     background: var(--color-subtle-bg);
+  }
+
+  // FAQ und Über uns: Lesebreite, aber breiter als der Kit-Standard (800px bzw. 48rem)
+  &--faq .faq-accordion {
+    max-width: $home-text-width;
   }
 
   &--error-report {
@@ -284,7 +292,7 @@
 // Über uns (Text mit Überschrift und Imagevideo)
 // -----------------------------------------------------------------------------
 .home-about {
-  max-width: 48rem;
+  max-width: $home-text-width;
   margin: 0 auto;
   font-size: var(--text-lg);
 

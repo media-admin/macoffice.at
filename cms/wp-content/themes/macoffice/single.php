@@ -18,6 +18,15 @@ get_template_part( 'template-parts/components/breadcrumbs' );
 
     <article id="post-<?php the_ID(); ?>" <?php post_class( 'single-post' ); ?>>
 
+        <?php
+        $hero         = function_exists( 'media_lab_get_hero_image' ) ? media_lab_get_hero_image() : null;
+        $has_hero     = ! empty( $hero );
+        $has_thumb    = ! $has_hero && has_post_thumbnail();
+        ?>
+
+        <?php /* ── Intro: Titel/Meta, bei vorhandenem Beitragsbild daneben das Bild ─────── */ ?>
+        <div class="single-post__intro<?php echo $has_thumb ? ' single-post__intro--has-image' : ''; ?>">
+
         <?php /* ── Header ────────────────────────────────────────────────── */ ?>
         <header class="single-post__header">
 
@@ -36,10 +45,6 @@ get_template_part( 'template-parts/components/breadcrumbs' );
             <?php endif; ?>
 
             <?php /* Titel – nur wenn kein Hero-Bild aktiv */ ?>
-            <?php
-            $hero        = function_exists( 'media_lab_get_hero_image' ) ? media_lab_get_hero_image() : null;
-            $has_hero    = ! empty( $hero );
-            ?>
             <?php if ( ! $has_hero ) : ?>
             <h1 class="single-post__title"><?php the_title(); ?></h1>
             <?php endif; ?>
@@ -81,13 +86,14 @@ get_template_part( 'template-parts/components/breadcrumbs' );
 
         </header>
 
-        <?php /* ── Featured Image (nur ohne Hero) ────────────────────────── */ ?>
-        <?php if ( ! $has_hero && has_post_thumbnail() ) : ?>
-        <div class="single-post__featured-image">
+        <?php /* ── Beitragsbild (nur ohne Hero): im Originalformat, nie zugeschnitten ─────── */ ?>
+        <?php if ( $has_thumb ) : ?>
+        <figure class="single-post__featured-image">
             <?php the_post_thumbnail( 'large', [
                 'class'          => 'single-post__featured-img',
                 'loading'        => 'eager',
                 'fetchpriority'  => 'high',
+                'sizes'          => '(min-width: 992px) 480px, 100vw',
             ] ); ?>
             <?php
             $caption = get_the_post_thumbnail_caption();
@@ -95,8 +101,10 @@ get_template_part( 'template-parts/components/breadcrumbs' );
             ?>
             <figcaption class="single-post__featured-caption"><?php echo esc_html( $caption ); ?></figcaption>
             <?php endif; ?>
-        </div>
+        </figure>
         <?php endif; ?>
+
+        </div><!-- .single-post__intro -->
 
         <?php /* ── Inhalt ───────────────────────────────────────────────── */ ?>
         <div class="single-post__content entry-content">

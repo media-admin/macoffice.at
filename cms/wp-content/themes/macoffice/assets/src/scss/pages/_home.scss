@@ -7,7 +7,7 @@
 
 // Die Startseite nutzt mehr Breite als das Kit (1200px) – sonst wirken Karten-Raster schmal.
 // Breite für Fließtext-Bereiche der Startseite (FAQ, Über uns)
-$home-text-width: 64rem; // 1024px
+$home-text-width: 100%; // wie die Live-Seite: volle Containerbreite (zum Begrenzen z. B. 90rem)
 
 .home {
   overflow-x: clip; // Sicherheitsnetz: nie horizontal scrollen
@@ -23,9 +23,17 @@ $home-text-width: 64rem; // 1024px
 
   // Abwechselnde Hintergründe: Neuheiten hell, Lieblingsprodukte abgesetzt usw.
   &--featured,
-  &--services,
   &--about {
     background: var(--color-subtle-bg);
+  }
+
+  // Leistungen: wie auf der bisherigen Seite dunkle Fläche in beiden Modi (Footer-Tokens)
+  &--services {
+    background: var(--color-footer-bg);
+    color: var(--color-on-footer);
+
+    .home-section__title { color: var(--color-on-footer); }
+    .home-section__intro { color: var(--color-on-footer-muted); }
   }
 
   // FAQ und Über uns: Lesebreite, aber breiter als der Kit-Standard (800px bzw. 48rem)
@@ -156,8 +164,7 @@ $home-text-width: 64rem; // 1024px
   }
 
   &--services {
-    @include respond-to('sm') { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    @include respond-to('xl') { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    @include respond-to('md') { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 }
 
@@ -246,14 +253,15 @@ $home-text-width: 64rem; // 1024px
 // -----------------------------------------------------------------------------
 .home-service {
   @include card-base;
+  // Dunkle Karte auf dunkler Fläche, Bild bis an den Kartenrand (wie auf der bisherigen Seite)
+  background: color-mix(in srgb, var(--color-white) 8%, var(--color-footer-bg));
+  border-radius: $radius-lg;
 
   &__link {
     display: flex;
     flex-direction: column;
-    gap: $spacing-2;
     height: 100%;
-    padding: $spacing-5;
-    color: var(--color-text);
+    color: var(--color-on-footer);
     text-decoration: none;
 
     @include focus-ring;
@@ -261,29 +269,30 @@ $home-text-width: 64rem; // 1024px
 
   &__pretitle {
     margin: 0;
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
+    padding: $spacing-3 $spacing-3 0;
+    font-size: var(--text-base);
+    color: var(--color-on-footer);
   }
 
   &__title {
     margin: 0;
-    font-size: var(--text-2xl);
-    font-weight: $font-weight-semibold;
-    color: var(--color-primary-text);
+    padding: $spacing-2 $spacing-3 $spacing-3;
+    font-size: var(--text-3xl);
+    font-weight: $font-weight-bold;
+    line-height: $line-height-tight;
+    color: var(--color-footer-accent);
   }
 
   &__media {
     display: block;
     margin-top: auto;
-    padding-top: $spacing-3;
   }
 
   &__image {
     display: block;
     width: 100%;
     height: auto;
-    border-radius: $radius-md;
-    aspect-ratio: 3 / 2;
+    aspect-ratio: 2 / 1;
     object-fit: cover;
   }
 }

@@ -418,7 +418,7 @@ $spacing-2xl: $spacing-8;   // 64px
 
 $container-width:     1200px;
 $container-max-width: $container-width;  // Alias
-$container-width-wide: 1440px;           // macoffice: Startseite (breiter als Kit-Standard)
+$container-width-wide: 1920px;           // macoffice: Header, Startseite, Footer (Live-Seite hat keine Maximalbreite)
 $container-padding:   $spacing-md;       // Statischer Fallback – Layout nutzt var(--container-padding)
 
 $breakpoint-xs:  375px;   // Mobile

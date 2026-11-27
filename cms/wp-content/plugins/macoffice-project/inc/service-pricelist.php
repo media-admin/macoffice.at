@@ -399,7 +399,13 @@ function macoffice_sp_render( array $sel, string $base ): string {
     };
 
     ob_start();
-    echo '<h2 class="wp-block-heading">Wählen Sie zur Anzeige der Reparaturkosten Ihr Gerät aus:</h2>';
+    // Kopfzeile mit "Zurücksetzen" (immer vorhanden, ohne Auswahl nur unsichtbar: kein Springen des Layouts)
+    printf(
+        '<div class="service-prices__head"><h2 class="wp-block-heading">Wählen Sie zur Anzeige der Reparaturkosten Ihr Gerät aus:</h2><a class="btn btn--outline service-prices__reset%s" href="%s"%s>Zurücksetzen</a></div>',
+        $cat ? '' : ' is-hidden',
+        esc_url( $base . '#service-prices' ),
+        $cat ? '' : ' aria-hidden="true" tabindex="-1"'
+    );
 
     // 1. Geräte-Art
     echo $level( 'Geräte-Art', 'type', macoffice_sp_categories( 1 ), $cat, static fn( $id ) => $url( array( 'cat' => $id ), 'sp-2' ) ); // phpcs:ignore WordPress.Security.EscapeOutput
@@ -441,6 +447,25 @@ function macoffice_sp_render( array $sel, string $base ): string {
 
     // 6. Preis
     $selected = $repair ? macoffice_sp_repair( $repair ) : null;
+
+    // Für das Anfrageformular darunter (JavaScript trägt Gerät und Thema samt Preis ein)
+    $device_name = '';
+    foreach ( $models as $model ) {
+        if ( (int) $model->id === $device ) {
+            $device_name = (string) $model->name;
+        }
+    }
+    $repair_label = '';
+    if ( $selected ) {
+        $selected_price = (float) $selected->preis;
+        $repair_label   = sprintf( '%s – %s inkl. USt.', $selected->name, fmod( $selected_price, 1 ) ? '€ ' . number_format_i18n( $selected_price, 2 ) : '€ ' . number_format_i18n( $selected_price, 0 ) . ',-' );
+    }
+    printf(
+        '<div class="service-prices__summary" hidden data-device="%s" data-repair="%s"></div>',
+        esc_attr( $device_name ),
+        esc_attr( $repair_label )
+    );
+
     if ( $selected ) {
         $price = (float) $selected->preis;
         echo '<div class="service-prices__result">';

@@ -416,3 +416,74 @@
         }
     }
 }
+
+// ── Importierte Formulare (Markup der alten Seite) ────────────────────────────
+//
+// Das Formular "Reparatur-Anfrage" stammt aus dem Altbestand und nutzt
+//   .contact-form-section__form  → Raster
+//   .column--full / .column--half → Spaltenbreite
+// Die Klassen werden hier auf das Kit-Layout (wie .cf7-grid-2) abgebildet, damit
+// das Formular wie alle anderen aussieht, ohne dass das Formular im Backend
+// umgebaut werden muss.
+
+.contact-form-section {
+    margin: $spacing-6 0;
+
+    &__title {
+        margin: 0 0 $spacing-3;
+    }
+
+    &__form {
+        display:               grid;
+        grid-template-columns: 1fr;
+        gap:                   $spacing-2 $spacing-3;
+
+        @include respond-to('md') { grid-template-columns: repeat(2, 1fr); }
+
+        // CF7 erzeugt zwischen den Blöcken teils <br> und leere <p>: stören im Raster
+        > br,
+        > p:empty { display: none; }
+
+        > p { margin: 0; }
+    }
+
+    &__form-heading {
+        margin:    $spacing-3 0 0;
+        font-size: var(--text-xl);
+    }
+
+    // Erste Zwischenüberschrift braucht keinen Abstand nach oben
+    &__form > .column--full:first-child .contact-form-section__form-heading {
+        margin-top: 0;
+    }
+
+    .column--full { grid-column: 1 / -1; }
+    .column--half { grid-column: auto; }
+
+    // Pflichtstern in Hauptfarbe; line-height 0, damit Labels mit und ohne Stern gleich hoch sind
+    label sup {
+        margin-left: 2px;
+        color:       var(--color-primary);
+        line-height: 0;
+    }
+
+    // Die Felder stecken im <label> und erben sonst dessen Fettdruck
+    label input,
+    label textarea { font-weight: 400; }
+
+    .wpcf7-form-control-wrap { display: block; }
+
+    // Datenschutz-Checkbox: Kästchen und Text nebeneinander statt ineinander
+    .wpcf7-acceptance label {
+        display:     flex;
+        align-items: flex-start;
+        gap:         $spacing-2;
+    }
+
+    // Absenden-Button: eigene Zeile, linksbündig (CF7 setzt ihn direkt ins Raster)
+    input[type="submit"],
+    button[type="submit"] {
+        grid-column: 1 / -1;
+        justify-self: start;
+    }
+}

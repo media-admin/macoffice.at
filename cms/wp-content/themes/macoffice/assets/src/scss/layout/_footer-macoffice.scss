@@ -11,6 +11,10 @@
     color:        var(--color-on-footer);
     border-top:   0;
 
+    .container {
+        max-width: $container-width-wide;
+    }
+
     a {
         color:           var(--color-on-footer);
         text-decoration: none;

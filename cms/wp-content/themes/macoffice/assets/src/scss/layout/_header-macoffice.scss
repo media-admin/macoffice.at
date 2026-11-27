@@ -6,6 +6,12 @@
 // Nur Tokens, keine festen Farbwerte.
 // =============================================================================
 
+// Gleiche Maximalbreite wie die Startseite (Top-Leiste, Header, Footer, Inhalt fluchten)
+.top-header__inner.container,
+.site-navigation {
+    max-width: $container-width-wide;
+}
+
 // Marken-Linie unter dem Header (wie auf der bisherigen Seite)
 .site-header {
     border-bottom: 3px solid var(--color-primary);

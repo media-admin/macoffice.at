@@ -35,11 +35,11 @@
     }
 
     &--dark {
-        background-color: var(--color-text);
-        color:            var(--color-background);
+        background-color: var(--color-bar-bg);
+        color:            var(--color-on-bar);
 
-        a       { color: var(--color-background); }
-        a:hover { color: var(--color-white); }
+        a       { color: var(--color-on-bar); }
+        a:hover { color: var(--color-footer-accent); }
 
         a:focus-visible {
             outline:        2px solid var(--color-white);

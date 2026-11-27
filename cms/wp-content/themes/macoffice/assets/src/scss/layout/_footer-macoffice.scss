@@ -1,0 +1,145 @@
+@use '../abstracts' as *;
+
+// =============================================================================
+// macoffice: Footer
+// Bleibt in beiden Modi dunkel (wie auf der bisherigen Seite). Farben nur über
+// die Footer-Tokens (--color-footer-*, --color-on-footer*).
+// =============================================================================
+
+.site-footer--macoffice {
+    background:   var(--color-footer-bg);
+    color:        var(--color-on-footer);
+    border-top:   0;
+
+    a {
+        color:           var(--color-on-footer);
+        text-decoration: none;
+        transition:      color 0.2s ease;
+
+        &:hover { color: var(--color-footer-accent); }
+
+        &:focus-visible {
+            outline:        2px solid var(--color-footer-accent);
+            outline-offset: 3px;
+            border-radius:  $radius-sm;
+        }
+    }
+
+    .site-footer__main {
+        display:               grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap:                   var(--space-xl);
+        padding-bottom:        var(--space-xl);
+        border-bottom:         1px solid var(--color-footer-border);
+
+        @include respond-to('lg') {
+            grid-template-columns: minmax(200px, 280px) minmax(0, 1fr) auto;
+            align-items:           start;
+        }
+    }
+
+    // Marke
+    .site-footer__brand {
+        display:        flex;
+        flex-direction: column;
+        gap:            var(--space-md);
+    }
+
+    .site-footer__logo { max-height: none; width: 100%; max-width: 240px; height: auto; }
+
+    .site-footer__certificates {
+        display:     inline-block;
+        line-height: 0;
+
+        img { width: 100px; height: auto; }
+    }
+
+    // Kontaktblöcke
+    .site-footer__contact {
+        display:               grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap:                   var(--space-lg);
+    }
+
+    .site-footer__block-title {
+        margin:         0 0 $spacing-2;
+        font-size:      var(--text-sm);
+        font-weight:    $font-weight-semibold;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color:          var(--color-on-footer-muted);
+    }
+
+    .site-footer__address,
+    .site-footer__hours,
+    .site-footer__list { font-style: normal; margin: 0; font-size: var(--text-base); line-height: 1.7; }
+
+    .site-footer__list { list-style: none; padding: 0; }
+
+    .site-footer__social {
+        display:    flex;
+        flex-wrap:  wrap;
+        gap:        $spacing-2;
+        margin:     0;
+        padding:    0;
+        list-style: none;
+
+        a {
+            display:         inline-flex;
+            align-items:     center;
+            justify-content: center;
+            width:           44px;
+            height:          44px;
+            border:          1px solid var(--color-footer-border);
+            border-radius:   $radius-full;
+        }
+    }
+
+    .site-footer__vcard {
+        display:       inline-block;
+        justify-self:  start;
+        padding:       $spacing-1;
+        background:    var(--color-white);   // QR-Code braucht hellen Grund
+        border-radius: $radius-md;
+        line-height:   0;
+
+        img { width: 96px; height: 96px; }
+    }
+
+    // Navigation (Menü "footer")
+    .site-footer__nav {
+        grid-column: 1 / -1;
+
+        a { color: var(--color-on-footer); }
+    }
+
+    // Unterer Bereich
+    .site-footer__bottom {
+        flex-wrap:       wrap;
+        gap:             var(--space-sm);
+        justify-content: space-between;
+        padding-top:     var(--space-md);
+    }
+
+    .site-footer__copyright {
+        color:     var(--color-on-footer-muted);
+        font-size: var(--text-sm);
+    }
+
+    .site-footer__tagline { display: block; }
+
+    .footer-legal a,
+    .site-footer__credit a { color: var(--color-on-footer-muted); }
+
+    .footer-legal a:hover,
+    .site-footer__credit a:hover { color: var(--color-footer-accent); }
+
+    .site-footer__credit {
+        padding-top: var(--space-sm);
+        font-size:   var(--text-xs);
+        color:       var(--color-on-footer-muted);
+        text-align:  center;
+
+        p { margin: 0; }
+    }
+}

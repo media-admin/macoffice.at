@@ -88,7 +88,12 @@ export default class ThemeSwitcher {
   updateToggleIcon() {
     const toggle = document.querySelector('[data-theme-toggle]');
     if (!toggle) return;
-    toggle.classList.toggle('is-dark', this.theme === 'dark');
+    const isDark = this.theme === 'dark';
+    toggle.classList.toggle('is-dark', isDark);
+    // Beschriftung nennt den Modus, zu dem gewechselt wird (Screenreader und Tooltip)
+    const label = isDark ? 'Zum hellen Modus wechseln' : 'Zum dunklen Modus wechseln';
+    toggle.setAttribute('aria-label', label);
+    toggle.setAttribute('title', label);
   }
 }
 

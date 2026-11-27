@@ -30,6 +30,10 @@ $color-accent:    #A12528;  // macoffice kennt keine eigene Akzentfarbe, gleich 
 // Hero-Slider Gradient (ersetzt hardcodiertes #667eea)
 $color-hero-gradient: #667eea;
 
+// Dunkle Flächen, die in beiden Modi dunkel bleiben (Top-Leiste, Footer)
+$color-bar-bg:         #525050;   // macoffice Top-Leiste (Alt-Theme)
+$color-footer-accent:  #e5686c;   // Rot auf dunklem Grund (5,2:1 auf #1e1e1e)
+
 
 // ─────────────────────────────────────────────────────────────────
 // 2. NEUTRAL PALETTE
@@ -52,6 +56,7 @@ $color-gray-600: #5f5f5f;  // macoffice: 5,9:1 auf #f5f5f5 (Fließtext-Grau)  //
 $color-gray-700: #4a4a4a;
 $color-gray-800: #323232;  // interpoliert zwischen 700/900
 $color-gray-900: #1f1e1e;  // macoffice: Alt-Theme $color-black
+$color-footer-bg: $color-gray-900;  // Footer bleibt in beiden Modi dunkel
 
 // Skala komplett (25–900, 11 Stufen). Deckt sich strukturell mit dem
 // Figma-/Untitled-UI-Schema. Die konkreten Hex-Werte hier sind aber
@@ -169,6 +174,15 @@ $color-input-bg:   $color-white;
   --color-hover-bg:       #{$color-gray-100};
   --color-subtle-bg:      #{$color-gray-50};
 
+  // Dunkle Flächen in beiden Modi: Top-Leiste und Footer
+  --color-bar-bg:         #{$color-bar-bg};
+  --color-on-bar:         #{$color-white};
+  --color-footer-bg:      #{$color-footer-bg};
+  --color-on-footer:      #{$color-gray-50};
+  --color-on-footer-muted: #{$color-gray-300};
+  --color-footer-accent:  #{$color-footer-accent};
+  --color-footer-border:  color-mix(in srgb, var(--color-white) 16%, transparent);
+
   // Hintergrund & Oberflächen
   --color-background:     #{$color-gray-50};   // macoffice: Seitenhintergrund #f5f5f5 (Alt-Theme)
   --color-surface:        #{$color-white};
@@ -283,6 +297,8 @@ $color-input-bg:   $color-white;
   --color-primary-darker: #8c2629;
   --color-secondary:      #a3a3a3;
   --color-accent:         #e5686c;
+  --color-bar-bg:         #2a2a2a;
+  --color-footer-bg:      #0d0d0d;
   --color-hover-bg:       #2e2e2e;
   --color-subtle-bg:      #1a1a1a;
 

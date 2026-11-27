@@ -210,6 +210,19 @@ if ( function_exists( 'get_field' ) && get_field( 'top_header_enable', 'option' 
             <?php foreach ( $th_order as $key ) {
                 if ( isset( $th_renderers[ $key ] ) ) $th_renderers[ $key ]();
             } ?>
+            <?php $mo_extras = macoffice_contact_extras(); ?>
+            <?php if ( ! empty( $mo_extras['emergency_email'] ) ) : ?>
+            <span class="top-header__item top-header__emergency">
+                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <a href="mailto:<?php echo esc_attr( $mo_extras['emergency_email'] ); ?>"><?php esc_html_e( 'Notfall', 'macoffice' ); ?></a>
+            </span>
+            <?php endif; ?>
+            <?php if ( ! empty( $mo_extras['remote_support_url'] ) ) : ?>
+            <span class="top-header__item top-header__remote">
+                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <a href="<?php echo esc_url( $mo_extras['remote_support_url'] ); ?>"><?php esc_html_e( 'Fernwartung', 'macoffice' ); ?></a>
+            </span>
+            <?php endif; ?>
         </div><!-- .top-header__contact -->
 
         <?php if ( ! empty( $th_social['enable'] ) ) : ?>
@@ -296,6 +309,12 @@ if ( function_exists( 'get_field' ) && get_field( 'top_header_enable', 'option' 
             ?>
         </a>
 
+        <!-- Apple-Zertifikate (hell/dunkel je nach Modus) -->
+        <a href="<?php echo esc_url( home_url( '/produkte' ) ); ?>" class="site-header__certificates" aria-label="<?php esc_attr_e( 'Apple Autorisierter Händler und Service Provider', 'macoffice' ); ?>">
+            <img src="<?php echo esc_url( macoffice_branding_url( 'apple-certificates-light.svg' ) ); ?>" alt="<?php esc_attr_e( 'Apple Autorisierter Händler und Service Provider', 'macoffice' ); ?>" width="220" height="32" class="site-header__certificates-img site-header__certificates-img--light">
+            <img src="<?php echo esc_url( macoffice_branding_url( 'apple-certificates-dark.svg' ) ); ?>" alt="" width="220" height="32" class="site-header__certificates-img site-header__certificates-img--dark" aria-hidden="true">
+        </a>
+
         <!-- Desktop Menu -->
         <div class="primary-menu">
             <?php
@@ -307,6 +326,19 @@ if ( function_exists( 'get_field' ) && get_field( 'top_header_enable', 'option' 
                 'depth'          => 4,
             ));
             ?>
+        </div>
+
+        <!-- Aktionen: Suche und Hell/Dunkel-Umschalter -->
+        <div class="site-header__actions">
+            <button type="button" class="header-action header-action--search" data-modal-trigger="site-search-modal" aria-label="<?php esc_attr_e( 'Suche öffnen', 'macoffice' ); ?>">
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+            <?php if ( $dark_mode_on ) : ?>
+            <button type="button" class="header-action header-action--theme" data-theme-toggle aria-label="<?php esc_attr_e( 'Zum dunklen Modus wechseln', 'macoffice' ); ?>">
+                <svg class="header-action__icon header-action__icon--to-dark" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <svg class="header-action__icon header-action__icon--to-light" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+            </button>
+            <?php endif; ?>
         </div>
 
         <!-- Mobile Toggle -->
@@ -331,5 +363,15 @@ if ( function_exists( 'get_field' ) && get_field( 'top_header_enable', 'option' 
 
 <!-- Mobile Overlay -->
 <div class="mobile-menu-overlay"></div>
+
+<!-- Such-Modal -->
+<div class="modal modal--search" id="site-search-modal" role="dialog" aria-modal="true" aria-label="<?php esc_attr_e( 'Suche', 'macoffice' ); ?>">
+    <div class="modal__dialog">
+        <button type="button" class="modal__close" data-modal-close aria-label="<?php esc_attr_e( 'Schließen', 'macoffice' ); ?>">&times;</button>
+        <div class="modal__body">
+            <?php echo do_shortcode( '[ajax_search post_types="product,page,post"]' ); ?>
+        </div>
+    </div>
+</div>
 
 <main id="main-content" class="site-main" tabindex="-1">

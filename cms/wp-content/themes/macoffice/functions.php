@@ -80,6 +80,7 @@ add_action('after_setup_theme', 'macoffice_setup');
 require_once get_template_directory() . '/inc/enqueue.php';
 require_once get_template_directory() . '/inc/performance.php';
 require_once get_template_directory() . '/inc/shortcode-overrides.php';
+require_once get_template_directory() . '/inc/contact-extras.php';
 
 
 // Optional components (only if files exist)

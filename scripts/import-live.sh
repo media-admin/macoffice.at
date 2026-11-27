@@ -18,7 +18,7 @@
 #   3. URLs werden auf https://at.macoffice-2026.localdev umgeschrieben
 #   4. Aktive Plugins werden auf den neuen Satz zurückgesetzt (kein Yoast etc.)
 #   5. Mailversand wird lokal blockiert (mu-plugin zz-local-no-mail.php)
-#   6. Lokaler Admin wird angelegt/zurückgesetzt, Branding-Seed läuft erneut
+#   6. Lokaler Admin wird angelegt/zurückgesetzt, Seeds laufen (Branding, Startseite, Menüs)
 #
 # Dumps enthalten Kunden- und Bestelldaten. Nie committen: _import/ und *.sql*
 # stehen in der .gitignore (das Repo ist öffentlich).
@@ -176,6 +176,8 @@ else
   wp user create "$ADMIN_USER" "$ADMIN_EMAIL" --role=administrator --user_pass="$ADMIN_PASS" --skip-plugins --skip-themes >/dev/null
 fi
 wp eval-file "$PROJECT_ROOT/scripts/seed-branding.php" || warn "seed-branding.php fehlgeschlagen (später: wp --path=cms eval-file scripts/seed-branding.php)"
+wp eval-file "$PROJECT_ROOT/scripts/seed-frontpage.php" || warn "seed-frontpage.php fehlgeschlagen (später: wp --path=cms eval-file scripts/seed-frontpage.php)"
+wp eval-file "$PROJECT_ROOT/scripts/seed-menus.php" || warn "seed-menus.php fehlgeschlagen (später: wp --path=cms eval-file scripts/seed-menus.php)"
 
 step "Fertig"
 echo "Frontend:  ${URL}/"

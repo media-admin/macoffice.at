@@ -1,0 +1,361 @@
+{
+    "key": "group_front_page",
+    "title": "Startseite",
+    "fields": [
+        {
+            "key": "field_fp_news_title",
+            "label": "Neuheiten: Überschrift",
+            "name": "fp_news_title",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "Neuheiten, die faszinieren",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_fp_news_intro",
+            "label": "Neuheiten: Einleitung",
+            "name": "fp_news_intro",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "Optional. Die Karten kommen aus den Beiträgen der Kategorie „neuheiten“.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "tabs": "all",
+            "toolbar": "basic",
+            "media_upload": 0,
+            "delay": 0
+        },
+        {
+            "key": "field_fp_featured_title",
+            "label": "Lieblingsprodukte: Überschrift",
+            "name": "fp_featured_title",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "Lieblingsprodukte, die Freude bereiten",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_fp_featured_intro",
+            "label": "Lieblingsprodukte: Einleitung",
+            "name": "fp_featured_intro",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "Optional. Die Karten kommen aus den Beiträgen der Kategorie „lieblingsprodukte“.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "tabs": "all",
+            "toolbar": "basic",
+            "media_upload": 0,
+            "delay": 0
+        },
+        {
+            "key": "field_fp_categories_title",
+            "label": "Produktfamilien: Überschrift",
+            "name": "fp_categories_title",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "Die Kacheln kommen aus den Shop-Kategorien der obersten Ebene.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "Produktfamilien",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_fp_services_title",
+            "label": "Leistungen: Überschrift",
+            "name": "fp_services_title",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "Leistungen",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_fp_services_intro",
+            "label": "Leistungen: Einleitung",
+            "name": "fp_services_intro",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "tabs": "all",
+            "toolbar": "basic",
+            "media_upload": 0,
+            "delay": 0
+        },
+        {
+            "key": "field_fp_services",
+            "label": "Leistungen: Karten",
+            "name": "fp_services",
+            "aria-label": "",
+            "type": "repeater",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "layout": "block",
+            "pagination": 0,
+            "min": 0,
+            "max": 8,
+            "collapsed": "field_fp_service_title",
+            "button_label": "Karte hinzufügen",
+            "rows_per_page": 20,
+            "sub_fields": [
+                {
+                    "key": "field_fp_service_pretitle",
+                    "label": "Vortitel",
+                    "name": "pretitle",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "50",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "maxlength": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "parent_repeater": "field_fp_services"
+                },
+                {
+                    "key": "field_fp_service_title",
+                    "label": "Titel",
+                    "name": "title",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 1,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "50",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "maxlength": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "parent_repeater": "field_fp_services"
+                },
+                {
+                    "key": "field_fp_service_url",
+                    "label": "Link",
+                    "name": "url",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "Relativer Pfad mit optionalem Anker, z. B. /leistungen/#verkauf",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "50",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "maxlength": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "parent_repeater": "field_fp_services"
+                },
+                {
+                    "key": "field_fp_service_image",
+                    "label": "Bild",
+                    "name": "image",
+                    "aria-label": "",
+                    "type": "image",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "50",
+                        "class": "",
+                        "id": ""
+                    },
+                    "return_format": "id",
+                    "library": "all",
+                    "min_width": "",
+                    "min_height": "",
+                    "min_size": "",
+                    "max_width": "",
+                    "max_height": "",
+                    "max_size": "",
+                    "mime_types": "",
+                    "preview_size": "medium",
+                    "parent_repeater": "field_fp_services"
+                }
+            ]
+        },
+        {
+            "key": "field_fp_faq_title",
+            "label": "FAQ: Überschrift",
+            "name": "fp_faq_title",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "Die Fragen kommen aus dem Beitragstyp FAQ.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "Fragen & Antworten",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_fp_faq_intro",
+            "label": "FAQ: Einleitung",
+            "name": "fp_faq_intro",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "tabs": "all",
+            "toolbar": "basic",
+            "media_upload": 0,
+            "delay": 0
+        },
+        {
+            "key": "field_fp_about_title",
+            "label": "Über uns: Überschrift",
+            "name": "fp_about_title",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "Über uns",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_fp_about_text",
+            "label": "Über uns: Text",
+            "name": "fp_about_text",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "Text mit Überschrift und Video (Video-Block mit MP4 aus der Mediathek). Abstandshalter sind nicht nötig.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "tabs": "all",
+            "toolbar": "full",
+            "media_upload": 0,
+            "delay": 0
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "page_type",
+                "operator": "==",
+                "value": "front_page"
+            }
+        ]
+    ],
+    "menu_order": 0,
+    "position": "normal",
+    "style": "default",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "hide_on_screen": [
+        "the_content"
+    ],
+    "active": true,
+    "description": "Texte und Einstellungen der Startseite. Karten, Kategorien und FAQ kommen aus den jeweiligen Inhalten.",
+    "show_in_rest": false,
+    "display_title": "",
+    "modified": 1795000000
+}

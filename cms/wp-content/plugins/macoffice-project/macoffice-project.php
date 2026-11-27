@@ -56,6 +56,7 @@ function macoffice_project_init() {
     require_once MACOFFICE_PROJECT_PATH . 'inc/custom-post-types.php';
     require_once MACOFFICE_PROJECT_PATH . 'inc/taxonomies.php';
     require_once MACOFFICE_PROJECT_PATH . 'inc/acf-config.php';
+    require_once MACOFFICE_PROJECT_PATH . 'inc/content-shortcodes.php';
 }
 add_action('plugins_loaded', 'macoffice_project_init', 10);
 

@@ -1,0 +1,251 @@
+@use '../abstracts' as *;
+
+// =============================================================================
+// Inhalts-Shortcodes der bisherigen Seite (Plugin macoffice-project):
+// Leasing-Rechner, AppleCare, Servicepreise, Leistungs-Übersicht, Checkliste
+// Nur Design-Tokens, keine festen Werte.
+// =============================================================================
+
+// ── Leasing-Rechner ──────────────────────────────────────────────────────────────
+.leasing-calculator {
+  max-width: 32rem;
+  margin: $spacing-5 0;
+  padding: $spacing-4;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-lg;
+
+  .leasing-amount {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-1;
+    margin: 0 0 $spacing-3;
+
+    &__hint {
+      color: var(--color-text-muted);
+    }
+
+    &__input {
+      display: flex;
+      align-items: center;
+      gap: $spacing-1;
+      font-weight: $font-weight-semibold;
+    }
+
+    &__field {
+      flex: 1;
+      min-width: 0;
+      padding: $spacing-1 $spacing-2;
+      font: inherit;
+      color: var(--color-text);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: $radius-md;
+    }
+  }
+}
+
+.leasing-result {
+  margin-top: $spacing-4;
+
+  &__title {
+    margin: 0 0 $spacing-1;
+    font-weight: $font-weight-semibold;
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: $spacing-1 0;
+      text-align: left;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    td {
+      text-align: right;
+      font-weight: $font-weight-semibold;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  &--error {
+    margin: 0;
+    color: var(--color-error);
+  }
+}
+
+// ── Tabellen (AppleCare) ─────────────────────────────────────────────────────────
+.applecare {
+  margin: $spacing-5 0;
+
+  &__title {
+    margin: 0 0 $spacing-3;
+  }
+
+  &__back {
+    font-size: var(--text-base);
+    font-weight: $font-weight-normal;
+  }
+
+  &__devices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-2;
+  }
+
+  &__device {
+    font-size: var(--text-xl);
+    padding: $spacing-3 $spacing-4;
+  }
+
+  &__table {
+    width: 100%;
+    margin: 0 0 $spacing-5;
+    border-collapse: collapse;
+    table-layout: fixed;
+
+    th,
+    td {
+      padding: $spacing-2;
+      border-bottom: 1px solid var(--color-border);
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    thead th {
+      font-size: var(--text-sm);
+    }
+
+    tbody th {
+      text-align: left;
+    }
+
+    // Mobil: Zeilen untereinander, Spaltenname als Beschriftung
+    @include respond-below('md') {
+      thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+
+      tr,
+      th,
+      td {
+        display: block;
+        text-align: left;
+      }
+
+      tbody tr {
+        margin-bottom: $spacing-3;
+        border: 1px solid var(--color-border);
+        border-radius: $radius-md;
+      }
+
+      td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: var(--text-sm);
+        color: var(--color-text-muted);
+      }
+    }
+  }
+}
+
+// ── Servicepreise ────────────────────────────────────────────────────────────────
+.service-prices {
+  margin: $spacing-5 0;
+
+  &__section {
+    margin-bottom: $spacing-4;
+  }
+
+  &__heading {
+    margin: 0 0 $spacing-2;
+    font-size: var(--text-lg);
+  }
+
+  &__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-2;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      margin: 0;
+    }
+  }
+
+  &__option.is-selected {
+    background: var(--color-primary);
+    color: var(--color-white);
+  }
+
+  &__result {
+    max-width: 28rem;
+    margin: $spacing-4 0;
+    padding: $spacing-4;
+    text-align: center;
+    background: var(--color-card-bg);
+    border: 2px solid var(--color-primary);
+    border-radius: $radius-lg;
+
+    p {
+      margin: 0;
+    }
+  }
+
+  &__result-label {
+    font-weight: $font-weight-semibold;
+  }
+
+  &__result-price,
+  &__result-bonus {
+    margin-bottom: $spacing-2;
+    font-size: var(--text-3xl);
+    font-weight: $font-weight-bold;
+  }
+}
+
+.repair-instructions {
+  margin: $spacing-5 0;
+
+  &__list li {
+    margin-bottom: $spacing-3;
+  }
+}
+
+// ── Leistungs-Übersicht ──────────────────────────────────────────────────────────
+.services-overview {
+  margin: $spacing-5 0;
+
+  &__card {
+    position: relative;
+  }
+
+  // Apple-Rollen-Logo oben rechts auf der Karte
+  &__logo {
+    position: absolute;
+    top: $spacing-3;
+    right: $spacing-3;
+    width: $spacing-12;
+
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    @include focus-ring;
+  }
+}
+
+.content-contact {
+  margin: $spacing-3 0;
+}

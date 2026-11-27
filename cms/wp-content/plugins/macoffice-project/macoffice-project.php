@@ -57,8 +57,23 @@ function macoffice_project_init() {
     require_once MACOFFICE_PROJECT_PATH . 'inc/taxonomies.php';
     require_once MACOFFICE_PROJECT_PATH . 'inc/acf-config.php';
     require_once MACOFFICE_PROJECT_PATH . 'inc/content-shortcodes.php';
+    require_once MACOFFICE_PROJECT_PATH . 'inc/navigation.php';
+    if (class_exists('WooCommerce')) {
+        require_once MACOFFICE_PROJECT_PATH . 'inc/shop.php';
+    }
 }
 add_action('plugins_loaded', 'macoffice_project_init', 10);
+
+/**
+ * Permalinks einmalig neu schreiben, wenn sich Rewrite-Regeln des Plugins ändern (z. B. Beitragstyp "service":
+ * kein Archiv mehr unter /leistungen). Version hochzählen, wenn wieder etwas geändert wird.
+ */
+add_action('init', function () {
+    if (get_option('macoffice_rewrite_version') !== '2') {
+        flush_rewrite_rules(false);
+        update_option('macoffice_rewrite_version', '2', false);
+    }
+}, 99);
 
 /**
  * Activation Hook

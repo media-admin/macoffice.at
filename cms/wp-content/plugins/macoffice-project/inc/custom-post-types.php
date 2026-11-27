@@ -168,12 +168,14 @@ function agency_core_register_services_cpt() {
     $args = array(
         'labels' => $labels,
         'public' => true,
-        'has_archive' => true,
+        // macoffice: "Leistungen" ist eine normale Seite (/leistungen). Archiv und Slug "leistungen" des Beitragstyps
+        // würden diese Seite überdecken und ein leeres Archiv zeigen.
+        'has_archive' => false,
         'show_in_rest' => true,
         'supports' => array('title', 'editor', 'thumbnail', 'excerpt', 'page-attributes'),
         'menu_icon' => 'dashicons-admin-tools',
         'menu_position' => 23,
-        'rewrite' => array('slug' => 'leistungen'),
+        'rewrite' => array('slug' => 'leistung'),
         'capability_type' => 'post',
     );
     

@@ -55,9 +55,21 @@ add_filter('woocommerce_output_related_products_args', function($args) {
 });
 
 /**
- * Remove breadcrumbs (we'll add custom ones)
+ * Breadcrumbs ("Startseite > Produkte") wie auf der bisherigen Seite, vor dem Seiteninhalt (Priorität 5: vor dem Wrapper).
+ * Die Funktion medialab_breadcrumbs() des Kits gibt es in diesem Projekt nicht, deshalb die WooCommerce-Brotkrumen.
  */
 remove_action('woocommerce_before_main_content', 'woocommerce_breadcrumb', 20);
+
+add_action('woocommerce_before_main_content', function() {
+    echo '<div class="container">';
+    woocommerce_breadcrumb(array(
+        'delimiter'   => '<span class="woocommerce-breadcrumb__sep" aria-hidden="true">&gt;</span>',
+        'wrap_before' => '<nav class="woocommerce-breadcrumb breadcrumbs" aria-label="' . esc_attr__('Brotkrumen', 'macoffice') . '">',
+        'wrap_after'  => '</nav>',
+        'home'        => __('Startseite', 'macoffice'),
+    ));
+    echo '</div>';
+}, 5);
 
 /**
  * Custom Add to Cart button text

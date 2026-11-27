@@ -1250,3 +1250,38 @@
         &:empty { display: none; }
     }
 }
+
+
+// ── Brotkrumen und Listenkopf (Shop, Kategorien) ─────────────────────────────
+// "Startseite > Produkte" wie auf der bisherigen Seite; sie schaffen auch den Abstand zwischen Header und Überschrift.
+.woocommerce-breadcrumb {
+  display:     flex;
+  flex-wrap:   wrap;
+  align-items: center;
+  padding:     $spacing-3 0;
+  font-size:   var(--text-sm);
+  line-height: 1.4;
+  color:       var(--color-text-muted);
+
+  a {
+    color:           var(--color-text-muted);
+    text-decoration: none;
+
+    &:hover { color: var(--color-primary-text); text-decoration: underline; }
+  }
+
+  &__sep { margin: 0 $spacing-1; }
+}
+
+.woocommerce-products-header {
+  padding-top: $spacing-2;
+}
+
+// "Stand vom …" unter der Produktliste
+.shop-date-modified {
+  margin:     $spacing-3 0 0;
+  font-size:  var(--text-sm);
+  color:      var(--color-text-muted);
+  text-align: center;
+}
+

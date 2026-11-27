@@ -531,6 +531,7 @@ $ml-chevron-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' w
         &--in_stock::before,
         &--supplier::before { background: var(--color-success); }
         &--in_house::before { background: var(--color-info); }
+        &--soon::before     { background: var(--color-warning); }
         &--out::before      { background: var(--color-error); }
     }
 
@@ -613,25 +614,20 @@ $ml-chevron-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' w
         &:last-of-type { padding-bottom: $spacing-4; }
     }
 
-    // Wunschlisten-Herz über dem Bild, oben rechts; Icon in Textfarbe des Themes
+    // Merkzettel-Button ("Auf den Merkzettel", Katalog-Modus): Pille über die Kartenbreite, ganz unten in der Karte
     .mlw-add-to-wishlist--loop {
-        position:        absolute !important;
-        top:             $spacing-3 !important;
-        right:           $spacing-3 !important;
-        left:            auto !important;
-        bottom:          auto !important;
-        z-index:         3 !important;
+        position:        static !important;
         display:         flex !important;
         align-items:     center !important;
         justify-content: center !important;
-        width:           36px !important;
-        height:          36px !important;
-        margin:          0 !important;
-        padding:         0 !important;
+        width:           auto !important;
+        height:          auto !important;
+        margin:          auto $spacing-4 $spacing-4 !important;   // auto oben: Button sitzt bei gleich hohen Karten unten
+        padding:         $spacing-1 $spacing-3 !important;
         border-radius:   $radius-full !important;
-        background:      var(--color-card-bg) !important;
+        background:      transparent !important;
 
-        &:not(.is-active) { color: var(--color-text) !important; }
+        &:not(.is-active) { color: var(--color-primary-text) !important; }
     }
 }
 

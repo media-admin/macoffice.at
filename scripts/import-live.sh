@@ -201,6 +201,7 @@ fi
 wp eval-file "$PROJECT_ROOT/scripts/seed-branding.php" || warn "seed-branding.php fehlgeschlagen (später: wp --path=cms eval-file scripts/seed-branding.php)"
 wp eval-file "$PROJECT_ROOT/scripts/seed-frontpage.php" || warn "seed-frontpage.php fehlgeschlagen (später: wp --path=cms eval-file scripts/seed-frontpage.php)"
 wp eval-file "$PROJECT_ROOT/scripts/seed-menus.php" || warn "seed-menus.php fehlgeschlagen (später: wp --path=cms eval-file scripts/seed-menus.php)"
+wp eval-file "$PROJECT_ROOT/scripts/seed-shop.php" || warn "seed-shop.php fehlgeschlagen (später: wp --path=cms eval-file scripts/seed-shop.php)"
 
 step "Fertig"
 echo "Frontend:  ${URL}/"

@@ -127,6 +127,7 @@ step "Logos und Kontaktangaben (Agency Core)"
 wp eval-file "$PROJECT_ROOT/scripts/seed-branding.php" || warn "seed-branding.php fehlgeschlagen (später manuell: wp --path=cms eval-file scripts/seed-branding.php)"
 wp eval-file "$PROJECT_ROOT/scripts/seed-frontpage.php" || warn "seed-frontpage.php fehlgeschlagen (später manuell: wp --path=cms eval-file scripts/seed-frontpage.php)"
 wp eval-file "$PROJECT_ROOT/scripts/seed-menus.php" || warn "seed-menus.php fehlgeschlagen (später manuell: wp --path=cms eval-file scripts/seed-menus.php)"
+wp eval-file "$PROJECT_ROOT/scripts/seed-shop.php" || warn "seed-shop.php fehlgeschlagen (später manuell: wp --path=cms eval-file scripts/seed-shop.php)"
 warn "Noch NICHT installiert (kommen mit dem Live-Import bzw. Phase 0/2): Germanized, Product Table Lite, Fluent Forms, FluentCRM, Flip Book, WP All Import Pro."
 
 step "Valet"

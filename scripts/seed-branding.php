@@ -14,6 +14,14 @@ if ( ! defined( 'WP_CLI' ) || ! function_exists( 'update_field' ) ) {
     exit( 1 );
 }
 
+// SVG-Uploads sind im Agency Core auf Administratoren beschränkt (inc/svg-support.php).
+// WP-CLI läuft ohne Benutzer, deshalb als erster Administrator ausführen.
+$admins = get_users( array( 'role' => 'administrator', 'number' => 1, 'orderby' => 'ID', 'fields' => 'ID' ) );
+if ( empty( $admins ) ) {
+    WP_CLI::error( 'Kein Administrator-Benutzer gefunden.' );
+}
+wp_set_current_user( (int) $admins[0] );
+
 require_once ABSPATH . 'wp-admin/includes/file.php';
 require_once ABSPATH . 'wp-admin/includes/media.php';
 require_once ABSPATH . 'wp-admin/includes/image.php';

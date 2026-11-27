@@ -208,6 +208,8 @@ function macoffice_pf_accept_file( string $src, string $name, string $source, bo
         'source' => $source,
         'user'   => $user,
         'name'   => $name,
+        // Wurde der Schutz vor kleinen Dateien bewusst bestätigt, gilt das für genau diese Datei (auch beim späteren Lauf).
+        'override' => $force ? $sha : '',
     );
     update_option( 'macoffice_pf_state', $state, false );
     return $state;
@@ -304,6 +306,10 @@ function macoffice_pf_release_stale( int $import_id ): string {
 function macoffice_pf_run( array $opts = array() ): array {
     $opts = $opts + array( 'import' => 0, 'fetch' => false, 'url' => '', 'force' => false, 'dry' => false, 'runner' => null );
 
+    if ( 'running' === ( macoffice_pf_web_state()['phase'] ?? '' ) ) {
+        return array( 'status' => 'skipped-running', 'message' => 'Der Web-Modus (WP-Cron) arbeitet gerade an einem Import.' );
+    }
+
     // Sperre: nie zwei Läufe gleichzeitig (Cron-Überschneidung, manueller Start).
     $dir = macoffice_pf_dir();
     wp_mkdir_p( $dir );
@@ -336,7 +342,7 @@ function macoffice_pf_run( array $opts = array() ): array {
         if ( is_wp_error( $rows ) ) {
             return array( 'status' => 'error', 'message' => $rows->get_error_message() );
         }
-        $ok = macoffice_pf_check_rows( $rows, (bool) $opts['force'] );
+        $ok = macoffice_pf_check_rows( $rows, (bool) $opts['force'] || ( macoffice_pf_state()['override'] ?? '' ) === $sha );
         if ( is_wp_error( $ok ) ) {
             return array( 'status' => 'error', 'message' => $ok->get_error_message() );
         }
@@ -391,6 +397,271 @@ function macoffice_pf_wpcli_run( int $import_id ): array {
     }
     $r = WP_CLI::runcommand( 'all-import run ' . $import_id, array( 'return' => 'all', 'exit_error' => false ) );
     return array( 'code' => (int) $r->return_code, 'stdout' => (string) $r->stdout, 'stderr' => (string) $r->stderr );
+}
+
+// ── Einrichtung des WP-All-Import-Imports ────────────────────────────────────
+
+function macoffice_pf_import_row( int $id ): ?array {
+    global $wpdb;
+    $row = $wpdb->get_row( $wpdb->prepare( "SELECT id, type, path, options, triggered, executing, processing, imported, skipped, created, updated, deleted, `count`, queue_chunk_number, iteration FROM {$wpdb->prefix}pmxi_imports WHERE id = %d", $id ), ARRAY_A );
+    return $row ?: null;
+}
+
+/**
+ * Gewünschte Einstellungen des Imports: Quelle = Datei im Ablageordner (nur diese Quellen kann der WP-All-Import-Cron
+ * verarbeiten, "Upload" nicht), selektives Hashing = unveränderte Artikel überspringen.
+ *
+ * @return array|WP_Error ['id', 'changes' => [Label => [aktuell, neu]], 'pending' => bool, 'applied' => bool]
+ */
+function macoffice_pf_setup( int $explicit_id = 0, bool $apply = false ) {
+    global $wpdb;
+    $id = macoffice_pf_import_id( $explicit_id );
+    if ( $id < 1 ) {
+        return new WP_Error( 'noimport', 'Kein WP-All-Import-Import gefunden (Name "' . basename( macoffice_pf_file() ) . '").' );
+    }
+    $row = macoffice_pf_import_row( $id );
+    if ( ! $row ) {
+        return new WP_Error( 'noimport', "Import $id existiert nicht." );
+    }
+    $options = maybe_unserialize( $row['options'] );
+    if ( ! is_array( $options ) ) {
+        return new WP_Error( 'options', 'Import-Einstellungen nicht lesbar.' );
+    }
+    $changes = array(
+        'Quelle (type)'          => array( (string) $row['type'], 'file' ),
+        'Dateipfad (path)'       => array( (string) $row['path'], basename( macoffice_pf_file() ) ),
+        'Selektives Hashing'     => array( (string) ( $options['is_selective_hashing'] ?? '' ), '1' ),
+        'Datensätze pro Anfrage' => array( (string) ( $options['records_per_request'] ?? '' ), '20' ),
+    );
+    $pending = false;
+    foreach ( $changes as $c ) {
+        $pending = $pending || $c[0] !== $c[1];
+    }
+    $out = array( 'id' => $id, 'changes' => $changes, 'pending' => $pending, 'applied' => false );
+    if ( ! $apply || ! $pending ) {
+        return $out;
+    }
+
+    update_option( 'macoffice_pf_options_backup_' . $id, array( 'type' => $row['type'], 'path' => $row['path'], 'options' => $row['options'] ), false );
+    $options['is_selective_hashing'] = '1';
+    $options['records_per_request']  = '20';
+    $wpdb->update( $wpdb->prefix . 'pmxi_imports', array( 'type' => 'file', 'path' => basename( macoffice_pf_file() ), 'options' => maybe_serialize( $options ) ), array( 'id' => $id ) );
+    update_option( 'macoffice_pf_import_id', $id, false );
+    delete_option( 'macoffice_pf_last_run' ); // neue Hashes: der erste Lauf danach verarbeitet alle Artikel einmal
+    $out['applied'] = true;
+    return $out;
+}
+
+// ── Web-Modus (Shared Hosting ohne SSH/WP-CLI): WP-Cron statt Server-Cron ────
+//
+// Alle 5 Minuten (und bei Bedarf sofort) prüft ein WP-Cron-Ereignis, ob sich die Artikeldatei geändert hat. Wenn ja,
+// wird der WP-All-Import-eigene Cron angestoßen (Aktion "trigger") und anschließend in Etappen abgearbeitet (Aktion
+// "processing", jede Etappe ist ein eigener Seitenaufruf mit eigenem Zeitlimit). Der Ablauf braucht weder ein offenes
+// Browserfenster noch SSH. WP-Cron wird bei Seitenaufrufen ausgelöst; ein täglicher Aufruf von wp-cron.php über den
+// IONOS-Cronjob dient als Sicherheitsnetz für ruhige Zeiten.
+
+const MACOFFICE_PF_HOOK = 'macoffice_pf_tick';
+
+/** 'web' (WP-Cron, Standard) oder 'cli' (Server-Cron mit WP-CLI; dann ist der Web-Modus aus). */
+function macoffice_pf_mode(): string {
+    return 'cli' === apply_filters( 'macoffice_pf_mode', get_option( 'macoffice_pf_mode', 'web' ) ) ? 'cli' : 'web';
+}
+
+function macoffice_pf_web_state(): array {
+    $s = get_option( 'macoffice_pf_web' );
+    return is_array( $s ) ? $s + array( 'phase' => 'idle' ) : array( 'phase' => 'idle' );
+}
+
+function macoffice_pf_web_save( array $s ): void {
+    update_option( 'macoffice_pf_web', $s, false );
+}
+
+/** WP All Import per eigener Cron-URL ansprechen (eigener Seitenaufruf = eigenes Zeitlimit). */
+function macoffice_pf_wpai_call( int $import_id, string $action, int $timeout = 100 ) {
+    if ( ! class_exists( 'PMXI_Plugin' ) ) {
+        return new WP_Error( 'wpai', 'WP All Import Pro ist nicht aktiv.' );
+    }
+    $key = (string) PMXI_Plugin::getInstance()->getOption( 'cron_job_key' );
+    if ( '' === $key ) {
+        return new WP_Error( 'wpai', 'WP All Import hat keinen Cron-Schlüssel (All Import > Einstellungen > Cron-Schlüssel speichern).' );
+    }
+    $url = add_query_arg( array( 'import_key' => $key, 'import_id' => $import_id, 'action' => $action ), site_url( '/wp-load.php' ) );
+    $res = wp_remote_get( $url, array( 'timeout' => max( 10, $timeout ), 'sslverify' => apply_filters( 'https_local_ssl_verify', false ) ) );
+    if ( is_wp_error( $res ) ) {
+        return new WP_Error( 'http', 'Interner Aufruf fehlgeschlagen: ' . $res->get_error_message() );
+    }
+    $code = (int) wp_remote_retrieve_response_code( $res );
+    $json = json_decode( (string) wp_remote_retrieve_body( $res ), true );
+    if ( 200 !== $code && ! is_array( $json ) ) {
+        return new WP_Error( 'http', sprintf( 'Interner Aufruf: HTTP %d.', $code ) );
+    }
+    return is_array( $json ) ? $json : array( 'status' => $code, 'message' => '' );
+}
+
+/** Fortschritts-Fingerabdruck, um einen hängenden Lauf zu erkennen. */
+function macoffice_pf_progress_sig( array $row ): string {
+    return implode( '|', array( $row['imported'], $row['skipped'], $row['created'], $row['updated'], $row['queue_chunk_number'], $row['iteration'] ) );
+}
+
+add_filter( 'cron_schedules', static function ( array $s ): array {
+    $s['macoffice_pf_5min'] = array( 'interval' => 300, 'display' => 'Alle 5 Minuten (Artikel-Import)' );
+    return $s;
+} );
+
+add_action( 'init', static function (): void {
+    $next = wp_next_scheduled( MACOFFICE_PF_HOOK );
+    if ( 'web' === macoffice_pf_mode() ) {
+        if ( ! $next ) {
+            wp_schedule_event( time() + 60, 'macoffice_pf_5min', MACOFFICE_PF_HOOK );
+        }
+    } elseif ( $next ) {
+        wp_clear_scheduled_hook( MACOFFICE_PF_HOOK );
+    }
+} );
+
+add_action( MACOFFICE_PF_HOOK, 'macoffice_pf_tick', 10, 1 );
+
+/** Ein Durchlauf des Web-Modus (WP-Cron). Mit $force wird auch bei unveränderter Datei importiert. */
+function macoffice_pf_tick( $arg = null ): void {
+    if ( 'web' !== macoffice_pf_mode() ) {
+        return;
+    }
+    $dir = macoffice_pf_dir();
+    wp_mkdir_p( $dir );
+    $lock = @fopen( $dir . '/.macoffice-feed-web.lock', 'c' );
+    if ( ! $lock || ! flock( $lock, LOCK_EX | LOCK_NB ) ) {
+        return;
+    }
+    try {
+        $again = macoffice_pf_web_step( is_array( $arg ) && ! empty( $arg['force'] ) );
+    } finally {
+        flock( $lock, LOCK_UN );
+        fclose( $lock );
+    }
+    if ( $again && ! defined( 'MACOFFICE_PF_TEST' ) ) {
+        // Läuft noch: möglichst bald weitermachen, sonst spätestens beim nächsten 5-Minuten-Ereignis.
+        wp_schedule_single_event( time() + (int) apply_filters( 'macoffice_pf_chain_delay', 5 ), MACOFFICE_PF_HOOK, array( array( 'chain' => time() ) ) );
+        spawn_cron();
+    }
+}
+
+/**
+ * Ablauf: idle → (Datei geändert und geprüft) trigger → running → processing … → fertig → idle.
+ *
+ * @return bool true, wenn der Import noch läuft (Fortsetzung planen)
+ */
+function macoffice_pf_web_step( bool $force = false ): bool {
+    $web = macoffice_pf_web_state();
+    $id  = macoffice_pf_import_id();
+    if ( $id < 1 ) {
+        $web['error'] = 'Kein WP-All-Import-Import gefunden.';
+        macoffice_pf_web_save( $web );
+        return false;
+    }
+    $row = macoffice_pf_import_row( $id );
+    if ( ! $row ) {
+        return false;
+    }
+    $web['checked'] = time();
+
+    if ( 'running' === $web['phase'] ) {
+        if ( ! (int) $row['triggered'] && ! (int) $row['executing'] ) { // WP All Import ist fertig
+            $last = array(
+                'time'     => time(),
+                'duration' => time() - (int) $web['started'],
+                'sha'      => $web['sha'],
+                'rows'     => $web['rows'],
+                'import'   => $id,
+            );
+            update_option( 'macoffice_pf_last_run', $last, false );
+            $web = array( 'phase' => 'idle', 'checked' => time() );
+            macoffice_pf_web_save( $web );
+            return false;
+        }
+        $sig = macoffice_pf_progress_sig( $row );
+        if ( $sig !== ( $web['sig'] ?? '' ) ) {
+            $web['sig']      = $sig;
+            $web['sig_time'] = time();
+        }
+        if ( time() - (int) ( $web['sig_time'] ?? time() ) > (int) apply_filters( 'macoffice_pf_stall_seconds', 1800 ) ) { // 30 Min. ohne Fortschritt
+            global $wpdb;
+            $wpdb->update( $wpdb->prefix . 'pmxi_imports', array( 'triggered' => 0, 'executing' => 0, 'processing' => 0 ), array( 'id' => $id ) );
+            $attempts                 = (array) ( $web['attempts'] ?? array() );
+            $attempts[ $web['sha'] ]  = (int) ( $attempts[ $web['sha'] ] ?? 0 ) + 1;
+            $web                      = array( 'phase' => 'idle', 'checked' => time(), 'attempts' => $attempts, 'error' => 'Der Import ist ohne Fortschritt hängen geblieben und wurde zurückgesetzt (Versuch ' . $attempts[ $web['sha'] ] . ' von 3).' );
+            macoffice_pf_web_save( $web );
+            return false;
+        }
+    } else {
+        // idle: läuft sonst jemand (z. B. Import im Browser)? Dann nichts anfassen.
+        if ( (int) $row['triggered'] || (int) $row['executing'] ) {
+            macoffice_pf_web_save( $web );
+            return false;
+        }
+        $file = macoffice_pf_file();
+        if ( ! is_file( $file ) ) {
+            macoffice_pf_web_save( $web );
+            return false;
+        }
+        $sha = hash_file( 'sha256', $file );
+        if ( ! $force && ( macoffice_pf_last_run()['sha'] ?? '' ) === $sha ) {
+            unset( $web['error'] );
+            macoffice_pf_web_save( $web );
+            return false;
+        }
+        if ( ! $force && (int) ( $web['attempts'][ $sha ] ?? 0 ) >= 3 ) {
+            macoffice_pf_web_save( $web ); // aufgegeben, bis eine neue Datei kommt oder "Jetzt importieren" gedrückt wird
+            return false;
+        }
+        clearstatcache( true, $file );
+        if ( ! $force && ( time() - (int) filemtime( $file ) ) < (int) apply_filters( 'macoffice_pf_settle_seconds', 60 ) ) {
+            macoffice_pf_web_save( $web );
+            return true; // Datei wird noch geschrieben (SFTP): gleich noch einmal nachsehen
+        }
+        $rows = macoffice_pf_count_rows( $file );
+        $ok   = is_wp_error( $rows ) ? $rows : macoffice_pf_check_rows( $rows, ( macoffice_pf_state()['override'] ?? '' ) === $sha ); // "Jetzt importieren" übergeht den Größenschutz bewusst nicht
+        if ( is_wp_error( $ok ) ) {
+            $web['error'] = $ok->get_error_message();
+            macoffice_pf_web_save( $web );
+            return false;
+        }
+        if ( 'file' !== $row['type'] ) {
+            $web['error'] = 'Der Import ist noch nicht umgestellt (Quelle "Upload" kann nicht automatisch laufen). Bitte unter Produkte > Artikel-Import auf "Import jetzt umstellen" klicken.';
+            macoffice_pf_web_save( $web );
+            return false;
+        }
+        $res = macoffice_pf_wpai_call( $id, 'trigger', 60 );
+        if ( is_wp_error( $res ) || 200 !== (int) ( $res['status'] ?? 0 ) ) {
+            $web['error'] = is_wp_error( $res ) ? $res->get_error_message() : 'WP All Import: ' . ( $res['message'] ?? 'unbekannt' );
+            macoffice_pf_web_save( $web );
+            return false;
+        }
+        unset( $web['error'] );
+        $web = array( 'phase' => 'running', 'sha' => $sha, 'rows' => $rows, 'started' => time(), 'checked' => time(), 'sig' => '', 'sig_time' => time(), 'attempts' => (array) ( $web['attempts'] ?? array() ) );
+    }
+
+    // Etappen abarbeiten, solange das Zeitbudget reicht.
+    $max      = (int) ini_get( 'max_execution_time' ); // 0 = unbegrenzt
+    $budget   = (int) apply_filters( 'macoffice_pf_budget', $max > 0 ? max( 20, min( 100, $max - 15 ) ) : 100 );
+    $deadline = time() + $budget;
+    do {
+        $res = macoffice_pf_wpai_call( $id, 'processing', $deadline - time() );
+        if ( is_wp_error( $res ) ) {
+            $web['error'] = $res->get_error_message();
+            break;
+        }
+        $row = macoffice_pf_import_row( $id );
+        if ( $row && ! (int) $row['triggered'] ) {
+            break;
+        }
+    } while ( time() < $deadline - 10 );
+    macoffice_pf_web_save( $web );
+
+    // Abschluss gleich erkennen (ohne bis zum nächsten Ereignis zu warten).
+    if ( $row && ! (int) $row['triggered'] && ! (int) $row['executing'] ) {
+        return macoffice_pf_web_step( false );
+    }
+    return true;
 }
 
 // ── WP-CLI ───────────────────────────────────────────────────────────────────
@@ -458,44 +729,20 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
          * @when after_wp_load
          */
         public function setup( $args, $assoc ) {
-            global $wpdb;
-            $id = macoffice_pf_import_id( (int) ( $assoc['import'] ?? 0 ) );
-            if ( $id < 1 ) {
-                WP_CLI::error( 'Kein Import gefunden. Mit --import=<ID> angeben.' );
+            $r = macoffice_pf_setup( (int) ( $assoc['import'] ?? 0 ), isset( $assoc['apply'] ) );
+            if ( is_wp_error( $r ) ) {
+                WP_CLI::error( $r->get_error_message() );
             }
-            $table = $wpdb->prefix . 'pmxi_imports';
-            $row   = $wpdb->get_row( $wpdb->prepare( "SELECT id, type, path, options FROM {$table} WHERE id = %d", $id ), ARRAY_A );
-            if ( ! $row ) {
-                WP_CLI::error( "Import $id existiert nicht." );
+            foreach ( $r['changes'] as $label => $c ) {
+                WP_CLI::log( sprintf( '%-26s %s  ->  %s%s', $label, $c[0] ?: '(leer)', $c[1], $c[0] === $c[1] ? '  (schon so)' : '' ) );
             }
-            $options = maybe_unserialize( $row['options'] );
-            if ( ! is_array( $options ) ) {
-                WP_CLI::error( 'Import-Einstellungen nicht lesbar.' );
-            }
-
-            $want_path = basename( macoffice_pf_file() );
-            $changes   = array(
-                'Quelle (type)'               => array( $row['type'], 'file' ),
-                'Dateipfad (path)'            => array( $row['path'], $want_path ),
-                'Selektives Hashing'          => array( (string) ( $options['is_selective_hashing'] ?? '' ), '1' ),
-                'Datensätze pro Anfrage'      => array( (string) ( $options['records_per_request'] ?? '' ), '20' ),
-            );
-            foreach ( $changes as $label => $c ) {
-                WP_CLI::log( sprintf( '%-26s %s  ->  %s%s', $label, $c[0] ?: '(leer)', $c[1], (string) $c[0] === (string) $c[1] ? '  (schon so)' : '' ) );
-            }
-            if ( ! isset( $assoc['apply'] ) ) {
+            if ( ! $r['pending'] ) {
+                WP_CLI::success( 'Import ' . $r['id'] . ' ist bereits eingerichtet.' );
+            } elseif ( $r['applied'] ) {
+                WP_CLI::success( 'Import ' . $r['id'] . ' umgestellt (alte Einstellungen: Option macoffice_pf_options_backup_' . $r['id'] . '). Der erste Lauf danach verarbeitet alle Artikel noch einmal, ab dann nur Änderungen.' );
+            } else {
                 WP_CLI::log( 'Nichts geändert (Vorschau). Mit --apply speichern.' );
-                return;
             }
-
-            update_option( 'macoffice_pf_options_backup_' . $id, array( 'type' => $row['type'], 'path' => $row['path'], 'options' => $row['options'] ), false );
-            $options['is_selective_hashing'] = '1';
-            $options['records_per_request']  = '20';
-            $wpdb->update( $table, array( 'type' => 'file', 'path' => $want_path, 'options' => maybe_serialize( $options ) ), array( 'id' => $id ) );
-            update_option( 'macoffice_pf_import_id', $id, false );
-            delete_option( 'macoffice_pf_last_run' ); // Hashes ändern sich: der erste Lauf danach verarbeitet alle Artikel einmal
-
-            WP_CLI::success( "Import $id umgestellt. Der erste Lauf danach verarbeitet alle Artikel noch einmal, ab dann nur Änderungen." );
         }
 
         /**
@@ -557,6 +804,41 @@ if ( is_admin() ) {
         exit;
     } );
 
+    /** Hinweis für die Admin-Seite nach einer Aktion. */
+    function macoffice_pf_flash( string $type, string $message ): void {
+        set_transient( 'macoffice_pf_notice_' . get_current_user_id(), array( 'type' => $type, 'message' => $message ), 60 );
+        wp_safe_redirect( admin_url( 'edit.php?post_type=product&page=macoffice-product-feed' ) );
+        exit;
+    }
+
+    add_action( 'admin_post_macoffice_pf_setup', static function (): void {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'Keine Berechtigung.', 'macoffice' ), '', array( 'response' => 403 ) );
+        }
+        check_admin_referer( 'macoffice_pf_setup' );
+        $r = macoffice_pf_setup( 0, true );
+        if ( is_wp_error( $r ) ) {
+            macoffice_pf_flash( 'error', $r->get_error_message() );
+        }
+        macoffice_pf_flash( 'success', $r['applied'] ? 'Import umgestellt. Der erste automatische Lauf verarbeitet alle Artikel noch einmal, danach nur noch Änderungen.' : 'Der Import ist bereits eingerichtet.' );
+    } );
+
+    add_action( 'admin_post_macoffice_pf_runnow', static function (): void {
+        if ( ! current_user_can( macoffice_pf_capability() ) ) {
+            wp_die( esc_html__( 'Keine Berechtigung.', 'macoffice' ), '', array( 'response' => 403 ) );
+        }
+        check_admin_referer( 'macoffice_pf_runnow' );
+        if ( 'web' !== macoffice_pf_mode() ) {
+            macoffice_pf_flash( 'error', 'Der automatische Lauf läuft über den Server-Cron (WP-CLI) und wird dort gestartet.' );
+        }
+        $web = macoffice_pf_web_state();
+        unset( $web['error'], $web['attempts'] );
+        macoffice_pf_web_save( $web );
+        wp_schedule_single_event( time(), MACOFFICE_PF_HOOK, array( array( 'force' => true, 'chain' => time() ) ) );
+        spawn_cron();
+        macoffice_pf_flash( 'success', 'Import wird im Hintergrund gestartet. Diese Seite kann geschlossen werden; der Stand wird hier angezeigt.' );
+    } );
+
     function macoffice_pf_render_admin_page(): void {
         global $wpdb;
         if ( ! current_user_can( macoffice_pf_capability() ) ) {
@@ -566,19 +848,40 @@ if ( is_admin() ) {
         if ( $notice ) {
             delete_transient( 'macoffice_pf_notice_' . get_current_user_id() );
         }
-        $file  = macoffice_pf_file();
-        $state = macoffice_pf_state();
-        $last  = macoffice_pf_last_run();
-        $id    = macoffice_pf_import_id();
-        $imp   = $id ? $wpdb->get_row( $wpdb->prepare( "SELECT triggered, executing, last_activity, `count`, created, updated, skipped, deleted FROM {$wpdb->prefix}pmxi_imports WHERE id = %d", $id ), ARRAY_A ) : null;
-        $hist  = $id ? $wpdb->get_row( $wpdb->prepare( "SELECT date, time_run, summary FROM {$wpdb->prefix}pmxi_history WHERE import_id = %d ORDER BY id DESC LIMIT 1", $id ), ARRAY_A ) : null;
+        $file    = macoffice_pf_file();
+        $state   = macoffice_pf_state();
+        $last    = macoffice_pf_last_run();
+        $web     = macoffice_pf_web_state();
+        $setup   = macoffice_pf_setup( 0, false );
+        $id      = is_wp_error( $setup ) ? 0 : (int) $setup['id'];
+        $imp     = $id ? macoffice_pf_import_row( $id ) : null;
+        $hist    = $id ? $wpdb->get_row( $wpdb->prepare( "SELECT date, time_run, summary FROM {$wpdb->prefix}pmxi_history WHERE import_id = %d ORDER BY id DESC LIMIT 1", $id ), ARRAY_A ) : null;
+        $running = 'running' === $web['phase'] || ( $imp && ( (int) $imp['triggered'] || (int) $imp['executing'] ) );
         $waiting = is_file( $file ) && ( ! $last || ( $last['sha'] ?? '' ) !== hash_file( 'sha256', $file ) );
+        $next    = 'web' === macoffice_pf_mode() ? wp_next_scheduled( MACOFFICE_PF_HOOK ) : false;
         ?>
         <div class="wrap">
             <h1><?php esc_html_e( 'Artikel-Import', 'macoffice' ); ?></h1>
 
             <?php if ( is_array( $notice ) ) : ?>
                 <div class="notice notice-<?php echo 'success' === $notice['type'] ? 'success' : 'error'; ?>"><p><?php echo esc_html( $notice['message'] ); ?></p></div>
+            <?php endif; ?>
+            <?php if ( ! empty( $web['error'] ) ) : ?>
+                <div class="notice notice-error"><p><strong><?php esc_html_e( 'Letzter automatischer Lauf:', 'macoffice' ); ?></strong> <?php echo esc_html( $web['error'] ); ?></p></div>
+            <?php endif; ?>
+
+            <?php if ( is_wp_error( $setup ) ) : ?>
+                <div class="notice notice-warning"><p><?php echo esc_html( $setup->get_error_message() ); ?></p></div>
+            <?php elseif ( $setup['pending'] && current_user_can( 'manage_options' ) ) : ?>
+                <div class="notice notice-warning">
+                    <p><strong><?php esc_html_e( 'Einrichtung nötig:', 'macoffice' ); ?></strong>
+                        <?php esc_html_e( 'Der Import in WP All Import ist noch auf den alten Ablauf (Upload im Importfenster) eingestellt. Mit einem Klick wird er auf die automatische Ablage-Datei und das schnelle Aktualisieren (nur geänderte Artikel) umgestellt. Die bisherigen Einstellungen werden gesichert. Der erste Lauf danach dauert noch einmal so lange wie bisher, danach geht es deutlich schneller.', 'macoffice' ); ?></p>
+                    <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                        <input type="hidden" name="action" value="macoffice_pf_setup">
+                        <?php wp_nonce_field( 'macoffice_pf_setup' ); ?>
+                        <?php submit_button( __( 'Import jetzt umstellen', 'macoffice' ), 'secondary', 'submit', false ); ?>
+                    </form>
+                </div>
             <?php endif; ?>
 
             <h2><?php esc_html_e( 'Stand', 'macoffice' ); ?></h2>
@@ -610,8 +913,9 @@ if ( is_admin() ) {
                 </td></tr>
                 <tr><th><?php esc_html_e( 'Status', 'macoffice' ); ?></th><td>
                     <?php
-                    if ( $imp && ( (int) $imp['triggered'] || (int) $imp['executing'] ) ) {
-                        esc_html_e( 'Import läuft gerade.', 'macoffice' );
+                    if ( $running ) {
+                        $of = $imp && (int) $imp['count'] ? sprintf( ' (%d von %d Artikeln)', (int) $imp['imported'] + (int) $imp['skipped'], (int) $imp['count'] ) : '';
+                        echo esc_html( 'Import läuft im Hintergrund' . $of . '.' );
                     } elseif ( $waiting ) {
                         esc_html_e( 'Neue Datei wartet auf den nächsten automatischen Durchlauf.', 'macoffice' );
                     } else {
@@ -619,11 +923,29 @@ if ( is_admin() ) {
                     }
                     ?>
                 </td></tr>
+                <tr><th><?php esc_html_e( 'Automatik', 'macoffice' ); ?></th><td>
+                    <?php
+                    if ( 'web' === macoffice_pf_mode() ) {
+                        echo esc_html( 'Prüft alle 5 Minuten (WordPress-Cron)' . ( $next ? ', nächste Prüfung ca. ' . wp_date( 'H:i', (int) $next ) : ', noch nicht geplant' ) . '.' );
+                    } else {
+                        esc_html_e( 'Server-Cron mit WP-CLI.', 'macoffice' );
+                    }
+                    ?>
+                </td></tr>
                 </tbody>
             </table>
 
+            <?php if ( 'web' === macoffice_pf_mode() && ! is_wp_error( $setup ) && ! $setup['pending'] ) : ?>
+                <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:1em">
+                    <input type="hidden" name="action" value="macoffice_pf_runnow">
+                    <?php wp_nonce_field( 'macoffice_pf_runnow' ); ?>
+                    <?php submit_button( __( 'Jetzt importieren', 'macoffice' ), 'secondary', 'submit', false ); ?>
+                    <span class="description"><?php esc_html_e( 'Startet den Import sofort im Hintergrund, auch wenn sich die Datei nicht geändert hat.', 'macoffice' ); ?></span>
+                </form>
+            <?php endif; ?>
+
             <h2 style="margin-top:2em"><?php esc_html_e( 'Neue Artikeldatei hochladen', 'macoffice' ); ?></h2>
-            <p><?php esc_html_e( 'Der Import läuft danach von selbst im Hintergrund – dieses Fenster muss nicht offen bleiben. Normalerweise wird die Datei automatisch bereitgestellt; der Upload ist nur der Ersatzweg.', 'macoffice' ); ?></p>
+            <p><?php esc_html_e( 'Der Import läuft danach von selbst im Hintergrund – dieses Fenster muss nicht offen bleiben. Der Beginn kann bis zu 5 Minuten dauern.', 'macoffice' ); ?></p>
             <form method="post" enctype="multipart/form-data" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
                 <input type="hidden" name="action" value="macoffice_pf_upload">
                 <?php wp_nonce_field( 'macoffice_pf_upload' ); ?>

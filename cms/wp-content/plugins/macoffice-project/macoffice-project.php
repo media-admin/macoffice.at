@@ -60,8 +60,9 @@ function macoffice_project_init() {
     require_once MACOFFICE_PROJECT_PATH . 'inc/navigation.php';
     if (class_exists('WooCommerce')) {
         require_once MACOFFICE_PROJECT_PATH . 'inc/shop.php';
-        require_once MACOFFICE_PROJECT_PATH . 'inc/product-feed.php';
     }
+    // Artikel-Import (Backend-Seite, WP-Cron, WP-CLI): braucht WP All Import, nicht zwingend WooCommerce beim Laden.
+    require_once MACOFFICE_PROJECT_PATH . 'inc/product-feed.php';
 }
 add_action('plugins_loaded', 'macoffice_project_init', 10);
 

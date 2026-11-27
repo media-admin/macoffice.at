@@ -10,8 +10,8 @@
 #   bash scripts/local-setup.sh
 #
 # Optional per Umgebungsvariable:
-#   DB_USER=root DB_PASS=root DB_NAME=at_macoffice_2026 DB_PREFIX=mo_
-#   (DB_PASS= leer übergeben = ohne Passwort)
+#   DB_USER=media-admin DB_PASS=... DB_NAME=at_macoffice_2026 DB_PREFIX=mo_
+#   DB_PASS nicht gesetzt = das Script fragt verdeckt danach. DB_PASS= (leer) = ohne Passwort.
 #   ADMIN_USER=admin ADMIN_EMAIL=... ADMIN_PASS=...   (leer = zufälliges Passwort)
 #   ACF_PRO_SRC=/pfad/zu/advanced-custom-fields-pro    (ACF Pro ist lizenzpflichtig)
 #
@@ -26,8 +26,7 @@ URL="https://${DOMAIN}"
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CMS="${PROJECT_ROOT}/cms"
 
-DB_USER="${DB_USER-root}"
-DB_PASS="${DB_PASS-root}"
+DB_USER="${DB_USER-media-admin}"
 DB_NAME="${DB_NAME:-at_macoffice_2026}"
 DB_PREFIX="${DB_PREFIX:-mo_}"
 ADMIN_USER="${ADMIN_USER:-admin}"
@@ -53,6 +52,10 @@ fi
 ok "Tools vorhanden"
 
 step "Datenbank"
+if [ -z "${DB_PASS+x}" ]; then
+  read -r -s -p "MySQL-Passwort für '${DB_USER}': " DB_PASS
+  echo
+fi
 MYSQL=(mysql -u"$DB_USER")
 [ -n "$DB_PASS" ] && MYSQL+=(-p"$DB_PASS")
 "${MYSQL[@]}" -e "CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"

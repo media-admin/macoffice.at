@@ -199,9 +199,21 @@ deploy-config.local.*
 /scripts/heartbeat-runner.config.php
 /scripts/heartbeat-runner.log
 /scripts/heartbeat-runner.state.json
-cms/wp-content/mlbkp-temp/
-cms/wp-content/themes/*.zip
-cms/wp-content/mlbkp-temp/
-cms/wp-content/themes/*.zip
-cms/liesmich.html
-cms/wp-content/mlbkp-restore-safety/
+
+# ============================================
+# TEMP / RESTORE-ARTEFAKTE
+# ============================================
+/cms/wp-content/mlbkp-temp/
+/cms/wp-content/mlbkp-restore-safety/
+/cms/wp-content/themes/*.zip
+/cms/liesmich.html
+
+# ============================================
+# KUNDEN-EXPORTE (Artikel-Feed, Servicepreise): enthalten Geschaeftsdaten,
+# gehoeren nicht ins oeffentliche Repo. Der Feed liegt zur Laufzeit unter
+# uploads/wpallimport/files/ (siehe oben, uploads/ ist ignoriert).
+# ============================================
+Internetartikel*.xlsx
+*.xlsx
+*.xls
+dbs*.sql

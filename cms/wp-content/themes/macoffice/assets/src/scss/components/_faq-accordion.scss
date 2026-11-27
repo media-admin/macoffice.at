@@ -5,8 +5,8 @@
 // ============================================
 
 .faq-accordion {
-  max-width: 800px;
-  margin: 2rem auto;
+  max-width: 100%; // volle Containerbreite wie die Überschrift (vorher 800px, schmaler als der Titel darüber)
+  margin: 2rem 0;
   
   .faq-item {
     margin-bottom: 1rem;

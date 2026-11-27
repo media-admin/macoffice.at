@@ -9,6 +9,11 @@ defined('ABSPATH') || exit;
 
 get_header('shop');
 
+// Brotkrumen (Startseite > Produkte > Kategorie > Produkt) wie auf der bisherigen Seite
+if (function_exists('macoffice_wc_breadcrumb')) {
+    macoffice_wc_breadcrumb();
+}
+
 ?>
 
 <div class="container">

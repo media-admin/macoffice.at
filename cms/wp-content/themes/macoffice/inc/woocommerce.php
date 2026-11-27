@@ -60,7 +60,10 @@ add_filter('woocommerce_output_related_products_args', function($args) {
  */
 remove_action('woocommerce_before_main_content', 'woocommerce_breadcrumb', 20);
 
-add_action('woocommerce_before_main_content', function() {
+/**
+ * Brotkrumen-Zeile im Container. Auch von woocommerce/single-product.php genutzt (dort läuft woocommerce_before_main_content nicht).
+ */
+function macoffice_wc_breadcrumb() {
     echo '<div class="container">';
     woocommerce_breadcrumb(array(
         'delimiter'   => '<span class="woocommerce-breadcrumb__sep" aria-hidden="true">&gt;</span>',
@@ -69,7 +72,8 @@ add_action('woocommerce_before_main_content', function() {
         'home'        => __('Startseite', 'macoffice'),
     ));
     echo '</div>';
-}, 5);
+}
+add_action('woocommerce_before_main_content', 'macoffice_wc_breadcrumb', 5);
 
 /**
  * Custom Add to Cart button text

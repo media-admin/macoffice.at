@@ -161,3 +161,91 @@ add_action( 'woocommerce_after_shop_loop', static function (): void {
 // ── Merkzettel (Wunschliste des Media-Lab-Plugins) in der Sprache der bisherigen Seite ──
 
 add_filter( 'mlw_wishlist_button_style', static fn() => 'icon_text' );
+
+// ── Produktseite wie auf der bisherigen Seite ────────────────────────────────────
+// Reihenfolge: Titel, Art.-Nr., Preis (alter Preis durchgestrichen) mit MwSt.-Hinweis, Lieferstatus, Merkzettel-Button,
+// darunter "Produktbeschreibung" mit "Stand vom …". Die Kit-Reihenfolge (Kategorien/SKU oben, Beschreibung unter dem Titel,
+// Preis hinter dem Button) wird hier zurückgebaut. Das Kit registriert seine Hooks bei init/20, deshalb init/30.
+
+add_action( 'init', static function (): void {
+    if ( class_exists( 'MediaLab_Single_Product_Layout' ) ) {
+        remove_action( 'woocommerce_single_product_summary', array( 'MediaLab_Single_Product_Layout', 'move_price' ), 9 );
+        remove_action( 'woocommerce_single_product_summary', array( 'MediaLab_Single_Product_Layout', 'render_description' ), 6 );
+    }
+    // Kategorien und Artikelnummer als Meta-Zeile entfallen (die Live-Seite zeigt nur "Art.-Nr.")
+    remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_meta', 1 );
+    remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_meta', 40 );
+
+    add_action( 'woocommerce_single_product_summary', 'macoffice_single_sku', 6 );
+    add_action( 'woocommerce_single_product_summary', 'macoffice_single_tax_note', 11 );
+    add_action( 'woocommerce_single_product_summary', 'macoffice_single_description', 45 );
+}, 30 );
+
+/** "Art.-Nr.: 609063" unter dem Titel. */
+function macoffice_single_sku(): void {
+    global $product;
+    if ( ! $product instanceof WC_Product || '' === (string) $product->get_sku() ) {
+        return;
+    }
+    printf(
+        '<p class="product-sku"><span class="product-sku__label">%s</span> %s</p>',
+        esc_html__( 'Art.-Nr.:', 'macoffice' ),
+        esc_html( $product->get_sku() )
+    );
+}
+
+/**
+ * MwSt.-Hinweis: "inkl. 20 % MwSt." Der Satz kommt aus der Steuerklasse des Produkts (Basis-Steuersatz des Shops),
+ * ohne hinterlegten Satz gilt der österreichische Normalsatz (Filter macoffice_default_vat_rate).
+ */
+function macoffice_single_tax_note(): void {
+    global $product;
+    if ( ! $product instanceof WC_Product || '' === (string) $product->get_price() || ! $product->is_taxable() ) {
+        return;
+    }
+
+    $rate  = (float) apply_filters( 'macoffice_default_vat_rate', 20.0 );
+    $rates = class_exists( 'WC_Tax' ) ? WC_Tax::get_base_tax_rates( $product->get_tax_class() ) : array();
+    if ( $rates ) {
+        $first = reset( $rates );
+        if ( isset( $first['rate'] ) ) {
+            $rate = (float) $first['rate'];
+        }
+    }
+
+    $incl   = 'incl' === get_option( 'woocommerce_tax_display_shop', 'incl' );
+    $number = number_format_i18n( $rate, floor( $rate ) === $rate ? 0 : 1 );
+
+    printf(
+        '<p class="price-tax-note">%s</p>',
+        esc_html( sprintf( '%s %s %% MwSt.', $incl ? 'inkl.' : 'zzgl.', $number ) )
+    );
+}
+
+/** "Produktbeschreibung" mit Text und "Stand vom …" (Änderungsdatum des Produkts). */
+function macoffice_single_description(): void {
+    global $product;
+    if ( ! $product instanceof WC_Product ) {
+        return;
+    }
+
+    $desc = $product->get_description();
+    if ( '' === trim( $desc ) ) {
+        return;
+    }
+
+    echo '<section class="product-description">';
+    echo '<h2 class="product-description__title">' . esc_html__( 'Produktbeschreibung', 'macoffice' ) . '</h2>';
+    echo '<div class="product-description__text">' . wp_kses_post( wpautop( wptexturize( do_shortcode( $desc ) ) ) ) . '</div>';
+    $modified = (int) get_post_modified_time( 'U', false, $product->get_id() );
+    if ( $modified ) {
+        printf(
+            '<p class="product-description__date">%s</p>',
+            esc_html( sprintf( 'Stand vom %s', wp_date( 'd.m.Y, H:i', $modified ) ) )
+        );
+    }
+    echo '</section>';
+}
+
+// Überschrift der verwandten Produkte wie auf der bisherigen Seite
+add_filter( 'woocommerce_product_related_products_heading', static fn() => 'Weitere beliebte Artikel' );

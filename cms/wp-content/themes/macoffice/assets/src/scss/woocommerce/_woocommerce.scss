@@ -1258,7 +1258,7 @@
   display:     flex;
   flex-wrap:   wrap;
   align-items: center;
-  padding:     $spacing-3 0;
+  padding:     $spacing-6 0 $spacing-3;  // Luft zum Header oben, Abstand zur Überschrift folgt über den Listenkopf
   font-size:   var(--text-sm);
   line-height: 1.4;
   color:       var(--color-text-muted);
@@ -1274,7 +1274,7 @@
 }
 
 .woocommerce-products-header {
-  padding-top: $spacing-2;
+  padding-top: $spacing-6;
 }
 
 // "Stand vom …" unter der Produktliste

@@ -154,6 +154,11 @@ $home-text-width: 100%; // wie die Live-Seite: volle Containerbreite (zum Begren
     @include respond-to('lg') { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   }
 
+  // Auf Unterseiten (Container 1200px, z. B. Business) drei statt vier Karten pro Zeile: sonst werden die Karten zu schmal
+  .entry-content &--cards {
+    @include respond-to('lg') { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+
   &--categories {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: $spacing-3;
@@ -239,12 +244,20 @@ $home-text-width: 100%; // wie die Live-Seite: volle Containerbreite (zum Begren
     height: auto;
     aspect-ratio: 1 / 1;
     object-fit: contain;
+
+    // Die Symbole sind schwarz: im Dunkelmodus weiß, sonst schwarz auf dunklem Grund
+    [data-theme="dark"] & { filter: invert(1); }
   }
 
+  // Titel: eine Zeile, kleinere Schrift und Silbentrennung statt Umbruch mitten im Wort ("Massenspeich-er"),
+  // damit alle Karten einer Reihe gleich hoch bleiben
   &__title {
     max-width: 100%;
+    font-size: var(--text-sm);
     font-weight: $font-weight-semibold;
-    overflow-wrap: anywhere;
+    line-height: $line-height-tight;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
 }
 

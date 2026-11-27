@@ -16,12 +16,22 @@ if ( ! defined( 'WP_CLI' ) || ! function_exists( 'update_field' ) ) {
 
 $set = static function ( string $name, $value ): void {
     update_field( $name, $value, 'option' );
+    // Nachprüfen (Schalter): stimmt der gespeicherte Wert nicht, direkt in die Option schreiben
+    if ( is_bool( $value ) || is_int( $value ) ) {
+        if ( (bool) get_field( $name, 'option' ) !== (bool) $value ) {
+            update_option( 'options_' . $name, $value ? 1 : 0 );
+            update_option( '_options_' . $name, 'field_' . $name );
+            WP_CLI::warning( "  {$name}: direkt in die Option geschrieben." );
+        }
+    }
     WP_CLI::log( sprintf( '  %s = %s', $name, is_bool( $value ) ? ( $value ? '1' : '0' ) : ( is_int( $value ) ? $value : "„{$value}“" ) ) );
 };
 
 WP_CLI::log( 'Catalog Mode (media-lab-woocommerce):' );
 $set( 'wc_catalog_mode_enabled', true );
-$set( 'wc_catalog_mode_hide_prices', false );   // Preise bleiben sichtbar (inkl. MwSt.)
+// Preise bleiben sichtbar (inkl. MwSt.). Bewusst 0 statt false: update_option() verwirft false bei einer noch nicht
+// vorhandenen Option, dann gilt der Kit-Standard "Preise verstecken = an" und die Preise fehlen im Shop.
+$set( 'wc_catalog_mode_hide_prices', 0 );
 $set( 'wc_catalog_mode_hide_buttons', true );   // kein "Kaufen"/"In den Warenkorb"
 $set( 'wc_catalog_mode_hide_cart', true );      // Warenkorb und Kasse sind aus (wie "Shop deaktivieren" bei YITH)
 

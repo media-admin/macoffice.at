@@ -257,11 +257,17 @@
     }
   }
 
+  // Kompaktes Ergebnis: Beschriftung links, Betrag rechts (Preis, darunter ggf. Reparaturbonus)
   &__result {
-    max-width: 28rem;
-    margin: $spacing-4 0;
-    padding: $spacing-4;
-    text-align: center;
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: baseline;
+    justify-content: start;
+    gap: $spacing-1 $spacing-3;
+    width: fit-content;
+    max-width: 100%;
+    margin: $spacing-3 0;
+    padding: $spacing-2 $spacing-3;
     background: var(--color-card-bg);
     border: 2px solid var(--color-primary);
     border-radius: $radius-lg;
@@ -272,14 +278,26 @@
   }
 
   &__result-label {
+    font-size: $font-size-sm;
     font-weight: $font-weight-semibold;
   }
 
-  &__result-price,
-  &__result-bonus {
-    margin-bottom: $spacing-2;
-    font-size: var(--text-3xl);
+  &__result-price {
+    font-size: var(--text-2xl);
     font-weight: $font-weight-bold;
+    line-height: 1.2;
+  }
+
+  &__result-bonus {
+    font-size: var(--text-lg);
+    font-weight: $font-weight-bold;
+    line-height: 1.2;
+  }
+
+  @media (max-width: 480px) {
+    &__result {
+      grid-template-columns: 1fr;
+    }
   }
 }
 

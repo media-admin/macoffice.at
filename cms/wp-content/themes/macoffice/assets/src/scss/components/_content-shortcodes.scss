@@ -160,6 +160,13 @@
 .service-prices {
   margin: $spacing-5 0;
 
+  // Während die Auswahl per AJAX nachgeladen wird
+  &.is-loading &__body {
+    opacity: 0.6;
+    pointer-events: none;
+    transition: $transition-fast;
+  }
+
   &__section {
     margin-bottom: $spacing-4;
   }

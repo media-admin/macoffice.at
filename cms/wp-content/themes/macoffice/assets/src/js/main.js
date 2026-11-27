@@ -137,6 +137,11 @@ const initApp = async () => {
       safeInit('FaqAccordion', () => new FaqAccordion());
   }
 
+  if (has('.service-prices[data-endpoint]')) {
+    const { default: ServicePrices } = await import('./components/service-prices');
+    safeInit('ServicePrices', () => new ServicePrices());
+  }
+
   if (has('.video-player, [data-video]')) {
     const { default: VideoPlayer } = await import('./components/video-player');
     safeInit('VideoPlayer', () => new VideoPlayer());

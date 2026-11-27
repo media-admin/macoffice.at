@@ -349,19 +349,32 @@ function macoffice_sp_repair( int $id ): ?object {
     return $wpdb->get_row( $wpdb->prepare( "SELECT id, name, preis, repbon FROM $table WHERE id = %d", $id ) ); // phpcs:ignore WordPress.DB.PreparedSQL
 }
 
-add_shortcode( 'shortcode_service_pricelist', static function (): string {
-    macoffice_sp_install();
+/**
+ * Auswahl aus den Abfrageparametern (cat, cat2, cat3, device, repair).
+ *
+ * @param array<string,mixed> $source z. B. $_GET
+ * @return array{cat:int,cat2:int,cat3:int,device:int,repair:int}
+ */
+function macoffice_sp_selection( array $source ): array {
+    $sel = array();
+    foreach ( array( 'cat', 'cat2', 'cat3', 'device', 'repair' ) as $key ) {
+        $sel[ $key ] = isset( $source[ $key ] ) ? absint( wp_unslash( $source[ $key ] ) ) : 0;
+    }
+    return $sel;
+}
 
-    $get = static function ( string $key ): int {
-        return isset( $_GET[ $key ] ) ? absint( wp_unslash( $_GET[ $key ] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification
-    };
-
-    $cat    = $get( 'cat' );
-    $cat2   = $get( 'cat2' );
-    $cat3   = $get( 'cat3' );
-    $device = $get( 'device' );
-    $repair = $get( 'repair' );
-    $base   = get_permalink() ?: home_url( '/' );
+/**
+ * Inhalt des Rechners für eine Auswahl. Die Links funktionieren ohne JavaScript (Seite lädt neu, springt zum Abschnitt);
+ * mit JavaScript lädt assets/src/js/components/service-prices.js denselben Inhalt per AJAX nach.
+ *
+ * @param array{cat:int,cat2:int,cat3:int,device:int,repair:int} $sel
+ */
+function macoffice_sp_render( array $sel, string $base ): string {
+    $cat    = $sel['cat'];
+    $cat2   = $sel['cat2'];
+    $cat3   = $sel['cat3'];
+    $device = $sel['device'];
+    $repair = $sel['repair'];
 
     $url = static function ( array $args, string $anchor ) use ( $base ): string {
         return esc_url( add_query_arg( array_filter( $args ), $base ) . '#' . $anchor );
@@ -386,7 +399,6 @@ add_shortcode( 'shortcode_service_pricelist', static function (): string {
     };
 
     ob_start();
-    echo '<div class="service-prices" id="service-prices">';
     echo '<h2 class="wp-block-heading">Wählen Sie zur Anzeige der Reparaturkosten Ihr Gerät aus:</h2>';
 
     // 1. Geräte-Art
@@ -443,7 +455,34 @@ add_shortcode( 'shortcode_service_pricelist', static function (): string {
         echo do_shortcode( '[shortcode_repair_instructions]' );
     }
 
-    echo '</div>';
-
     return (string) ob_get_clean();
+}
+
+add_shortcode( 'shortcode_service_pricelist', static function (): string {
+    macoffice_sp_install();
+
+    $base = get_permalink() ?: home_url( '/' );
+    return sprintf(
+        '<div class="service-prices" id="service-prices" data-endpoint="%s" data-base="%s"><div class="service-prices__body" aria-live="polite">%s</div></div>',
+        esc_url( admin_url( 'admin-ajax.php' ) ),
+        esc_url( $base ),
+        macoffice_sp_render( macoffice_sp_selection( $_GET ), $base ) // phpcs:ignore WordPress.Security.NonceVerification, WordPress.Security.EscapeOutput
+    );
 } );
+
+/**
+ * AJAX: nur der Inhalt des Rechners für die gewählte Auswahl (öffentlich, nur lesend).
+ */
+function macoffice_sp_ajax(): void {
+    macoffice_sp_install();
+
+    // Basis-Adresse der Seite: nur eigene Adressen zulassen (Links im Ergebnis zeigen darauf).
+    $base = isset( $_GET['base'] ) ? esc_url_raw( wp_unslash( $_GET['base'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+    $base = $base ? wp_validate_redirect( $base, home_url( '/' ) ) : home_url( '/' );
+    $base = remove_query_arg( array( 'cat', 'cat2', 'cat3', 'device', 'repair' ), $base );
+
+    nocache_headers();
+    wp_send_json_success( array( 'html' => macoffice_sp_render( macoffice_sp_selection( $_GET ), $base ) ) ); // phpcs:ignore WordPress.Security.NonceVerification
+}
+add_action( 'wp_ajax_macoffice_sp', 'macoffice_sp_ajax' );
+add_action( 'wp_ajax_nopriv_macoffice_sp', 'macoffice_sp_ajax' );

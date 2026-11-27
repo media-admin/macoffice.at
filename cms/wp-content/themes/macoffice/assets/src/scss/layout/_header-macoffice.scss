@@ -7,8 +7,9 @@
 // =============================================================================
 
 // Gleiche Maximalbreite wie die Startseite (Top-Leiste, Header, Footer, Inhalt fluchten)
+// (.site-header davor: layout/navigation wird später geladen und setzt .site-navigation auf 1400px)
 .top-header__inner.container,
-.site-navigation {
+.site-header .site-navigation {
     max-width: $container-width-wide;
 }
 

@@ -129,7 +129,7 @@
     
     &.is-active {
       background: var(--color-primary);
-      color: $color-white;
+      color: var(--color-white);
       border-color: var(--color-primary);
     }
     
@@ -189,7 +189,7 @@
   .tabs {
     &__button {
       &:hover {
-        background: rgba(255, 255, 255, 0.05);
+        background: color-mix(in srgb, var(--color-white) 5%, transparent);
       }
     }
   }

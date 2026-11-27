@@ -7,7 +7,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: color-mix(in srgb, var(--color-black) 80%, transparent);
   z-index: 9998;
   display: none;
   align-items: center;
@@ -124,7 +124,7 @@
       
       // Validation Fehler
       .wpcf7-not-valid-tip {
-        color: $color-error;
+        color: var(--color-error);
         font-size: $font-size-sm;
         margin-top: $spacing-1;
       }
@@ -136,15 +136,15 @@
         border-radius: $radius-sm;
         
         &.wpcf7-validation-errors {
-          background: rgba($color-error, 0.1); // 10% Opacity statt lighten
-          border: 1px solid $color-error;
-          color: $color-error;
+          background: color-mix(in srgb, var(--color-error) 10%, transparent); // 10% Opacity statt lighten
+          border: 1px solid var(--color-error);
+          color: var(--color-error);
         }
         
         &.wpcf7-mail-sent-ok {
-          background: rgba($color-error, 0.1); // 10% Opacity statt lighten
-          border: 1px solid $color-success;
-          color: $color-success-dark;
+          background: color-mix(in srgb, var(--color-error) 10%, transparent); // 10% Opacity statt lighten
+          border: 1px solid var(--color-success);
+          color: var(--notification-success-text);
         }
       }
     }

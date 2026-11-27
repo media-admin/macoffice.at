@@ -24,10 +24,10 @@
 
 $post-card-type-colors: (
     post:    var(--color-primary-text),
-    product: $color-success,
-    project: $color-info,
-    service: $color-warning,
-    job:     $color-purple,
+    product: var(--color-success),
+    project: var(--color-info),
+    service: var(--color-warning),
+    job:     var(--color-purple),
 );
 
 .post-card {
@@ -136,7 +136,7 @@ $post-card-type-colors: (
     &__price {
         font-size:   var(--text-lg);
         font-weight: $font-weight-bold;
-        color:       $color-success;
+        color:       var(--color-success);
 
         del { color: var(--color-text-muted); font-size: var(--text-sm); font-weight: $font-weight-medium; margin-right: $spacing-1; }
         ins { text-decoration: none; }

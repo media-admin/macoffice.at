@@ -37,7 +37,7 @@
 .welcome-page__bg-overlay {
     position:   absolute;
     inset:      0;
-    background: #000;
+    background: var(--color-black);
     // Deckkraft wird via PHP inline-style gesetzt
 }
 
@@ -60,14 +60,14 @@
 
     // Mit Hintergundbild: heller Inhaltsbereich
     .welcome-page--has-bg & .welcome-page__container {
-        background:    rgba(255, 255, 255, 0.92);
+        background:    color-mix(in srgb, var(--color-white) 92%, transparent);
         border-radius: $radius-xl;
         padding:       var(--space-2xl) var(--space-xl);
         max-width:     680px;
         box-shadow:    $shadow-xl;
 
         [data-theme="dark"] & {
-            background: rgba(26, 26, 26, 0.92);
+            background: color-mix(in srgb, var(--color-black) 92%, transparent);
         }
     }
 }
@@ -225,8 +225,8 @@
 
     // Transparenter Hintergrund damit Bild durchscheint
     .welcome-page--has-bg & {
-        background: rgba(0, 0, 0, 0.5);
-        border-top-color: rgba(255, 255, 255, 0.15);
+        background: color-mix(in srgb, var(--color-black) 50%, transparent);
+        border-top-color: color-mix(in srgb, var(--color-white) 15%, transparent);
     }
 
     .welcome-page__container {
@@ -262,8 +262,8 @@
         &:hover { color: var(--color-primary-text); }
 
         .welcome-page--has-bg & {
-            color: rgba(255, 255, 255, 0.7);
-            &:hover { color: #fff; }
+            color: color-mix(in srgb, var(--color-white) 70%, transparent);
+            &:hover { color: var(--color-white); }
         }
     }
 }
@@ -274,7 +274,7 @@
     margin:    0;
 
     .welcome-page--has-bg & {
-        color: rgba(255, 255, 255, 0.6);
+        color: color-mix(in srgb, var(--color-white) 60%, transparent);
     }
 }
 
@@ -302,7 +302,7 @@
 .welcome-page__modal-overlay {
     position:   absolute;
     inset:      0;
-    background: rgba(0, 0, 0, 0.6);
+    background: color-mix(in srgb, var(--color-black) 60%, transparent);
     cursor:     pointer;
 }
 

@@ -14,7 +14,7 @@
 // ── Wrapper ──────────────────────────────────────────────────────
 
 .toc {
-    border: 1px solid $color-border;
+    border: 1px solid var(--color-border);
     border-radius: $radius-base;
     padding: $spacing-3 $spacing-3;
     font-size: var(--text-sm);
@@ -38,7 +38,7 @@
 .toc__title {
     font-weight: $font-weight-semibold;
     font-size: var(--text-base);
-    color: $color-text;
+    color: var(--color-text);
 }
 
 .toc__toggle {
@@ -49,7 +49,7 @@
     border: none;
     padding: $spacing-1 * 0.5;
     cursor: pointer;
-    color: $color-text-muted;
+    color: var(--color-text-muted);
     transition: $transition-fast;
     flex-shrink: 0;
 
@@ -80,7 +80,7 @@
 
 .toc__link {
     display: block;
-    color: $color-text-muted;
+    color: var(--color-text-muted);
     text-decoration: none;
     padding: $spacing-1 * 0.25 $spacing-1 * 0.5;
     border-radius: $radius-sm;
@@ -110,10 +110,10 @@
 // ── Sticky: Scrollbar-Farbe ──────────────────────────────────────
 
 .toc--sticky {
-    scrollbar-color: $color-border transparent;
+    scrollbar-color: var(--color-border) transparent;
 
     &::-webkit-scrollbar-thumb {
-        background-color: $color-border;
+        background-color: var(--color-border);
         border-radius: $radius-full;
     }
 }

@@ -163,7 +163,7 @@
 
     .current {
         background: var(--color-primary);
-        color:      $color-white;
+        color:      var(--color-white);
         border:     1px solid var(--color-primary);
     }
 

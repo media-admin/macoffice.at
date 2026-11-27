@@ -75,41 +75,41 @@
   
   // Success
   &--success {
-    border-left-color: $color-success;
-    background: $color-success-light-bg;
+    border-left-color: var(--color-success);
+    background: var(--notification-success-bg);
     
     .notification__icon {
-      color: $color-success;
+      color: var(--color-success);
     }
   }
   
   // Error
   &--error {
-    border-left-color: $color-error;
-    background: $color-error-light-bg;
+    border-left-color: var(--color-error);
+    background: var(--notification-error-bg);
     
     .notification__icon {
-      color: $color-error;
+      color: var(--color-error);
     }
   }
   
   // Warning
   &--warning {
-    border-left-color: $color-warning;
-    background: $color-warning-light-bg;
+    border-left-color: var(--color-warning);
+    background: var(--notification-warning-bg);
     
     .notification__icon {
-      color: $color-warning-dark;
+      color: var(--notification-warning-text);
     }
   }
   
   // Info
   &--info {
-    border-left-color: $color-info;
-    background: $color-info-light-bg;
+    border-left-color: var(--color-info);
+    background: var(--notification-info-bg);
     
     .notification__icon {
-      color: $color-info;
+      color: var(--color-info);
     }
   }
 }
@@ -219,19 +219,19 @@
 [data-theme="dark"] {
   .notification {
     &--success {
-      background: rgba($color-success, 0.2);
+      background: color-mix(in srgb, var(--color-success) 20%, transparent);
     }
     
     &--error {
-      background: rgba($color-error, 0.2);
+      background: color-mix(in srgb, var(--color-error) 20%, transparent);
     }
     
     &--warning {
-      background: rgba($color-warning, 0.2);
+      background: color-mix(in srgb, var(--color-warning) 20%, transparent);
     }
     
     &--info {
-      background: rgba($color-info, 0.2);
+      background: color-mix(in srgb, var(--color-info) 20%, transparent);
     }
   }
 }
@@ -271,7 +271,7 @@
 .notification-popup__overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: color-mix(in srgb, var(--color-black) 85%, transparent);
   z-index: 10000;
   display: flex;
   align-items: center;
@@ -287,7 +287,7 @@
 
 .notification-popup {
   position: relative;
-  background: $color-white;
+  background: var(--color-card-bg);
   border-radius: $radius-xl;
   padding: $container-padding;
   max-width: $container-width;
@@ -315,12 +315,12 @@
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    color: $color-text-muted;
+    color: var(--color-text-muted);
     line-height: 1;
     padding: 0.25rem;
     transition: color 0.2s ease;
 
-    &:hover { color: $color-text; }
+    &:hover { color: var(--color-text); }
   }
 
   &__icon {
@@ -334,19 +334,19 @@
     font-size: $font-size-xl;
     font-weight: $font-weight-bold;
     margin-bottom: 0.75rem;
-    color: $color-text;
+    color: var(--color-text);
   }
 
   &__message {
-    color: $color-text-muted;
+    color: var(--color-text-muted);
     line-height: $line-height-base;
   }
 
   // Typen
-  &.notification--info    .notification-popup__icon { color: $color-info; }
-  &.notification--success .notification-popup__icon { color: $color-success; }
-  &.notification--warning .notification-popup__icon { color: $color-warning; }
-  &.notification--error   .notification-popup__icon { color: $color-error; }
+  &.notification--info    .notification-popup__icon { color: var(--color-info); }
+  &.notification--success .notification-popup__icon { color: var(--color-success); }
+  &.notification--warning .notification-popup__icon { color: var(--color-warning); }
+  &.notification--error   .notification-popup__icon { color: var(--color-error); }
 }
 
 body.popup-open { overflow: hidden; }
@@ -369,7 +369,7 @@ body.popup-open { overflow: hidden; }
 
 // Body-Wrapper für Gutenberg-Output
 .notification-popup__body {
-  color: $color-text-muted;
+  color: var(--color-text-muted);
   line-height: $line-height-base;
 
   // Rich-Variante: scoped Gutenberg-Block-Styles
@@ -394,7 +394,7 @@ body.popup-open { overflow: hidden; }
 
     // ── Fließtext ────────────────────────────────────────────
     p {
-      color: $color-text;
+      color: var(--color-text);
       line-height: $line-height-base;
       margin: 0;
 
@@ -415,7 +415,7 @@ body.popup-open { overflow: hidden; }
 
       figcaption {
         font-size: $font-size-sm;
-        color: $color-text-muted;
+        color: var(--color-text-muted);
         margin-top: 0.375rem;
         text-align: center;
       }
@@ -423,7 +423,7 @@ body.popup-open { overflow: hidden; }
 
     // ── Überschriften ────────────────────────────────────────
     h2, h3, h4 {
-      color: $color-text;
+      color: var(--color-text);
       font-weight: $font-weight-bold;
       line-height: $line-height-tight;
       margin: 0 0 0.5rem;
@@ -459,7 +459,7 @@ body.popup-open { overflow: hidden; }
 
       // Standard: Primary-Farbe – überschreibbar via Gutenberg-Inline-Style
       background-color: var(--wp--preset--color--primary, #{var(--color-primary)});
-      color: $color-white;
+      color: var(--color-white);
 
       &:hover {
         opacity: 0.88;
@@ -478,7 +478,7 @@ body.popup-open { overflow: hidden; }
     // ── Listen ───────────────────────────────────────────────
     ul, ol {
       padding-left: 1.25rem;
-      color: $color-text;
+      color: var(--color-text);
 
       li {
         margin-bottom: 0.25rem;
@@ -490,7 +490,7 @@ body.popup-open { overflow: hidden; }
     hr,
     .wp-block-separator {
       border: none;
-      border-top: 1px solid $color-border;
+      border-top: 1px solid var(--color-border);
       margin: 1rem 0;
     }
   }

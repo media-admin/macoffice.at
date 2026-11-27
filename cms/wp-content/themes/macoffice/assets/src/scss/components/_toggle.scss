@@ -34,8 +34,8 @@ $toggle-transition:      0.22s ease;
 $toggle-color-on:        var(--color-primary);
 $toggle-color-off:       var(--color-border);
 $toggle-color-unavail:   var(--color-border);
-$toggle-thumb-color:     #ffffff;
-$toggle-thumb-unavail:   #cccccc;
+$toggle-thumb-color:     var(--color-white);
+$toggle-thumb-unavail:   var(--color-text-light);
 
 // ── Base ──────────────────────────────────────────────────────────────────────
 
@@ -83,7 +83,7 @@ $toggle-thumb-unavail:   #cccccc;
         height:        $toggle-thumb-size;
         background:    $toggle-thumb-color;
         border-radius: 50%;
-        box-shadow:    0 1px 4px rgba(0, 0, 0, 0.25);
+        box-shadow:    0 1px 4px color-mix(in srgb, var(--color-black) 25%, transparent);
         transition:    transform $toggle-transition, background $toggle-transition, box-shadow $toggle-transition;
         will-change:   transform;
     }

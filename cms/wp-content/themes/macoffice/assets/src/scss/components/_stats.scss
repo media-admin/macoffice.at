@@ -88,10 +88,10 @@
   // ── Color Variants ────────────────────────────────────────────────────────
 
   &--primary { .stat__number, .stat__icon .dashicons { color: var(--color-primary-text); } }
-  &--success { .stat__number, .stat__icon .dashicons { color: $color-success; } }
-  &--error   { .stat__number, .stat__icon .dashicons { color: $color-error; } }
-  &--warning { .stat__number, .stat__icon .dashicons { color: $color-warning-dark; } }
-  &--info    { .stat__number, .stat__icon .dashicons { color: $color-info; } }
+  &--success { .stat__number, .stat__icon .dashicons { color: var(--color-success); } }
+  &--error   { .stat__number, .stat__icon .dashicons { color: var(--color-error); } }
+  &--warning { .stat__number, .stat__icon .dashicons { color: var(--notification-warning-text); } }
+  &--info    { .stat__number, .stat__icon .dashicons { color: var(--color-info); } }
 }
 
 // ── Style Variants ────────────────────────────────────────────────────────────

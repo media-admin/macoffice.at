@@ -20,16 +20,16 @@
 // Hero-Slider: weiße Bullets
 .hero-slider {
   .swiper-pagination-bullet {
-    background: #ffffff !important;
+    background: var(--color-white) !important;
     opacity: 0.5 !important;
   }
   .swiper-pagination-bullet-active {
-    background: #ffffff !important;
+    background: var(--color-white) !important;
     opacity: 1 !important;
   }
   .swiper-button-prev,
   .swiper-button-next {
-    color: #ffffff !important;
+    color: var(--color-white) !important;
   }
 }
 
@@ -54,9 +54,9 @@
     left: 0;
     right: 0;
     padding: 32px;
-    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+    background: linear-gradient(to top, color-mix(in srgb, var(--color-black) 70%, transparent) 0%, transparent 100%);
     
-    .carousel-grid__title { color: #fff; }
-    .carousel-grid__subtitle { color: rgba(255,255,255,0.8); }
+    .carousel-grid__title { color: var(--color-white); }
+    .carousel-grid__subtitle { color: color-mix(in srgb, var(--color-white) 80%, transparent); }
   }
 }

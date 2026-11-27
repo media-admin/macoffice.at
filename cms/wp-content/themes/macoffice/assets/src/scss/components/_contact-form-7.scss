@@ -109,10 +109,12 @@
         height:              48px;
         cursor:              pointer;
         padding-right:       $spacing-8;       // Platz für Pfeil
-        background-image:    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23999' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+        // Pfeil als Dreieck aus Farbverlauf: nutzt das Token und folgt dem Hell/Dunkel-Umschalter
+        background-image:    linear-gradient(to bottom right, var(--color-text-light) 50%, transparent 50%),
+                             linear-gradient(to bottom left,  var(--color-text-light) 50%, transparent 50%);
         background-repeat:   no-repeat;
-        background-position: right $spacing-4 center;
-        background-size:     12px 8px;
+        background-position: right $spacing-4 center, right calc(#{$spacing-4} + 6px) center;
+        background-size:     6px 6px, 6px 6px;
 
         option { background: var(--color-card-bg); color: var(--color-text); }
     }
@@ -241,16 +243,16 @@
 .wpcf7-not-valid-tip {
     display:     block;
     margin-top:  $spacing-1;
-    color:       $color-error;
+    color:       var(--color-error);
     font-size:   $font-size-sm;
     font-weight: 500;
 }
 
 // Feld-Hervorhebung bei Fehler
 .wpcf7-form-control.wpcf7-not-valid {
-    border-color: $color-error !important;
-    background:   rgba($color-error, 0.05) !important;
-    box-shadow:   0 0 0 4px rgba($color-error, 0.1) !important;
+    border-color: var(--color-error) !important;
+    background:   color-mix(in srgb, var(--color-error) 5%, transparent) !important;
+    box-shadow:   0 0 0 4px color-mix(in srgb, var(--color-error) 10%, transparent) !important;
 }
 
 // ── Response-Meldungen ────────────────────────────────────────────────────────
@@ -274,35 +276,35 @@
 
     // Erfolg
     &.wpcf7-mail-sent-ok {
-        background:   $color-success-light-bg;
-        border-color: $color-success;
-        color:        $color-success-dark;
+        background:   var(--notification-success-bg);
+        border-color: var(--color-success);
+        color:        var(--notification-success-text);
         &::before { content: '✓'; }
     }
 
     // Validierungsfehler
     &.wpcf7-validation-errors,
     &.wpcf7-acceptance-missing {
-        background:   $color-error-light-bg;
-        border-color: $color-error;
-        color:        $color-error-dark;
+        background:   var(--notification-error-bg);
+        border-color: var(--color-error);
+        color:        var(--notification-error-text);
         &::before { content: '!'; }
     }
 
     // Sendefehler (Server)
     &.wpcf7-mail-sent-ng,
     &.wpcf7-aborted {
-        background:   $color-error-light-bg;
-        border-color: $color-error;
-        color:        $color-error-dark;
+        background:   var(--notification-error-bg);
+        border-color: var(--color-error);
+        color:        var(--notification-error-text);
         &::before { content: '✗'; }
     }
 
     // Spam
     &.wpcf7-spam-blocked {
-        background:   $color-warning-light-bg;
-        border-color: $color-warning;
-        color:        $color-warning-darker;
+        background:   var(--notification-warning-bg);
+        border-color: var(--color-warning);
+        color:        var(--notification-warning-text);
         &::before { content: '🛡'; }
     }
 }

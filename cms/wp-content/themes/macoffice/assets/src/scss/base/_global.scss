@@ -50,7 +50,7 @@ a {
   background: var(--color-surface);
   
   [data-theme="dark"] & {
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--color-white) 5%, transparent);
   }
 }
 

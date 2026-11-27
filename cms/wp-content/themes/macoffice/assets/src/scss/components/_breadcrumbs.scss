@@ -71,9 +71,9 @@
   // ── Variante: Light ───────────────────────────────────────────────────────
 
   &--light {
-    .breadcrumbs__link    { color: rgba(255, 255, 255, 0.7); &:hover { color: #fff; } }
-    .breadcrumbs__current { color: #fff; }
-    .breadcrumbs__separator { color: rgba(255, 255, 255, 0.4); }
+    .breadcrumbs__link    { color: color-mix(in srgb, var(--color-white) 70%, transparent); &:hover { color: var(--color-white); } }
+    .breadcrumbs__current { color: var(--color-white); }
+    .breadcrumbs__separator { color: color-mix(in srgb, var(--color-white) 40%, transparent); }
   }
 
   // ── Variante: Compact ─────────────────────────────────────────────────────

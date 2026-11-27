@@ -12,7 +12,7 @@
     height: var(--map-height, 450px);
     overflow: hidden;
     border-radius: $radius-lg;
-    background-color: $color-gray-100;
+    background-color: var(--color-hover-bg);
 
     // ── Fullwidth Variante ────────────────────────────────────────────────────
     // Bricht aus dem Container heraus auf 100vw.
@@ -52,7 +52,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: $color-gray-50;
+        background-color: var(--color-subtle-bg);
         padding: $spacing-8;
         transition: opacity 0.3s ease, visibility 0.3s ease;
 
@@ -73,7 +73,7 @@
     }
 
     &__placeholder-icon {
-        color: $color-gray-400;
+        color: var(--color-text-light);
         flex-shrink: 0;
         opacity: 0.7;
     }
@@ -81,13 +81,13 @@
     &__placeholder-title {
         font-size: $font-size-lg;
         font-weight: $font-weight-semibold;
-        color: $color-text;
+        color: var(--color-text);
         margin: 0;
     }
 
     &__placeholder-text {
         font-size: $font-size-sm;
-        color: $color-text-muted;
+        color: var(--color-text-muted);
         line-height: 1.6;
         margin: 0;
     }
@@ -99,7 +99,7 @@
 
     &__placeholder-hint {
         font-size: $font-size-xs;
-        color: $color-text-muted;
+        color: var(--color-text-muted);
         margin: 0;
     }
 

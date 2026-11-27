@@ -7,7 +7,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.95);
+  background: color-mix(in srgb, var(--color-black) 95%, transparent);
   z-index: 9999;
   display: none;
   align-items: center;
@@ -38,7 +38,7 @@
 
   &__caption {
     text-align: center;
-    color: $color-white;
+    color: var(--color-white);
     padding: $spacing-2;
     font-size: $font-size-sm;
   }
@@ -57,9 +57,9 @@
   &__prev,
   &__next {
     position: absolute;
-    background: rgba(255, 255, 255, 0.1);
+    background: color-mix(in srgb, var(--color-white) 10%, transparent);
     border: none;
-    color: $color-white;
+    color: var(--color-white);
     font-size: 40px;
     width: 50px;
     height: 50px;
@@ -70,7 +70,7 @@
     justify-content: center;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.2);
+      background: color-mix(in srgb, var(--color-white) 20%, transparent);
     }
   }
 
@@ -100,8 +100,8 @@
     bottom: $spacing-4;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.5);
-    color: $color-white;
+    background: color-mix(in srgb, var(--color-black) 50%, transparent);
+    color: var(--color-white);
     font-size: $font-size-sm;
     padding: $spacing-1 $spacing-3;
     border-radius: $radius-full;

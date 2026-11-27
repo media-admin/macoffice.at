@@ -83,7 +83,7 @@
     box-shadow: 0 0 0 4px var(--color-background);
     
     .dashicons {
-      color: $color-white;
+      color: var(--color-white);
       font-size: 24px;
       width: 24px;
       height: 24px;
@@ -166,41 +166,41 @@
   
   &--success {
     .timeline-item__marker {
-      background: $color-success;
+      background: var(--color-success);
     }
     
     .timeline-item__date {
-      color: $color-success;
+      color: var(--color-success);
     }
   }
   
   &--error {
     .timeline-item__marker {
-      background: $color-error;
+      background: var(--color-error);
     }
     
     .timeline-item__date {
-      color: $color-error;
+      color: var(--color-error);
     }
   }
   
   &--warning {
     .timeline-item__marker {
-      background: $color-warning-dark;
+      background: var(--notification-warning-text);
     }
     
     .timeline-item__date {
-      color: $color-warning-dark;
+      color: var(--notification-warning-text);
     }
   }
   
   &--info {
     .timeline-item__marker {
-      background: $color-info;
+      background: var(--color-info);
     }
     
     .timeline-item__date {
-      color: $color-info;
+      color: var(--color-info);
     }
   }
 }

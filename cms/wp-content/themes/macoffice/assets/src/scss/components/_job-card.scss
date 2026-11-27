@@ -31,7 +31,7 @@
 }
 
 .job-card {
-  background:    $color-white;
+  background:    var(--color-card-bg);
   border-radius: $radius-lg;
   padding:       var(--space-lg);
   box-shadow:    $shadow-sm;
@@ -45,11 +45,11 @@
   }
 
   &--featured {
-    border-color: $color-warning;
-    background:   $color-warning-light-bg2;
+    border-color: var(--color-warning);
+    background:   var(--notification-warning-bg);
   }
 
-  &--urgent { border-color: $color-error; }
+  &--urgent { border-color: var(--color-error); }
 
   &__badges {
     position: absolute;
@@ -67,8 +67,8 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
 
-    &--featured { background: $color-warning; color: $color-white; }
-    &--urgent   { background: $color-error;   color: $color-white; }
+    &--featured { background: var(--color-warning); color: var(--color-white); }
+    &--urgent   { background: var(--color-error);   color: var(--color-white); }
   }
 
   &__header { margin-bottom: var(--space-sm); }
@@ -79,7 +79,7 @@
     margin-bottom: 0.5rem;
 
     a {
-      color:           $color-text;
+      color:           var(--color-text);
       text-decoration: none;
       &:hover { color: var(--color-primary-text); }
     }
@@ -97,8 +97,8 @@
 
   &__remote-badge {
     padding:       0.125rem 0.5rem;
-    background:    $color-success;
-    color:         $color-white;
+    background:    var(--color-success);
+    color:         var(--color-white);
     border-radius: $radius-sm;
     font-size:     var(--text-xs);
     margin-left:   0.5rem;
@@ -110,7 +110,7 @@
     gap:             var(--space-sm);
     margin-bottom:   var(--space-sm);
     padding-bottom:  var(--space-sm);
-    border-bottom:   1px solid $color-gray-200;
+    border-bottom:   1px solid var(--color-border);
   }
 
   &__meta-item {
@@ -151,7 +151,7 @@
 
   &__tag {
     padding:       0.25rem 0.75rem;
-    background:    $color-gray-100;
+    background:    var(--color-hover-bg);
     color:         var(--color-text-muted);
     border-radius: $radius-full;
     font-size:     var(--text-xs);

@@ -51,7 +51,7 @@
 @mixin btn-primary {
   background:   var(--color-primary);
   border-color: var(--color-primary);
-  color:        $color-white;
+  color:        var(--color-white);
 
   &:hover {
     background:   var(--color-primary-dark);
@@ -69,7 +69,7 @@
 
   &:hover {
     background: var(--color-primary);
-    color:      $color-white;
+    color:      var(--color-white);
     transform:  translateY(-1px);
   }
   &:active { transform: translateY(0); }
@@ -221,7 +221,7 @@
 }
 
 @mixin card-base {
-  background:    $color-card-bg;
+  background:    var(--color-card-bg);
   border-radius: $radius-base;
   box-shadow:    $shadow-sm;
   overflow:      hidden;

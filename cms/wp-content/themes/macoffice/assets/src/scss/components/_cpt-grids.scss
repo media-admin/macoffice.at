@@ -151,7 +151,7 @@
 
       &::before {
         content:     "✓";
-        color:       $color-success;
+        color:       var(--color-success);
         font-weight: bold;
         margin-right: $spacing-2;
       }

@@ -168,8 +168,8 @@ $single-layout-max-width: none !default;
     }
 
     pre {
-        background:    #1e1e1e;
-        color:         #f0f0f0;
+        background:    var(--color-surface);
+        color:         var(--color-text);
         border-radius: $radius-md;
         padding:       var(--space-md) var(--space-lg);
         overflow-x:    auto;
@@ -193,7 +193,7 @@ $single-layout-max-width: none !default;
 
         th, td { padding: $spacing-2 $spacing-3; border: 1px solid var(--color-border); text-align: left; }
         th { background: var(--color-hover-bg); font-weight: $font-weight-semibold; }
-        tr:nth-child(even) td { background: rgba(0, 0, 0, 0.02); }
+        tr:nth-child(even) td { background: color-mix(in srgb, var(--color-black) 2%, transparent); }
     }
 
     hr { border: none; border-top: 2px solid var(--color-border); margin: var(--space-2xl) 0; }

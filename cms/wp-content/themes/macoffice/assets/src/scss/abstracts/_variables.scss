@@ -161,6 +161,14 @@ $color-input-bg:   $color-white;
   --color-primary-dark:   #{$color-primary-dark};    // Hover-Füllung
   --color-primary-darker: #{$color-primary-darker};  // Active-Füllung
 
+  // Konstante Farben (in beiden Modi gleich): auf Bildern, Overlays, Schatten
+  --color-white:          #{$color-white};
+  --color-black:          #{$color-black};
+
+  // Flächen-Abstufungen (Hover, Chips, dezente Hintergründe)
+  --color-hover-bg:       #{$color-gray-100};
+  --color-subtle-bg:      #{$color-gray-50};
+
   // Hintergrund & Oberflächen
   --color-background:     #{$color-gray-50};   // macoffice: Seitenhintergrund #f5f5f5 (Alt-Theme)
   --color-surface:        #{$color-white};
@@ -275,6 +283,31 @@ $color-input-bg:   $color-white;
   --color-primary-darker: #8c2629;
   --color-secondary:      #a3a3a3;
   --color-accent:         #e5686c;
+  --color-hover-bg:       #2e2e2e;
+  --color-subtle-bg:      #1a1a1a;
+
+  // Status: im Dunkeln heller, damit Schrift und Rahmen lesbar bleiben (>= 4,5:1 auf #1e1e1e)
+  --color-success:        #34d399;
+  --color-warning:        #fbbf24;
+  --color-error:          #f87171;
+  --color-info:           #60a5fa;
+
+  --notification-info-bg:         color-mix(in srgb, var(--color-info) 16%, var(--color-surface));
+  --notification-info-text:       #{$color-info-dim};
+  --notification-success-bg:      color-mix(in srgb, var(--color-success) 16%, var(--color-surface));
+  --notification-success-text:    #{$color-success-dim};
+  --notification-warning-bg:      color-mix(in srgb, var(--color-warning) 16%, var(--color-surface));
+  --notification-warning-text:    #{$color-warning-dim};
+  --notification-error-bg:        color-mix(in srgb, var(--color-error) 16%, var(--color-surface));
+  --notification-error-text:      #{$color-error-dim};
+  --notification-info-border:     var(--color-info);
+  --notification-success-border:  var(--color-success);
+  --notification-warning-border:  var(--color-warning);
+  --notification-error-border:    var(--color-error);
+  --notification-info-dim:        var(--color-info);
+  --notification-success-dim:     var(--color-success);
+  --notification-warning-dim:     var(--color-warning);
+  --notification-error-dim:       var(--color-error);
 }
 
 // SCSS-Variablen auf CSS Custom Properties umschalten (Dark-Mode-fähig)
@@ -400,11 +433,11 @@ $radius-full: 9999px;
 // 10. SHADOWS
 // ─────────────────────────────────────────────────────────────────
 
-$shadow-sm:   0 1px 3px rgba(0, 0, 0, 0.1);
-$shadow-base: 0 4px 6px rgba(0, 0, 0, 0.1);
+$shadow-sm:   0 1px 3px color-mix(in srgb, var(--color-black) 10%, transparent);
+$shadow-base: 0 4px 6px color-mix(in srgb, var(--color-black) 10%, transparent);
 $shadow-md:   $shadow-base;
-$shadow-lg:   0 10px 15px rgba(0, 0, 0, 0.1);
-$shadow-xl:   0 20px 25px rgba(0, 0, 0, 0.15);
+$shadow-lg:   0 10px 15px color-mix(in srgb, var(--color-black) 10%, transparent);
+$shadow-xl:   0 20px 25px color-mix(in srgb, var(--color-black) 15%, transparent);
 
 
 // ─────────────────────────────────────────────────────────────────
@@ -431,22 +464,22 @@ $z-tooltip:  3000;
 // ─────────────────────────────────────────────────────────────────
 
 :root {
-  --swiper-theme-color:                        #{$color-primary};
-  --swiper-navigation-color:                   #{$color-primary};
+  --swiper-theme-color:                        var(--color-primary);
+  --swiper-navigation-color:                   var(--color-primary-text);
   --swiper-navigation-size:                    44px;
-  --swiper-pagination-color:                   #{$color-primary};
+  --swiper-pagination-color:                   var(--color-primary);
   --swiper-pagination-bullet-size:             10px;
   --swiper-pagination-bullet-horizontal-gap:   6px;
-  --swiper-pagination-bullet-inactive-color:   #{$color-primary};
+  --swiper-pagination-bullet-inactive-color:   var(--color-primary);
   --swiper-pagination-bullet-inactive-opacity: 0.3;
   --swiper-pagination-bullet-opacity:          1;
 }
 
 .swiper {
-  --swiper-theme-color:                        #{$color-primary};
-  --swiper-navigation-color:                   #{$color-primary};
-  --swiper-pagination-color:                   #{$color-primary};
-  --swiper-pagination-bullet-inactive-color:   #{$color-primary};
+  --swiper-theme-color:                        var(--color-primary);
+  --swiper-navigation-color:                   var(--color-primary-text);
+  --swiper-pagination-color:                   var(--color-primary);
+  --swiper-pagination-bullet-inactive-color:   var(--color-primary);
   --swiper-pagination-bullet-inactive-opacity: 0.3;
   --swiper-pagination-bullet-opacity:          1;
   --swiper-pagination-bullet-size:             10px;
@@ -454,16 +487,16 @@ $z-tooltip:  3000;
 }
 
 .swiper-pagination-bullet {
-  background: $color-primary !important;
+  background: var(--color-primary) !important;
   opacity: 0.3 !important;
 }
 
 .swiper-pagination-bullet-active {
-  background: $color-primary !important;
+  background: var(--color-primary) !important;
   opacity: 1 !important;
 }
 
 .swiper-button-prev,
 .swiper-button-next {
-  color: $color-primary !important;
+  color: var(--color-primary-text) !important;
 }

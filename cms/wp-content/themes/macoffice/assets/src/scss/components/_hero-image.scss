@@ -76,7 +76,7 @@ $hero-xl-mob:  420px;
   &__overlay {
     position:   absolute;
     inset:      0;
-    background: rgba(0, 0, 0, var(--hero-opacity, 0.4));
+    background: color-mix(in srgb, var(--color-black) calc(var(--hero-opacity, 0.4) * 100%), transparent);
   }
 
   // ── Content-Wrapper ───────────────────────────────────────────────────────
@@ -119,12 +119,12 @@ $hero-xl-mob:  420px;
   // ── Titel ─────────────────────────────────────────────────────────────────
 
   &__title {
-    color:       $color-white;
+    color:       var(--color-white);
     font-size:   clamp(1.75rem, 4vw, 3rem);
     font-weight: $font-weight-bold;
     line-height: $line-height-tight;
     margin:      0;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    text-shadow: 0 2px 12px color-mix(in srgb, var(--color-black) 35%, transparent);
 
     @include respond-to('md') {
       font-size: clamp(2rem, 5vw, 3.5rem);
@@ -134,11 +134,11 @@ $hero-xl-mob:  420px;
   // ── Untertitel ────────────────────────────────────────────────────────────
 
   &__subtitle {
-    color:       rgba(255, 255, 255, 0.88);
+    color:       color-mix(in srgb, var(--color-white) 88%, transparent);
     font-size:   clamp($font-size-base, 2vw, $font-size-xl);
     line-height: 1.6;
     margin:      var(--space-sm) 0 0;
-    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 1px 6px color-mix(in srgb, var(--color-black) 30%, transparent);
     max-width:   640px;
 
     .hero-image--align-center & { max-width: none; }
@@ -169,35 +169,35 @@ $hero-xl-mob:  420px;
 
   .btn--light {
     &.btn--primary {
-      background:   $color-white;
+      background:   var(--color-white);
       color:        var(--color-primary-text);
-      border-color: $color-white;
+      border-color: var(--color-white);
 
       &:hover, &:focus-visible {
-        background:   rgba(255, 255, 255, 0.88);
-        border-color: rgba(255, 255, 255, 0.88);
+        background:   color-mix(in srgb, var(--color-white) 88%, transparent);
+        border-color: color-mix(in srgb, var(--color-white) 88%, transparent);
       }
     }
 
     &.btn--outline {
       background:   transparent;
-      color:        $color-white;
-      border-color: $color-white;
+      color:        var(--color-white);
+      border-color: var(--color-white);
 
       &:hover, &:focus-visible {
-        background: $color-white;
+        background: var(--color-white);
         color:      var(--color-primary-text);
       }
     }
 
     &.btn--ghost {
       background:   transparent;
-      color:        $color-white;
+      color:        var(--color-white);
       border-color: transparent;
 
       &:hover, &:focus-visible {
-        background:   rgba(255, 255, 255, 0.15);
-        border-color: rgba(255, 255, 255, 0.3);
+        background:   color-mix(in srgb, var(--color-white) 15%, transparent);
+        border-color: color-mix(in srgb, var(--color-white) 30%, transparent);
       }
     }
   }

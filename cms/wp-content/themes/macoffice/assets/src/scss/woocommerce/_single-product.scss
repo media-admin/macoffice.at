@@ -381,7 +381,7 @@ $ml-chevron-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' w
             font-weight:   $font-weight-semibold;
             color:         var(--color-text);
 
-            .required { color: $color-error; }
+            .required { color: var(--color-error); }
         }
 
         input[type="text"],
@@ -529,9 +529,9 @@ $ml-chevron-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' w
         }
 
         &--in_stock::before,
-        &--supplier::before { background: $color-success; }
-        &--in_house::before { background: $color-info; }
-        &--out::before      { background: $color-error; }
+        &--supplier::before { background: var(--color-success); }
+        &--in_house::before { background: var(--color-info); }
+        &--out::before      { background: var(--color-error); }
     }
 
     // Artikelnummer und Kategorie unter Preis und Verfügbarkeit (Plugin: mlw_loop_sku, mlw_loop_category)

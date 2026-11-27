@@ -63,7 +63,7 @@
   align-items: flex-start;
   gap:         var(--space-md);
   padding:     var(--space-md);
-  background:  $color-white;
+  background:  var(--color-card-bg);
   border-radius: $radius-lg;
   box-shadow:  $shadow-sm;
   transition:  $transition-base;
@@ -78,7 +78,7 @@
     margin-bottom: 0.5rem;
 
     a {
-      color:           $color-text;
+      color:           var(--color-text);
       text-decoration: none;
       &:hover { color: var(--color-primary-text); }
     }

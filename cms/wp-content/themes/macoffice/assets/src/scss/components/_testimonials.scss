@@ -105,7 +105,7 @@
     .ml-testimonial__star {
       font-size: 20px;
 
-      &--filled { color: $color-gold; }
+      &--filled { color: var(--color-gold); }
       &--empty  { color: var(--color-border); }
     }
   }

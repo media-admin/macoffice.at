@@ -79,7 +79,7 @@ html { scroll-padding-top: var(--header-height, 0px); }
 .hero-slide__overlay {
   position:   absolute;
   inset:      0;
-  background: rgba(0, 0, 0, 0.4);
+  background: color-mix(in srgb, var(--color-black) 40%, transparent);
   z-index:    1;
 }
 
@@ -87,11 +87,11 @@ html { scroll-padding-top: var(--header-height, 0px); }
   position:   relative;
   z-index:    2;
   text-align: center;
-  color:      $color-white;
+  color:      var(--color-white);
   max-width:  800px;
   padding:    var(--space-xl) var(--space-inner, 1.5rem);
 
-  * { color: $color-white !important; }
+  * { color: var(--color-white) !important; }
 }
 
 .hero-slide__subtitle {
@@ -108,8 +108,8 @@ html { scroll-padding-top: var(--header-height, 0px); }
   font-weight:   $font-weight-bold;
   margin-bottom: var(--space-sm);
   line-height:   1.2;
-  color:         $color-white !important;
-  text-shadow:   0 2px 4px rgba(0, 0, 0, 0.5);
+  color:         var(--color-white) !important;
+  text-shadow:   0 2px 4px color-mix(in srgb, var(--color-black) 50%, transparent);
 }
 
 .hero-slide__text {
@@ -122,13 +122,13 @@ html { scroll-padding-top: var(--header-height, 0px); }
 
 .hero-slide__button {
   @include btn-base;
-  background:   $color-hero-gradient;
-  border-color: $color-hero-gradient;
-  color:        $color-white;
+  background:   var(--color-primary);
+  border-color: var(--color-primary);
+  color:        var(--color-white);
 
   &:hover {
-    background:   $color-hero-gradient-dark;
-    border-color: $color-hero-gradient-dark;
+    background:   var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
     transform:    translateY(-2px);
     box-shadow:   $shadow-lg;
   }
@@ -146,12 +146,12 @@ html { scroll-padding-top: var(--header-height, 0px); }
 
   width:      50px !important;  // Swiper-API erfordert !important
   height:     50px !important;
-  background: rgba($color-white, 0.2) !important;
+  background: color-mix(in srgb, var(--color-white) 20%, transparent) !important;
   border-radius: 50% !important;
-  color:      $color-white !important;
+  color:      var(--color-white) !important;
 
   &::after { font-size: $font-size-xl !important; }
-  &:hover  { background: rgba($color-white, 0.3) !important; }
+  &:hover  { background: color-mix(in srgb, var(--color-white) 30%, transparent) !important; }
 
   @include respond-below('sm') {
     --swiper-navigation-size: 40px;
@@ -167,14 +167,14 @@ html { scroll-padding-top: var(--header-height, 0px); }
 .swiper-pagination-bullet {
   width:      12px !important;
   height:     12px !important;
-  background: rgba($color-white, 0.5) !important;
+  background: color-mix(in srgb, var(--color-white) 50%, transparent) !important;
   opacity:    1 !important;
 
-  &:hover   { background: rgba($color-white, 0.7) !important; }
+  &:hover   { background: color-mix(in srgb, var(--color-white) 70%, transparent) !important; }
 }
 
 .swiper-pagination-bullet-active {
-  background:    $color-hero-gradient !important;
+  background:    var(--color-primary) !important;
   width:         32px !important;
   border-radius: 6px !important;
 }

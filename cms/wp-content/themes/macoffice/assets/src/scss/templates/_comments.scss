@@ -180,7 +180,7 @@
         font-weight:   $font-weight-semibold;
         color:         var(--color-text);
 
-        .required { color: $color-error; margin-left: 2px; }
+        .required { color: var(--color-error); margin-left: 2px; }
     }
 
     input[type="text"],

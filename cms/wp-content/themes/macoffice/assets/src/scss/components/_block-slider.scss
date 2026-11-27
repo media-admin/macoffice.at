@@ -60,21 +60,21 @@
     position: absolute;
     inset: -2rem -3rem;
     z-index: -1;
-    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.55), transparent 70%);
+    background: radial-gradient(ellipse at center, color-mix(in srgb, var(--color-black) 55%, transparent), transparent 70%);
   }
 }
 
 .ml-slider__slide-heading {
-  color: $color-white;
+  color: var(--color-white);
   font-size: clamp(1.75rem, 5vw, 3.5rem);
   font-weight: $font-weight-bold;
   margin-bottom: var(--space-sm);
   line-height: 1.2;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 2px 4px color-mix(in srgb, var(--color-black) 50%, transparent);
 }
 
 .ml-slider__slide-text {
-  color: $color-white;
+  color: var(--color-white);
   font-size: clamp(1rem, 2vw, 1.125rem);
   margin-bottom: var(--space-md);
   line-height: 1.6;
@@ -97,12 +97,12 @@
 
   width: 50px !important;
   height: 50px !important;
-  background: rgba($color-white, 0.2) !important;
+  background: color-mix(in srgb, var(--color-white) 20%, transparent) !important;
   border-radius: 50% !important;
-  color: $color-white !important;
+  color: var(--color-white) !important;
 
   &::after { font-size: $font-size-xl !important; }
-  &:hover  { background: rgba($color-white, 0.3) !important; }
+  &:hover  { background: color-mix(in srgb, var(--color-white) 30%, transparent) !important; }
 
   @include respond-below('sm') {
     --swiper-navigation-size: 40px;
@@ -117,10 +117,10 @@
 .ml-slider__pagination .swiper-pagination-bullet {
   width:      12px !important;
   height:     12px !important;
-  background: rgba($color-white, 0.5) !important;
+  background: color-mix(in srgb, var(--color-white) 50%, transparent) !important;
   opacity:    1 !important;
 
-  &:hover { background: rgba($color-white, 0.7) !important; }
+  &:hover { background: color-mix(in srgb, var(--color-white) 70%, transparent) !important; }
 }
 
 .ml-slider__pagination .swiper-pagination-bullet-active {

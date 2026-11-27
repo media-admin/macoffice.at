@@ -5,8 +5,8 @@
     }
 
     td:first-child {
-        background-color: rgba(25, 118, 176, 0.75);
-        color: #fff;
+        background-color: color-mix(in srgb, var(--color-info) 75%, transparent);
+        color: var(--color-white);
         font-weight: 600;
         white-space: nowrap;
         padding-right: var(--space-sm);

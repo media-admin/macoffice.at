@@ -5,8 +5,18 @@
 // Nur Design-Tokens: Farben als var(--color-*), Abstände/Größen als $-Variablen.
 // =============================================================================
 
+// Die Startseite nutzt mehr Breite als das Kit (1200px) – sonst wirken Karten-Raster schmal.
+.home {
+  overflow-x: clip; // Sicherheitsnetz: nie horizontal scrollen
+
+  .container {
+    max-width: $container-width-wide;
+  }
+}
+
 .home-section {
   @include section-padding;
+  min-width: 0;
 
   // Abwechselnde Hintergründe: Neuheiten hell, Lieblingsprodukte abgesetzt usw.
   &--featured,
@@ -54,9 +64,9 @@
   &__link {
     display: flex;
     flex-direction: column;
-    gap: $spacing-2;
+    gap: $spacing-1;
     height: 100%;
-    padding: $spacing-5;
+    padding: $spacing-3;
     color: var(--color-text);
     text-decoration: none;
 
@@ -74,9 +84,10 @@
 
   &__title {
     margin: 0;
-    font-size: var(--text-xl);
+    font-size: var(--text-lg);
     font-weight: $font-weight-semibold;
     line-height: $line-height-tight;
+    overflow-wrap: anywhere;
   }
 
   &__subtitle {
@@ -87,13 +98,14 @@
   &__media {
     display: block;
     margin-top: auto;
-    padding-top: $spacing-3;
+    padding-top: $spacing-2;
     border-top: 1px dotted var(--color-border);
   }
 
   &__image {
     display: block;
     width: 100%;
+    max-width: 100%;
     height: auto;
     aspect-ratio: 4 / 3;
     object-fit: contain;
@@ -112,28 +124,32 @@
 .home-grid {
   display: grid;
   gap: $spacing-6;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr); // minmax(0, …): Inhalt darf Spalten nie über den Viewport hinausdrücken
   margin: 0;
   padding: 0;
   list-style: none;
 
+  > li {
+    min-width: 0;
+  }
+
   &--cards {
-    @include respond-to('sm') { grid-template-columns: repeat(2, 1fr); }
-    @include respond-to('lg') { grid-template-columns: repeat(4, 1fr); }
+    @include respond-to('sm') { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @include respond-to('lg') { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   }
 
   &--categories {
-    grid-template-columns: repeat(2, 1fr);
-    gap: $spacing-4;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $spacing-3;
 
-    @include respond-to('md') { grid-template-columns: repeat(3, 1fr); }
-    @include respond-to('lg') { grid-template-columns: repeat(4, 1fr); }
-    @include respond-to('xl') { grid-template-columns: repeat(6, 1fr); }
+    @include respond-to('md') { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @include respond-to('lg') { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    @include respond-to('xl') { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   }
 
   &--services {
-    @include respond-to('sm') { grid-template-columns: repeat(2, 1fr); }
-    @include respond-to('xl') { grid-template-columns: repeat(4, 1fr); }
+    @include respond-to('sm') { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @include respond-to('xl') { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   }
 }
 
@@ -142,10 +158,7 @@
 // -----------------------------------------------------------------------------
 .home-slider {
   position: relative;
-
-  @include respond-to('md') {
-    padding: 0 $spacing-10;
-  }
+  min-width: 0;
 
   .swiper-slide {
     height: auto;
@@ -153,15 +166,30 @@
 
   .swiper-pagination {
     position: static;
-    margin-top: $spacing-5;
+    margin-top: $spacing-4;
   }
 
+  // Pfeile als runde Schaltflächen, die den Rand der äußeren Karten leicht überlappen
   .swiper-button-prev,
   .swiper-button-next {
     display: none;
+    --swiper-navigation-size: 16px;
+    top: 45%;
+    width: $spacing-5;
+    height: $spacing-5;
+    margin-top: 0;
+    border-radius: 50%;
+    background: var(--color-card-bg);
+    box-shadow: $shadow-md;
+    z-index: 2;
 
     @include respond-to('md') { display: flex; }
   }
+
+  .swiper-button-prev { left: calc(-1 * #{$spacing-2}); }
+  .swiper-button-next { right: calc(-1 * #{$spacing-2}); }
+
+  .swiper-button-disabled { opacity: 0; pointer-events: none; }
 }
 
 // -----------------------------------------------------------------------------
@@ -173,9 +201,10 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: $spacing-3;
+    gap: $spacing-2;
     height: 100%;
-    padding: $spacing-4;
+    min-width: 0;
+    padding: $spacing-3;
     color: var(--color-text);
     text-align: center;
     text-decoration: none;
@@ -191,13 +220,16 @@
   &__image {
     display: block;
     width: 100%;
+    max-width: 100%;
     height: auto;
     aspect-ratio: 1 / 1;
     object-fit: contain;
   }
 
   &__title {
+    max-width: 100%;
     font-weight: $font-weight-semibold;
+    overflow-wrap: anywhere;
   }
 }
 

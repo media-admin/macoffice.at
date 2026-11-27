@@ -143,6 +143,7 @@ php_error.log
 # Live-Import (Dumps enthalten Kunden- und Bestelldaten, Repo ist öffentlich!)
 /_import/
 /cms/wp-content/mu-plugins/zz-local-no-mail.php
+/cms/wp-content/mu-plugins/zz-local-uploads-from-live.php
 database-backup/
 db-backup/
 

@@ -188,7 +188,8 @@ if [ -n "$UPLOADS_SRC" ]; then
   rsync -a "${SRC%/}/" "$DEST/"
   ok "Uploads kopiert nach cms/wp-content/uploads"
 else
-  warn "Keine Uploads angegeben – Bilder fehlen lokal (später: bash scripts/import-live.sh <dump> <uploads>, oder nur die Uploads per rsync nachliefern)."
+  # Keine Uploads angegeben: fehlende Bilder lokal direkt von der Live-Seite laden (nur LocalDev, nicht deployt)
+  bash "$PROJECT_ROOT/scripts/uploads-from-live.sh" on || warn "Uploads-Fallback konnte nicht aktiviert werden."
 fi
 
 step "Lokaler Admin und Branding"

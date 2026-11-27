@@ -66,7 +66,7 @@
   &__overlay {
     position:        absolute;
     inset:           0;
-    background:      rgba($color-primary, 0.9);
+    background:      color-mix(in srgb, var(--color-primary) 90%, transparent);
     display:         flex;
     align-items:     center;
     justify-content: center;
@@ -95,7 +95,7 @@
     display:         flex;
     align-items:     center;
     justify-content: center;
-    color:           $color-primary;
+    color:           var(--color-primary-text);
     transition:      $transition-base;
     text-decoration: none;
 
@@ -106,14 +106,14 @@
     }
 
     &:hover {
-      background: $color-primary;
+      background: var(--color-primary);
       color:      $color-white;
       transform:  translateY(-4px) scale(1.1);
       box-shadow: $shadow-lg;
     }
 
     &:focus-visible {
-      outline:        2px solid $color-primary;
+      outline:        2px solid var(--color-primary);
       outline-offset: 3px;
     }
   }
@@ -128,7 +128,7 @@
   }
 
   &__role {
-    color:          $color-primary;
+    color:          var(--color-primary-text);
     font-size:      var(--text-sm);
     font-weight:    600;
     margin-bottom:  $spacing-3;
@@ -201,8 +201,8 @@
   .team-member__name { font-size: var(--text-xl); }
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .team-member__overlay {
-    background: rgba($color-primary, 0.95);
+    background: color-mix(in srgb, var(--color-primary) 95%, transparent);
   }
 }

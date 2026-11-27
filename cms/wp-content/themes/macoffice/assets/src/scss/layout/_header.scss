@@ -62,10 +62,10 @@
         text-decoration: none;
         transition:      color 0.15s ease;
 
-        &:hover { color: $color-primary; }
+        &:hover { color: var(--color-primary-text); }
 
         &:focus-visible {
-            outline:        2px solid $color-primary;
+            outline:        2px solid var(--color-primary);
             outline-offset: 3px;
             border-radius:  $radius-sm;
         }
@@ -110,7 +110,7 @@
         color:           var(--color-text);
 
         &:focus-visible {
-            outline:        2px solid $color-primary;
+            outline:        2px solid var(--color-primary);
             outline-offset: 3px;
             border-radius:  $radius-sm;
         }

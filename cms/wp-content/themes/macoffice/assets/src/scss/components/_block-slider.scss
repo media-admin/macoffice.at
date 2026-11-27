@@ -124,7 +124,7 @@
 }
 
 .ml-slider__pagination .swiper-pagination-bullet-active {
-  background:    $color-primary !important;
+  background:    var(--color-primary) !important;
   width:         32px !important;
   border-radius: 6px !important;
 }

@@ -75,7 +75,7 @@
     width: 48px;
     height: 48px;
     border-radius: $radius-full;
-    background: $color-primary;
+    background: var(--color-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -106,7 +106,7 @@
   &__date {
     font-size: $font-size-sm;
     font-weight: 600;
-    color: $color-primary;
+    color: var(--color-primary-text);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
@@ -156,11 +156,11 @@
   
   &--primary {
     .timeline-item__marker {
-      background: $color-primary;
+      background: var(--color-primary);
     }
     
     .timeline-item__date {
-      color: $color-primary;
+      color: var(--color-primary-text);
     }
   }
   

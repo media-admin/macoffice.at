@@ -3,18 +3,18 @@
 // Swiper Override – lädt nach Swiper-CSS aus JS-Bundle
 // Muss als letzter @use in style.scss stehen
 .swiper-pagination-bullet {
-  background: $color-primary !important;
+  background: var(--color-primary) !important;
   opacity: 0.3 !important;
 }
 
 .swiper-pagination-bullet-active {
-  background: $color-primary !important;
+  background: var(--color-primary) !important;
   opacity: 1 !important;
 }
 
 .swiper-button-prev,
 .swiper-button-next {
-  color: $color-primary !important;
+  color: var(--color-primary-text) !important;
 }
 
 // Hero-Slider: weiße Bullets

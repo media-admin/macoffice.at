@@ -158,6 +158,8 @@ $color-input-bg:   $color-white;
   //  --color-primary-text  Rot als Schrift/Icon/Link auf Hintergrund oder Fläche
   --color-primary-text:   #{$color-primary};
   --color-on-primary:     #{$color-white};
+  --color-primary-dark:   #{$color-primary-dark};    // Hover-Füllung
+  --color-primary-darker: #{$color-primary-darker};  // Active-Füllung
 
   // Hintergrund & Oberflächen
   --color-background:     #{$color-gray-50};   // macoffice: Seitenhintergrund #f5f5f5 (Alt-Theme)
@@ -269,6 +271,8 @@ $color-input-bg:   $color-white;
   --color-primary:        #c23b3f;
   --color-primary-text:   #e5686c;
   --color-on-primary:     #ffffff;
+  --color-primary-dark:   #a62f33;
+  --color-primary-darker: #8c2629;
   --color-secondary:      #a3a3a3;
   --color-accent:         #e5686c;
 }

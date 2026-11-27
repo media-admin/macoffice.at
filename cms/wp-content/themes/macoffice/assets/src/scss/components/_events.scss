@@ -70,7 +70,7 @@
     position:     absolute;
     top:          var(--space-sm);
     right:        var(--space-sm);
-    background:   $color-primary;
+    background:   var(--color-primary);
     color:        $color-white;
     padding:      0.35rem 0.85rem;
     border-radius: $radius-full;
@@ -95,8 +95,8 @@
   &__category {
     font-size:      clamp(0.6875rem, 1vw, 0.75rem);
     padding:        0.2rem 0.6rem;
-    background:     rgba($color-primary, 0.1);
-    color:          $color-primary;
+    background:     color-mix(in srgb, var(--color-primary) 10%, transparent);
+    color:          var(--color-primary-text);
     border-radius:  $radius-full;
     font-weight:    $font-weight-semibold;
     text-transform: uppercase;
@@ -113,7 +113,7 @@
       color:           $color-text;
       text-decoration: none;
       transition:      color 0.2s ease;
-      &:hover { color: $color-primary; }
+      &:hover { color: var(--color-primary-text); }
     }
   }
 
@@ -145,7 +145,7 @@
     display:         inline-flex;
     align-items:     center;
     gap:             0.5rem;
-    color:           $color-primary;
+    color:           var(--color-primary-text);
     text-decoration: none;
     font-weight:     $font-weight-semibold;
     font-size:       var(--text-sm);

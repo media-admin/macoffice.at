@@ -79,7 +79,7 @@
       
       &:hover {
         box-shadow: $shadow-md;
-        border-color: $color-primary;
+        border-color: var(--color-primary);
       }
     }
   }
@@ -102,7 +102,7 @@
 }
 
 // Dark Mode
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .logo-carousel {
     &[data-grayscale="true"] {
       .logo-carousel__image {

@@ -50,8 +50,8 @@
 
         &:focus {
             outline:      none;
-            border-color: $color-primary;
-            box-shadow:   0 0 0 4px rgba($color-primary, 0.12);
+            border-color: var(--color-primary);
+            box-shadow:   0 0 0 4px color-mix(in srgb, var(--color-primary) 12%, transparent);
         }
 
         &::placeholder { color: var(--color-text-muted); opacity: 0.7; }
@@ -68,7 +68,7 @@
 
 // ── Header-Ergänzungen (Basis: .archive-header) ───────────────────────────────
 
-.archive-header__term { color: $color-primary; }
+.archive-header__term { color: var(--color-primary-text); }
 
 .archive-header__search {
     max-width:  560px;
@@ -107,8 +107,8 @@
 
         &:focus {
             outline:      none;
-            border-color: $color-primary;
-            box-shadow:   0 0 0 3px rgba($color-primary, 0.12);
+            border-color: var(--color-primary);
+            box-shadow:   0 0 0 3px color-mix(in srgb, var(--color-primary) 12%, transparent);
         }
     }
 }

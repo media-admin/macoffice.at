@@ -54,7 +54,7 @@
     flex-shrink: 0;
 
     &:hover {
-        color: $color-primary;
+        color: var(--color-primary-text);
     }
 
     svg {
@@ -88,16 +88,16 @@
     transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
 
     &:hover {
-        color: $color-primary;
+        color: var(--color-primary-text);
         text-decoration: none;
     }
 }
 
 // Aktiver Eintrag (gesetzt per Scrollspy-JS)
 .toc__item.is-active > .toc__link {
-    color: $color-primary;
-    border-left-color: $color-primary;
-    background-color: rgba($color-primary, 0.06);
+    color: var(--color-primary-text);
+    border-left-color: var(--color-primary);
+    background-color: color-mix(in srgb, var(--color-primary) 6%, transparent);
     font-weight: $font-weight-medium;
 }
 

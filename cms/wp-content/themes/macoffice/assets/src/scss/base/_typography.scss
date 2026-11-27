@@ -75,7 +75,7 @@ a {
   transition: color 0.15s ease;
 
   &:hover {
-    color: #{$color-primary-darker};
+    color: #{var(--color-primary-darker)};
   }
 
   &:focus-visible {

@@ -98,7 +98,7 @@
     text-align: center;
 
     &--primary {
-        background: $color-primary;
+        background: var(--color-primary);
         color:      $color-white;
     }
 

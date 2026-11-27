@@ -38,10 +38,10 @@ body {
 
 // Links
 a {
-  color: $color-primary;
+  color: var(--color-primary-text);
   
   &:hover {
-    color: $color-primary-darker;
+    color: var(--color-primary-text);
   }
 }
 

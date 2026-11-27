@@ -80,7 +80,7 @@
     a {
       color:           $color-text;
       text-decoration: none;
-      &:hover { color: $color-primary; }
+      &:hover { color: var(--color-primary-text); }
     }
   }
 

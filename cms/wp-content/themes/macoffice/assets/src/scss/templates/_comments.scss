@@ -38,7 +38,7 @@
         font-size:   var(--text-sm);
         font-weight: $font-weight-medium;
 
-        a { color: $color-primary; }
+        a { color: var(--color-primary-text); }
     }
 }
 
@@ -91,7 +91,7 @@
     font-weight: $font-weight-semibold;
     color:       var(--color-text);
 
-    a { color: inherit; text-decoration: none; &:hover { color: $color-primary; } }
+    a { color: inherit; text-decoration: none; &:hover { color: var(--color-primary-text); } }
 }
 
 .comment__date,
@@ -102,7 +102,7 @@
 }
 
 .comment__date:hover,
-.comment__edit a:hover { color: $color-primary; }
+.comment__edit a:hover { color: var(--color-primary-text); }
 
 .comment__edit a { color: inherit; }
 
@@ -120,7 +120,7 @@
 
     p            { margin: 0 0 $spacing-3; }
     p:last-child { margin-bottom: 0; }
-    a            { color: $color-primary; }
+    a            { color: var(--color-primary-text); }
 }
 
 .comment__reply {
@@ -129,7 +129,7 @@
     a {
         font-size:       var(--text-sm);
         font-weight:     $font-weight-semibold;
-        color:           $color-primary;
+        color:           var(--color-primary-text);
         text-decoration: none;
 
         &:hover { text-decoration: underline; }
@@ -145,7 +145,7 @@
 
     .nav-links { display: flex; justify-content: space-between; gap: $spacing-4; }
 
-    a { color: $color-primary; font-weight: $font-weight-semibold; text-decoration: none; &:hover { text-decoration: underline; } }
+    a { color: var(--color-primary-text); font-weight: $font-weight-semibold; text-decoration: none; &:hover { text-decoration: underline; } }
 }
 
 .comments-closed {
@@ -170,7 +170,7 @@
         font-size: var(--text-sm);
         color:     var(--color-text-muted);
 
-        a { color: $color-primary; }
+        a { color: var(--color-primary-text); }
     }
 
     label {
@@ -199,8 +199,8 @@
 
         &:focus {
             outline:      none;
-            border-color: $color-primary;
-            box-shadow:   0 0 0 4px rgba($color-primary, 0.12);
+            border-color: var(--color-primary);
+            box-shadow:   0 0 0 4px color-mix(in srgb, var(--color-primary) 12%, transparent);
         }
     }
 
@@ -227,7 +227,7 @@
             height:       18px;
             margin-top:   2px;
             cursor:       pointer;
-            accent-color: $color-primary;
+            accent-color: var(--color-primary);
         }
 
         label {

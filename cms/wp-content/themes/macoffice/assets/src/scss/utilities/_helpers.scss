@@ -93,7 +93,7 @@
 .text-left      { text-align: left; }
 .text-right     { text-align: right; }
 .text-muted     { color: var(--color-text-muted); }
-.text-primary   { color: $color-primary; }
+.text-primary   { color: var(--color-primary-text); }
 .truncate       { @include truncate; }
 
 // ── Spacing (Margin) ─────────────────────────────────────────────────────────

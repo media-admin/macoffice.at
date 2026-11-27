@@ -44,7 +44,7 @@
       font-size: 48px;
       width:     48px;
       height:    48px;
-      color:     $color-primary;
+      color:     var(--color-primary-text);
     }
   }
 
@@ -87,7 +87,7 @@
 
   // ── Color Variants ────────────────────────────────────────────────────────
 
-  &--primary { .stat__number, .stat__icon .dashicons { color: $color-primary; } }
+  &--primary { .stat__number, .stat__icon .dashicons { color: var(--color-primary-text); } }
   &--success { .stat__number, .stat__icon .dashicons { color: $color-success; } }
   &--error   { .stat__number, .stat__icon .dashicons { color: $color-error; } }
   &--warning { .stat__number, .stat__icon .dashicons { color: $color-warning-dark; } }
@@ -135,7 +135,7 @@
       width:           80px;
       height:          80px;
       margin:          0 auto var(--space-md);
-      background:      rgba($color-primary, 0.1);
+      background:      color-mix(in srgb, var(--color-primary) 10%, transparent);
       border-radius:   $radius-full;
       display:         flex;
       align-items:     center;
@@ -144,8 +144,8 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .stats--card .stat__icon {
-    background: rgba($color-primary, 0.2);
+    background: color-mix(in srgb, var(--color-primary) 20%, transparent);
   }
 }

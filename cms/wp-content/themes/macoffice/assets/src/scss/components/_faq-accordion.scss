@@ -22,7 +22,7 @@
     
     &.is-active {
       .faq-question {
-        color: $color-primary;
+        color: var(--color-primary-text);
         background: $color-gray-50;
         
         .faq-question__icon {
@@ -52,7 +52,7 @@
     transition: $transition-base;
     
     &:hover {
-      color: $color-primary;
+      color: var(--color-primary-text);
       background: $color-gray-50;
     }
     
@@ -69,7 +69,7 @@
       align-items: center;
       justify-content: center;
       transition: transform 0.3s ease;
-      color: $color-primary;
+      color: var(--color-primary-text);
       
       svg {
         width: 20px;
@@ -106,11 +106,11 @@
       }
       
       a {
-        color: $color-primary;
+        color: var(--color-primary-text);
         text-decoration: underline;
         
         &:hover {
-          color: $color-primary-dark;
+          color: var(--color-primary-text);
         }
       }
     }

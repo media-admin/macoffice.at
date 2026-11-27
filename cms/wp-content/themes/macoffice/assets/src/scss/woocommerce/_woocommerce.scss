@@ -19,7 +19,7 @@
     .woocommerce-notices-wrapper { margin-bottom: $spacing-4; }
     table.shop_table { width: 100%; }
 
-    .star-rating { color: $color-primary; font-size: var(--text-sm); }
+    .star-rating { color: var(--color-primary-text); font-size: var(--text-sm); }
 
     .woocommerce-breadcrumb {
         font-size:     var(--text-sm);
@@ -27,7 +27,7 @@
         margin-bottom: $spacing-6;
         padding:       0;
 
-        a { color: var(--color-text-muted); text-decoration: none; &:hover { color: $color-primary; } }
+        a { color: var(--color-text-muted); text-decoration: none; &:hover { color: var(--color-primary-text); } }
         .separator { margin: 0 $spacing-1; }
     }
 }
@@ -173,7 +173,7 @@
         padding:     0 $spacing-4 $spacing-3 !important;
         font-size:   var(--text-lg) !important;
         font-weight: $font-weight-bold !important;
-        color:       $color-primary !important;
+        color:       var(--color-primary-text) !important;
         margin:      0 !important;
 
         del {
@@ -226,7 +226,7 @@
                 overflow:      hidden;
                 transition:    border-color $transition-base;
 
-                &.flex-active { border-color: $color-primary; }
+                &.flex-active { border-color: var(--color-primary); }
                 img { width: 100%; height: 100%; object-fit: cover; display: block; }
             }
         }
@@ -265,7 +265,7 @@
     .price {
         font-size:     var(--text-2xl);
         font-weight:   $font-weight-bold;
-        color:         $color-primary;
+        color:         var(--color-primary-text);
         margin-bottom: $spacing-4;
 
         del { font-size: var(--text-lg); color: var(--color-text-muted); font-weight: $font-weight-medium; margin-right: $spacing-2; }
@@ -335,7 +335,7 @@
         span.posted_in,
         span.tagged_as { display: block; }
 
-        a { color: $color-primary; text-decoration: none; &:hover { text-decoration: underline; } }
+        a { color: var(--color-primary-text); text-decoration: none; &:hover { text-decoration: underline; } }
     }
 
     .woocommerce-tabs {
@@ -362,10 +362,10 @@
                     margin-bottom: -2px;
                     transition:   color $transition-base, border-color $transition-base;
 
-                    &:hover { color: $color-primary; }
+                    &:hover { color: var(--color-primary-text); }
                 }
 
-                &.active a { color: $color-primary; border-bottom-color: $color-primary; }
+                &.active a { color: var(--color-primary-text); border-bottom-color: var(--color-primary); }
             }
         }
 
@@ -385,7 +385,7 @@
         .comment-form-rating {
             margin-bottom: $spacing-4;
             label { font-weight: $font-weight-semibold; font-size: var(--text-sm); }
-            .stars a { color: $color-primary; font-size: var(--text-lg); }
+            .stars a { color: var(--color-primary-text); font-size: var(--text-lg); }
         }
 
         .comment_container {
@@ -446,7 +446,7 @@
         }
 
         td.product-name {
-            a { color: var(--color-text); text-decoration: none; font-weight: $font-weight-semibold; &:hover { color: $color-primary; } }
+            a { color: var(--color-text); text-decoration: none; font-weight: $font-weight-semibold; &:hover { color: var(--color-primary-text); } }
             .variation {
                 font-size:  var(--text-xs);
                 color:      var(--color-text-muted);
@@ -471,7 +471,7 @@
             background:    var(--color-input-bg);
             color:         var(--color-text);
             font-family:   inherit;
-            &:focus { outline: none; border-color: $color-primary; }
+            &:focus { outline: none; border-color: var(--color-primary); }
         }
     }
 
@@ -493,7 +493,7 @@
             font-size:     var(--text-base);
             font-family:   inherit;
             transition:    border-color $transition-base;
-            &:focus { outline: none; border-color: $color-primary; }
+            &:focus { outline: none; border-color: var(--color-primary); }
         }
 
         button[name="apply_coupon"] {
@@ -511,7 +511,7 @@
         color:      var(--color-text-muted);
         border:     2px solid var(--color-border);
         cursor:     pointer;
-        &:hover { border-color: $color-primary; color: $color-primary; }
+        &:hover { border-color: var(--color-primary); color: var(--color-primary-text); }
     }
 
     .cart_totals {
@@ -541,7 +541,7 @@
                 color:       var(--color-text);
             }
 
-            tr.order-total td { color: $color-primary; }
+            tr.order-total td { color: var(--color-primary-text); }
         }
 
         .wc-proceed-to-checkout {
@@ -604,7 +604,7 @@
             padding-top:  $spacing-3;
         }
 
-        tfoot tr:last-child td { color: $color-primary; }
+        tfoot tr:last-child td { color: var(--color-primary-text); }
     }
 
     #payment {
@@ -660,10 +660,10 @@
                 font-weight: $font-weight-medium;
                 transition:  color $transition-base, background $transition-base;
 
-                &:hover { color: $color-primary; background: rgba($color-primary, 0.04); }
+                &:hover { color: var(--color-primary-text); background: color-mix(in srgb, var(--color-primary) 4%, transparent); }
             }
 
-            &.is-active a { color: $color-primary; font-weight: $font-weight-semibold; background: rgba($color-primary, 0.06); }
+            &.is-active a { color: var(--color-primary-text); font-weight: $font-weight-semibold; background: color-mix(in srgb, var(--color-primary) 6%, transparent); }
         }
     }
 
@@ -675,7 +675,7 @@
 
             th { padding: $spacing-2 $spacing-3; border-bottom: 2px solid var(--color-border); font-weight: $font-weight-semibold; text-align: left; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); }
             td { padding: $spacing-3; border-bottom: 1px solid var(--color-border); }
-            a  { color: $color-primary; text-decoration: none; &:hover { text-decoration: underline; } }
+            a  { color: var(--color-primary-text); text-decoration: none; &:hover { text-decoration: underline; } }
 
             .button { @include btn-base; @include btn-outline; font-size: var(--text-xs); padding: $spacing-1 $spacing-3; }
         }
@@ -694,7 +694,7 @@
             border-radius: $radius-lg;
             padding:       $spacing-5;
 
-            header { display: flex; align-items: center; justify-content: space-between; margin-bottom: $spacing-3; h3 { font-size: var(--text-lg); font-weight: $font-weight-bold; margin: 0; } a.edit { font-size: var(--text-sm); color: $color-primary; text-decoration: none; } }
+            header { display: flex; align-items: center; justify-content: space-between; margin-bottom: $spacing-3; h3 { font-size: var(--text-lg); font-weight: $font-weight-bold; margin: 0; } a.edit { font-size: var(--text-sm); color: var(--color-primary-text); text-decoration: none; } }
             address { font-style: normal; font-size: var(--text-sm); color: var(--color-text-muted); line-height: 1.7; }
         }
     }
@@ -736,7 +736,7 @@
             transition:    border-color $transition-base, box-shadow $transition-base;
             appearance:    none;
 
-            &:focus { outline: none; border-color: $color-primary; box-shadow: 0 0 0 4px rgba($color-primary, 0.12); }
+            &:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 12%, transparent); }
             &.input-text.woocommerce-invalid   { border-color: $color-error !important; }
             &.input-text.woocommerce-validated { border-color: $color-success !important; }
         }
@@ -792,7 +792,7 @@
         cursor:              pointer;
         transition:          border-color $transition-base;
 
-        &:focus { outline: none; border-color: $color-primary; }
+        &:focus { outline: none; border-color: var(--color-primary); }
     }
 }
 
@@ -824,8 +824,8 @@
             transition:     background $transition-base, color $transition-base;
         }
 
-        a { color: var(--color-text); background: var(--color-card-bg); &:hover { background: rgba($color-primary, 0.08); border-color: $color-primary; color: $color-primary; } }
-        span.current { background: $color-primary; color: $color-white; border-color: $color-primary; }
+        a { color: var(--color-text); background: var(--color-card-bg); &:hover { background: color-mix(in srgb, var(--color-primary) 8%, transparent); border-color: var(--color-primary); color: var(--color-primary-text); } }
+        span.current { background: var(--color-primary); color: $color-white; border-color: var(--color-primary); }
     }
 }
 
@@ -836,10 +836,10 @@
 //  - bp(desktop) → respond-to('xl') (Breakpoint-System)
 //  - Fullwidth-Breakout entfernt: Bar liegt innerhalb von .container
 //  - Hartkodierte Farben → Design-Tokens. Gefüllte "aktiv"-Zustände (vorher
-//    #555/#333 + weiße Schrift) nutzen jetzt $color-primary + $color-white
+//    #555/#333 + weiße Schrift) nutzen jetzt var(--color-primary) + $color-white
 //    statt var(--color-text) - Letzteres würde im Dark Mode umkippen (dort
 //    ist --color-text nahezu weiß, weißer Text auf weißem Grund wäre
-//    unsichtbar). $color-primary matcht das bereits bestehende Muster für
+//    unsichtbar). var(--color-primary) matcht das bereits bestehende Muster für
 //    "aktiv/ausgewählt" im Theme (siehe nav.woocommerce-pagination .current).
 //  - Ausnahme: der SVG-Chevron im Sortier-Dropdown bleibt hartkodiert
 //    (stroke='%23666') - data-URIs lösen CSS Custom Properties nicht zur
@@ -886,7 +886,7 @@
 
 .wc-filter-bar__reset {
 	font-size: 0.8125rem;
-	color: $color-primary;
+	color: var(--color-primary-text);
 	background: none;
 	border: none;
 	padding: 0.375rem 0;
@@ -919,7 +919,7 @@
 	align-items: center;
 	gap: 0.25rem;
 	padding: 0.25rem 0.625rem;
-	background: $color-primary;
+	background: var(--color-primary);
 	color: $color-white;
 	border-radius: 999px;
 	font-size: 0.75rem;
@@ -970,17 +970,17 @@
 	white-space: nowrap;
 
 	&.has-active {
-		border-color: $color-primary;
+		border-color: var(--color-primary);
 	}
 
 	&[aria-expanded="true"] {
-		background: $color-primary;
-		border-color: $color-primary;
+		background: var(--color-primary);
+		border-color: var(--color-primary);
 		color: $color-white;
 	}
 
 	&:hover:not([aria-expanded="true"]) {
-		border-color: $color-primary;
+		border-color: var(--color-primary);
 	}
 }
 
@@ -993,7 +993,7 @@
 	height: 1.25rem;
 	padding: 0 0.25rem;
 	border-radius: 999px;
-	background: $color-primary;
+	background: var(--color-primary);
 	color: $color-white;
 	font-size: 0.75rem;
 	font-weight: 600;
@@ -1004,7 +1004,7 @@
 // braucht der Badge selbst den umgekehrten Kontrast.
 .wc-filter-group__toggle[aria-expanded="true"] .wc-filter-group__count {
 	background: $color-white;
-	color: $color-primary;
+	color: var(--color-primary-text);
 }
 
 // Icon +/—
@@ -1086,7 +1086,7 @@
 		width: 1rem;
 		height: 1rem;
 		flex-shrink: 0;
-		accent-color: $color-primary;
+		accent-color: var(--color-primary);
 		cursor: pointer;
 	}
 
@@ -1103,7 +1103,7 @@
 		color: var(--color-text-muted);
 	}
 
-	&:hover &__label { color: $color-primary; }
+	&:hover &__label { color: var(--color-primary-text); }
 }
 
 // ---------------------------------------------------------------------------
@@ -1125,7 +1125,7 @@
 		border-radius: 999px;
 	}
 
-	.noUi-connect { background: $color-primary; }
+	.noUi-connect { background: var(--color-primary); }
 
 	.noUi-handle {
 		width: 1rem !important;
@@ -1133,7 +1133,7 @@
 		top: -0.4375rem !important;
 		right: -0.5rem !important;
 		border-radius: 50%;
-		background: $color-primary;
+		background: var(--color-primary);
 		border: 2px solid var(--color-card-bg);
 		box-shadow: 0 1px 4px rgba(0,0,0,.2);
 		cursor: grab;
@@ -1160,7 +1160,7 @@
 	background: var(--color-input-bg);
 	color: var(--color-text);
 
-	&:focus { outline: none; border-color: $color-primary; }
+	&:focus { outline: none; border-color: var(--color-primary); }
 	&::-webkit-outer-spin-button,
 	&::-webkit-inner-spin-button { -webkit-appearance: none; }
 	& { -moz-appearance: textfield; }
@@ -1205,7 +1205,7 @@
         transition: background 0.2s, border-color 0.2s, color 0.2s;
 
         &:hover {
-            border-color: $color-primary;
+            border-color: var(--color-primary);
         }
     }
 }

@@ -62,7 +62,7 @@
     top:            -12px;
     left:           50%;
     transform:      translateX(-50%);
-    background:     $color-primary;
+    background:     var(--color-primary);
     color:          $color-white;
     padding:        $spacing-1 $spacing-3;
     border-radius:  $radius-full;
@@ -147,7 +147,7 @@
 
     svg {
       flex-shrink: 0;
-      color:       $color-primary;
+      color:       var(--color-primary-text);
     }
   }
 
@@ -161,7 +161,7 @@
 
   // Featured State
   &--featured {
-    border-color: $color-primary;
+    border-color: var(--color-primary);
     border-width: 3px;
     box-shadow:   $shadow-lg;
     transform:    scale(1.03);
@@ -174,7 +174,7 @@
       @include respond-to('lg') { transform: scale(1.05) translateY(-8px); }
     }
 
-    .pricing-table__title  { color: $color-primary; }
+    .pricing-table__title  { color: var(--color-primary-text); }
     .pricing-table__button { @include btn-primary; }
   }
 }
@@ -213,15 +213,15 @@
   }
 
   &--highlight {
-    background:    rgba($color-primary, 0.05);
+    background:    color-mix(in srgb, var(--color-primary) 5%, transparent);
     padding:       $spacing-3;
     border-radius: $radius-md;
     margin:        $spacing-2 0;
-    border:        1px solid rgba($color-primary, 0.2);
+    border:        1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
 
     span {
       font-weight: 600;
-      color:       $color-primary;
+      color:       var(--color-primary-text);
     }
   }
 }
@@ -237,7 +237,7 @@
     &:hover       { box-shadow: $shadow-md; }
     &__price      { border-bottom: none; padding-bottom: var(--space-md); }
     &__amount     { font-size: clamp(2rem, 4vw, 3rem); }
-    &--featured   { border: 2px solid $color-primary; box-shadow: $shadow-md; }
+    &--featured   { border: 2px solid var(--color-primary); box-shadow: $shadow-md; }
   }
 
   .pricing-feature {
@@ -248,8 +248,8 @@
 
 .pricing-tables--featured {
   .pricing-table {
-    background: linear-gradient(135deg, var(--color-card-bg) 0%, rgba($color-primary, 0.05) 100%);
-    border-color: rgba($color-primary, 0.3);
+    background: linear-gradient(135deg, var(--color-card-bg) 0%, color-mix(in srgb, var(--color-primary) 5%, transparent) 100%);
+    border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
     box-shadow:   $shadow-lg;
   }
 }
@@ -262,12 +262,12 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .pricing-table--featured {
-    background: linear-gradient(135deg, var(--color-card-bg) 0%, rgba($color-primary, 0.1) 100%);
+    background: linear-gradient(135deg, var(--color-card-bg) 0%, color-mix(in srgb, var(--color-primary) 10%, transparent) 100%);
   }
 
   .pricing-feature--highlight {
-    background: rgba($color-primary, 0.1);
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
   }
 }

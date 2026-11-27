@@ -55,13 +55,13 @@
     }
     
     &.is-active {
-      color: $color-primary;
-      border-bottom-color: $color-primary;
+      color: var(--color-primary-text);
+      border-bottom-color: var(--color-primary);
       font-weight: 600;
     }
     
     &:focus {
-      outline: 2px solid $color-primary;
+      outline: 2px solid var(--color-primary);
       outline-offset: 2px;
     }
   }
@@ -128,14 +128,14 @@
     bottom: 0;
     
     &.is-active {
-      background: $color-primary;
+      background: var(--color-primary);
       color: $color-white;
-      border-color: $color-primary;
+      border-color: var(--color-primary);
     }
     
     &:hover:not(.is-active) {
-      border-color: $color-primary;
-      background: rgba($color-primary, 0.1);
+      border-color: var(--color-primary);
+      background: color-mix(in srgb, var(--color-primary) 10%, transparent);
     }
   }
 }
@@ -185,7 +185,7 @@
 }
 
 // Dark Mode Support
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .tabs {
     &__button {
       &:hover {

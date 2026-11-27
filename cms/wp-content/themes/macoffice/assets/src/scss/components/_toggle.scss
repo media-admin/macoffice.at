@@ -31,7 +31,7 @@ $toggle-travel:          $toggle-width - $toggle-thumb-size - ($toggle-thumb-off
 $toggle-radius:          $toggle-height * 0.5;
 $toggle-transition:      0.22s ease;
 
-$toggle-color-on:        $color-primary;
+$toggle-color-on:        var(--color-primary);
 $toggle-color-off:       var(--color-border);
 $toggle-color-unavail:   var(--color-border);
 $toggle-thumb-color:     #ffffff;
@@ -55,7 +55,7 @@ $toggle-thumb-unavail:   #cccccc;
     -webkit-tap-highlight-color: transparent;
 
     &:focus-visible {
-        outline:        2px solid $color-primary;
+        outline:        2px solid var(--color-primary);
         outline-offset: 4px;
         border-radius:  $radius-sm;
     }

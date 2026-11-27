@@ -43,10 +43,10 @@
     text-decoration: none;
     flex-shrink:     0;
 
-    &:hover { color: $color-primary; }
+    &:hover { color: var(--color-primary-text); }
 
     &:focus-visible {
-        outline:        2px solid $color-primary;
+        outline:        2px solid var(--color-primary);
         outline-offset: 3px;
         border-radius:  $radius-sm;
     }
@@ -84,10 +84,10 @@
             white-space:     nowrap;
             transition:      color 0.2s ease;
 
-            &:hover { color: $color-primary; }
+            &:hover { color: var(--color-primary-text); }
 
             &:focus-visible {
-                outline:        2px solid $color-primary;
+                outline:        2px solid var(--color-primary);
                 outline-offset: 2px;
                 border-radius:  $radius-sm;
             }
@@ -96,7 +96,7 @@
         &.current-menu-item > a,
         &.current-menu-parent > a,
         &.current-menu-ancestor > a {
-            color:       $color-primary;
+            color:       var(--color-primary-text);
             font-weight: 600;
         }
 
@@ -157,18 +157,18 @@
 
                 &:hover {
                     background:   var(--color-hover-bg);
-                    color:        $color-primary;
+                    color:        var(--color-primary-text);
                     padding-left: $spacing-5;
                 }
 
                 &:focus-visible {
-                    outline:        2px solid $color-primary;
+                    outline:        2px solid var(--color-primary);
                     outline-offset: -2px;
                 }
             }
 
             &.current-menu-item > a {
-                color:       $color-primary;
+                color:       var(--color-primary-text);
                 font-weight: 600;
             }
 
@@ -213,7 +213,7 @@
         margin-left: $spacing-1;
         transform:   translateX(-8px);
         min-width:   200px;
-        border-left: 3px solid $color-primary;
+        border-left: 3px solid var(--color-primary);
 
         li a {
             font-size: var(--text-xs);
@@ -221,7 +221,7 @@
             padding:   $spacing-2 $spacing-3;
 
             &:hover {
-                color:        $color-primary;
+                color:        var(--color-primary-text);
                 padding-left: $spacing-4;
             }
         }
@@ -298,12 +298,12 @@
     @include respond-to('lg') { display: none; }
 
     &:hover {
-        border-color: $color-primary;
-        background:   rgba($color-primary, 0.1);
+        border-color: var(--color-primary);
+        background:   color-mix(in srgb, var(--color-primary) 10%, transparent);
     }
 
     &:focus-visible {
-        outline:        2px solid $color-primary;
+        outline:        2px solid var(--color-primary);
         outline-offset: 3px;
     }
 
@@ -378,7 +378,7 @@
 
         &.current-menu-item > a,
         &.current_page_item > a {
-            color:       $color-primary;
+            color:       var(--color-primary-text);
             font-weight: 600;
         }
     }
@@ -392,12 +392,12 @@
         transition:      color 0.2s ease, background 0.2s ease;
 
         &:hover {
-            color:      $color-primary;
+            color:      var(--color-primary-text);
             background: var(--color-hover-bg);
         }
 
         &:focus-visible {
-            outline:        2px solid $color-primary;
+            outline:        2px solid var(--color-primary);
             outline-offset: -2px;
         }
     }
@@ -464,7 +464,7 @@
             // ── Level 4 ──────────────────────────────────────────────────────
 
             .sub-menu {
-                border-left: 3px solid $color-primary;
+                border-left: 3px solid var(--color-primary);
                 background:  transparent;
 
                 a {
@@ -521,7 +521,7 @@
 
         &.current-menu-item > a,
         &.current_page_item > a {
-            color: $color-primary;
+            color: var(--color-primary-text);
         }
 
         &.menu-item-has-children {
@@ -555,10 +555,10 @@
         align-items:     center;
         padding:         $spacing-1 0;
 
-        &:hover { color: $color-primary; }
+        &:hover { color: var(--color-primary-text); }
 
         &:focus-visible {
-            outline:        2px solid $color-primary;
+            outline:        2px solid var(--color-primary);
             outline-offset: 2px;
             border-radius:  $radius-sm;
         }
@@ -594,7 +594,7 @@
 
                 &:hover {
                     background: var(--color-hover-bg);
-                    color:      $color-primary;
+                    color:      var(--color-primary-text);
                 }
             }
 
@@ -640,12 +640,12 @@
 
             .sub-menu {
                 padding-left:    $spacing-3;
-                border-left-color: rgba($color-primary, 0.4);
+                border-left-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
 
                 a { font-size: var(--text-xs); opacity: 0.85; }
 
                 .sub-menu {
-                    border-left-color: rgba($color-primary, 0.2);
+                    border-left-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
                     a { font-style: italic; opacity: 0.7; }
                 }
             }
@@ -754,7 +754,7 @@
     transition:      color 0.2s ease, background 0.2s ease;
 
     &:hover {
-        color:      $color-primary;
+        color:      var(--color-primary-text);
         background: var(--color-hover-bg);
     }
 

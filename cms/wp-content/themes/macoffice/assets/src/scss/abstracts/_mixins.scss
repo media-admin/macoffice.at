@@ -36,7 +36,7 @@
                    color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 
   &:focus-visible {
-    outline:        2px solid $color-primary;
+    outline:        2px solid var(--color-primary);
     outline-offset: 3px;
   }
 
@@ -49,13 +49,13 @@
 }
 
 @mixin btn-primary {
-  background:   $color-primary;
-  border-color: $color-primary;
+  background:   var(--color-primary);
+  border-color: var(--color-primary);
   color:        $color-white;
 
   &:hover {
-    background:   $color-primary-dark;
-    border-color: $color-primary-dark;
+    background:   var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
     transform:    translateY(-1px);
     box-shadow:   $shadow-md;
   }
@@ -64,11 +64,11 @@
 
 @mixin btn-outline {
   background:   transparent;
-  border-color: $color-primary;
-  color:        $color-primary;
+  border-color: var(--color-primary);
+  color:        var(--color-primary-text);
 
   &:hover {
-    background: $color-primary;
+    background: var(--color-primary);
     color:      $color-white;
     transform:  translateY(-1px);
   }
@@ -233,14 +233,14 @@
   }
 }
 
-@mixin overlay($color: $color-primary, $opacity: 0.85) {
+@mixin overlay($color: var(--color-primary-text), $opacity: 0.85) {
   position:   absolute;
   inset:      0;
-  background: rgba($color, $opacity);
+  background: color-mix(in srgb, #{$color} #{$opacity * 100%}, transparent);
   transition: $transition-base;
 }
 
-@mixin focus-ring($color: $color-primary) {
+@mixin focus-ring($color: var(--color-primary-text)) {
   &:focus-visible {
     outline:        2px solid $color;
     outline-offset: 2px;

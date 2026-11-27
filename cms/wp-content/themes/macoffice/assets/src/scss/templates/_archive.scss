@@ -35,8 +35,8 @@
 .archive-header__badge {
     display:        inline-block;
     padding:        4px $spacing-3;
-    background:     rgba($color-primary, 0.1);
-    color:          $color-primary;
+    background:     color-mix(in srgb, var(--color-primary) 10%, transparent);
+    color:          var(--color-primary-text);
     border-radius:  $radius-full;
     font-size:      var(--text-sm);
     font-weight:    $font-weight-semibold;
@@ -155,16 +155,16 @@
         border:     1px solid var(--color-border);
 
         &:hover {
-            background:   rgba($color-primary, 0.08);
-            border-color: $color-primary;
-            color:        $color-primary;
+            background:   color-mix(in srgb, var(--color-primary) 8%, transparent);
+            border-color: var(--color-primary);
+            color:        var(--color-primary-text);
         }
     }
 
     .current {
-        background: $color-primary;
+        background: var(--color-primary);
         color:      $color-white;
-        border:     1px solid $color-primary;
+        border:     1px solid var(--color-primary);
     }
 
     .dots {

@@ -170,7 +170,7 @@ $hero-xl-mob:  420px;
   .btn--light {
     &.btn--primary {
       background:   $color-white;
-      color:        $color-primary;
+      color:        var(--color-primary-text);
       border-color: $color-white;
 
       &:hover, &:focus-visible {
@@ -186,7 +186,7 @@ $hero-xl-mob:  420px;
 
       &:hover, &:focus-visible {
         background: $color-white;
-        color:      $color-primary;
+        color:      var(--color-primary-text);
       }
     }
 

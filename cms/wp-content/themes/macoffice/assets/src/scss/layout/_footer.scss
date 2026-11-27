@@ -47,7 +47,7 @@
         line-height: 0;
 
         &:focus-visible {
-            outline:        2px solid $color-primary;
+            outline:        2px solid var(--color-primary);
             outline-offset: 3px;
             border-radius:  $radius-sm;
         }
@@ -65,10 +65,10 @@
         text-decoration: none;
         transition:      color 0.2s ease;
 
-        &:hover { color: $color-primary; }
+        &:hover { color: var(--color-primary-text); }
 
         &:focus-visible {
-            outline:        2px solid $color-primary;
+            outline:        2px solid var(--color-primary);
             outline-offset: 3px;
             border-radius:  $radius-sm;
         }
@@ -117,7 +117,7 @@
 
         &.current-menu-item > a,
         &.current_page_item > a {
-            color: $color-primary;
+            color: var(--color-primary-text);
         }
     }
 
@@ -128,10 +128,10 @@
         transition:      color 0.2s ease;
         white-space:     nowrap;
 
-        &:hover { color: $color-primary; }
+        &:hover { color: var(--color-primary-text); }
 
         &:focus-visible {
-            outline:        2px solid $color-primary;
+            outline:        2px solid var(--color-primary);
             outline-offset: 2px;
             border-radius:  $radius-sm;
         }
